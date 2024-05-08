@@ -26,3 +26,11 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PrivateSubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
         PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
+
+  S3Stack:
+    Type : AWS::Serverless::Application
+    Properties:
+      Location: s3_and_lambda.yml
+      Parameters:
+        JobQueueArn: !GetAtt BatchStack.Outputs.JobQueueArn
+        JobDefinitionArn: !GetAtt BatchStack.Outputs.JobDefinitionArn

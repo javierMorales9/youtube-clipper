@@ -16,14 +16,6 @@ Parameters:
   PrivateLinkEndpointSecurityGroup:
     Type: String
     Description: The security group on the PrivateLink endpoints. It must accept traffic from the service's SG.
-  ContainerCpu:
-    Type: Number
-    Default: 256
-    Description: How much CPU to give the container. 1024 is 1 CPU
-  ContainerMemory:
-    Type: Number
-    Default: 512
-    Description: How much memory in megabytes to give the container
 
 Resources:
   ComputeEnvironment:
@@ -35,7 +27,7 @@ Resources:
         MaxvCpus: 256
         Subnets: !Ref PrivateSubnetIds
         SecurityGroupIds:
-          - !Ref ServiceSecurityGroup
+          - !Ref BatchSecurityGroup
       State: ENABLED
 
   JobDefinition:
@@ -43,13 +35,19 @@ Resources:
     Properties:
       Type: container
       JobDefinitionName: "After_upload_definition"
+      PlatformCapabilities:
+        - FARGATE
       ContainerProperties:
+        Image: !Ref ImageUri
+        ExecutionRoleArn: !GetAtt BatchExecutionRole.Arn
         Command:
           - echo
           - "hello world"
-        Image: !Ref ImageUri
-        Memory: !Ref ContainerMemory
-        Vcpus: !Ref ContainerCpu
+        ResourceRequirements:
+            - Type: VCPU
+              Value: 0.25
+            - Type: MEMORY
+              Value: 512
       RetryStrategy:
         Attempts: 1
 
@@ -70,6 +68,59 @@ Resources:
       GroupDescription: Security group for batch tasks
       VpcId: !Ref VpcId
 
+  # IAM role that allows the batch service to interact with other
+  # AWS services
+  BatchExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "ecs-tasks.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "BatchExecutionPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "ecr:DescribeImageScanFindings"
+                  - "ecr:GetLifecyclePolicyPreview"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "ecr:DescribeImageReplicationStatus"
+                  - "ecr:DescribeRepositories"
+                  - "ecr:ListTagsForResource"
+                  - "ecr:BatchGetRepositoryScanningConfiguration"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetRepositoryPolicy"
+                  - "ecr:GetLifecyclePolicy"
+                  - "ecr:ValidatePullThroughCacheRule"
+                  - "ecr:DescribeRepositoryCreationTemplate"
+                  - "ecr:GetRegistryPolicy"
+                  - "ecr:DescribeRegistry"
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:GetRegistryScanningConfiguration"
+                Resource: "*"
+        - PolicyName: "BatchExecutionPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+
   # Open up the PrivateLink endpoints to accepting inbound traffic
   # from the service deploying in AWS Fargate.
   PrivateLinkIngressFromService:
@@ -83,3 +134,11 @@ Resources:
   # This log group stores the stdout logs from this service's containers
   LogGroup:
     Type: AWS::Logs::LogGroup
+
+Outputs:
+  JobQueueArn:
+    Description: The ARN of the job queue
+    Value: !Ref JobQueue
+  JobDefinitionArn:
+    Description: The ARN of the job definition
+    Value: !Ref JobDefinition
