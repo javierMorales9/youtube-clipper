@@ -15,6 +15,20 @@ Resources:
     Properties:
       BucketName: 'sources-file-bucket'
       AccessControl: Private
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+              - POST
+              - DELETE
+              - GET
+              - HEAD
+            AllowedOrigins:
+              - "*"
+            ExposedHeaders:
+              - "ETag"
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:Put
