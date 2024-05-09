@@ -17,6 +17,8 @@ RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
 ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 RUN npm --version
+RUN npm init -y
+RUN npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
 
 CMD ["node", "index.js"]
 

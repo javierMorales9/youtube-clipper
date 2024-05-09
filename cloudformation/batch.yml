@@ -45,9 +45,9 @@ Resources:
               Value: 0.25
             - Type: MEMORY
               Value: 512
-      Environment:
-        - Name: "OUTPUT_BUCKET"
-          Value: !Ref S3OutputBucket
+        Environment:
+          - Name: "OUTPUT_BUCKET"
+            Value: !Ref S3OutputBucket
       RetryStrategy:
         Attempts: 1
 
@@ -107,7 +107,7 @@ Resources:
                   - "ecr:GetAuthorizationToken"
                   - "ecr:GetRegistryScanningConfiguration"
                 Resource: "*"
-        - PolicyName: "BatchExecutionPolicy"
+        - PolicyName: "BatchExecutionPolicy2"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -138,7 +138,7 @@ Resources:
   S3OutputBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: 'sources-output-bucket'
+      BucketName: 'sources-out-bucket'
       AccessControl: Private
 
 Outputs:

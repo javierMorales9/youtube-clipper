@@ -12,6 +12,7 @@ Parameters:
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
+    DependsOn: ProcessingLambdaFunction
     Properties:
       BucketName: 'sources-file-bucket'
       AccessControl: Private
@@ -31,25 +32,23 @@ Resources:
               - "ETag"
       NotificationConfiguration:
         LambdaConfigurations:
-          - Event: s3:ObjectCreated:Put
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: txt
-            Function: !GetAtt [ ProcessingLambdaFunction, Arn]
+        - Event: s3:ObjectCreated:Put
+          Filter:
+            S3Key:
+              Rules:
+                - Name: suffix
+                  Value: txt
+          Function: !GetAtt ProcessingLambdaFunction.Arn
 
   ExampleInvokePermission:
     Type: AWS::Lambda::Permission
-    DependsOn: ProcessingLambdaFunction
+    DependsOn: [ProcessingLambdaFunction, S3Bucket]
     Properties:
-      FunctionName:
-        Fn::GetAtt:
-          - ProcessingLambdaFunction
-          - Arn
+      FunctionName: !GetAtt ProcessingLambdaFunction.Arn
       Action: lambda:InvokeFunction
       Principal: s3.amazonaws.com
-      SourceArn: arn:aws:s3:::sources-file-bucket
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !GetAtt S3Bucket.Arn
   ProcessingLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
