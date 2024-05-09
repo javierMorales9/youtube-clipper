@@ -123,11 +123,11 @@ Resources:
               containerOverrides: {
                 environment: [
                   {
-                    name: 'MY_BUCKET',
+                    name: 'INPUT_BUCKET',
                     value: event.Records[0].s3.bucket.name
                   },
                   {
-                    name: 'MY_KEY',
+                    name: 'INPUT_KEY',
                     value: event.Records[0].s3.object.key
                   }
                 ]

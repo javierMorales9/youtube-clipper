@@ -40,14 +40,14 @@ Resources:
       ContainerProperties:
         Image: !Ref ImageUri
         ExecutionRoleArn: !GetAtt BatchExecutionRole.Arn
-        Command:
-          - echo
-          - "hello world"
         ResourceRequirements:
             - Type: VCPU
               Value: 0.25
             - Type: MEMORY
               Value: 512
+      Environment:
+        - Name: "OUTPUT_BUCKET"
+          Value: !Ref S3OutputBucket
       RetryStrategy:
         Attempts: 1
 
@@ -134,6 +134,12 @@ Resources:
   # This log group stores the stdout logs from this service's containers
   LogGroup:
     Type: AWS::Logs::LogGroup
+
+  S3OutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'sources-output-bucket'
+      AccessControl: Private
 
 Outputs:
   JobQueueArn:

@@ -30,7 +30,7 @@ Resources:
   S3Stack:
     Type : AWS::Serverless::Application
     Properties:
-      Location: s3_and_lambda.yml
+      Location: source_s3_and_lambda.yml
       Parameters:
         JobQueueArn: !GetAtt BatchStack.Outputs.JobQueueArn
         JobDefinitionArn: !GetAtt BatchStack.Outputs.JobDefinitionArn
