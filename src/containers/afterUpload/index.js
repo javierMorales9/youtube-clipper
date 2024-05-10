@@ -21,7 +21,7 @@ async function ls() {
     await s3.putObject({
       Bucket: process.env.OUTPUT_BUCKET,
       Key: process.env.INPUT_KEY,
-      Body: 'Hello World!'
+      Body: data.Body,
     });
   }
   catch (err) {
