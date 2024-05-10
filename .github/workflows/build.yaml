@@ -35,7 +35,7 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: isolate-vpc-environment
-          template: cloudformation/parent.yml
+          template: ./cloudformation/parent.yml
           capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
           resolve-s3: true
           parameter-overrides: "ImageUri=${{ steps.build-image.outputs.image }}"
