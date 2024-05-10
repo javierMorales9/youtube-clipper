@@ -16,13 +16,15 @@ async function ls() {
       Bucket: process.env.INPUT_BUCKET,
       Key: process.env.INPUT_KEY
     });
-    console.log('input data', data);
 
-    await s3.putObject({
+    await s3.send(new UploadPartCommand({
       Bucket: process.env.OUTPUT_BUCKET,
-      Key: process.env.INPUT_KEY,
-      Body: data.Body,
-    });
+      Key: process.env.OUTPUT_KEY,
+      PartNumber: 1,
+      UploadId: process.env.UPLOAD_ID,
+      Body: data.Body
+    }));
+
   }
   catch (err) {
     console.log('error', err);
