@@ -27,7 +27,7 @@ jobs:
         env:
           IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.AWS_ECR_NAME }}:latest
         run: |
-          docker build -t $IMAGE_URL src/containers/afterUpload
+          docker build -t $IMAGE_URL containers/afterUpload
           docker push $IMAGE_URL
           echo "::set-output name=image::$IMAGE_URL"
 
