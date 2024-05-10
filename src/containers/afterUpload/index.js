@@ -11,32 +11,23 @@ async function ls() {
     region: process.env.AWS_REGION,
   });
 
-  const params = {
-    Bucket: process.env.INPUT_BUCKET,
-    Key: process.env.INPUT_KEY
-  };
+  try {
+    const data = await s3.getObject({
+      Bucket: process.env.INPUT_BUCKET,
+      Key: process.env.INPUT_KEY
+    });
+    console.log('input data', data);
 
-  s3.getObject(params, (err, data) => {
-    if (err) {
-      console.log('error', err);
-    }
-    else {
-      console.log('data', data);
-    }
-  });
+    await s3.putObject({
+      Bucket: process.env.OUTPUT_BUCKET,
+      Key: process.env.INPUT_KEY,
+      Body: 'Hello World!'
+    });
+  }
+  catch (err) {
+    console.log('error', err);
+  }
 
-  s3.putObject({
-    Bucket: process.env.OUTPUT_BUCKET,
-    Key: process.env.INPUT_KEY,
-    Body: 'Hello World!'
-  }, (err, data) => {
-    if (err) {
-      console.log('error', err);
-    }
-    else {
-      console.log('data', data);
-    }
-  });
 }
 
 ls();

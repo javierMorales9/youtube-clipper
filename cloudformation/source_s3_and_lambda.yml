@@ -32,13 +32,13 @@ Resources:
               - "ETag"
       NotificationConfiguration:
         LambdaConfigurations:
-        - Event: s3:ObjectCreated:Put
-          Filter:
-            S3Key:
-              Rules:
-                - Name: suffix
-                  Value: txt
-          Function: !GetAtt ProcessingLambdaFunction.Arn
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: txt
+            Function: !GetAtt ProcessingLambdaFunction.Arn
 
   ExampleInvokePermission:
     Type: AWS::Lambda::Permission
@@ -111,9 +111,9 @@ Resources:
     Properties:
       Code:
         ZipFile: >
-          import { BatchClient, SubmitJobCommand } from "@aws-sdk/client-batch"; // ES Modules import
+          const { BatchClient, SubmitJobCommand } = require("@aws-sdk/client-batch");
 
-          export async function handler(event, context, callback) {
+          async function handler(event, context, callback) {
             const client = new BatchClient();
             const command = new SubmitJobCommand({
               jobDefinition: process.env.JOB_DEFINITION,
@@ -143,6 +143,8 @@ Resources:
             }
             
            }
+
+           module.exports.handler = handler;
       Handler: index.handler
       Role: !GetAtt ProcessingLambdaExecutionRole.Arn
       Runtime: nodejs18.x
