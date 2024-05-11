@@ -34,6 +34,7 @@ WORKDIR /app
 EXPOSE 3000
 
 ENV NODE_ENV=production
+ENV SKIP_ENV_VALIDATION = true
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
