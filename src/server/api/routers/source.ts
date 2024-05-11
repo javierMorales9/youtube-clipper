@@ -13,6 +13,7 @@ export const sourceRouter = createTRPCRouter({
   initiateUpload: publicProcedure
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      console.log('estoy doramion');
       const s3 = new S3({
         region: env.AWS_REGION,
         credentials: {

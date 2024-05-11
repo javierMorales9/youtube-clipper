@@ -22,20 +22,34 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push the image to Amazon ECR with the latest tag
+      - name: Get commit hash
+        id: commit_hash
+        run: echo "::set-output name=hash::$(echo $GITHUB_SHA | cut -c1-7)"
+
+      - name: Build, tag, and push the after upload image to Amazon ECR with the latest tag
         id: build-image
         env:
-          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.AWS_ECR_NAME }}:latest
+          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/after-upload:latest
+          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
         run: |
-          docker build -t $IMAGE_URL containers/afterUpload
+          docker build -t $IMAGE_URL -t $COMMIT_HASH containers/afterUpload
           docker push $IMAGE_URL
           echo "::set-output name=image::$IMAGE_URL"
 
-      - name: Deploy stack to cloudformation
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          name: isolate-vpc-environment
-          template: ./cloudformation/parent.yml
-          capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
-          resolve-s3: true
-          parameter-overrides: "ImageUri=${{ steps.build-image.outputs.image }}"
+      - name: Build, tag, and push the app image to Amazon ECR with the latest tag
+        id: build-image
+        env:
+          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/app:latest
+          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
+        run: |
+          docker build -t $IMAGE_URL -t $COMMIT_HASH .
+          docker push $IMAGE_URL
+          echo "::set-output name=image::$IMAGE_URL"
+
+      #- name: Deploy stack to cloudformation
+      #  uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #  with:
+      #    name: isolate-vpc-environment
+      #    template: ./cloudformation/parent.yml
+      #    capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+      #    parameter-overrides: "ImageUri=${{ steps.build-image.outputs.image }}"

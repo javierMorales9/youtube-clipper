@@ -1,10 +1,10 @@
-version: '3.8'
+#Add a tag to the container
 services:
   app:
     image: clipper-app-demo
     build:
       context: ./
-      target: production
+      target: runner
       dockerfile: Dockerfile
     volumes:
         - .:/app
