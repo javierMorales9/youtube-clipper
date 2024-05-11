@@ -39,7 +39,7 @@ jobs:
       - name: Build, tag, and push the after upload image to Amazon ECR with the latest tag
         id: build-after-upload-image
         env:
-          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/after-upload:latest
+          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/after_upload:latest
           COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
         run: |
           docker build -t $IMAGE_URL -t $COMMIT_HASH containers/afterUpload
