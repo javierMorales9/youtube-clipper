@@ -28,7 +28,7 @@ export default function Video() {
     }
 
     video.addEventListener('play', function() {
-      var $this = this;
+      const $this = this;
       (function loop() {
         if (!$this.paused && !$this.ended) {
           context.drawImage($this, 0, 0);
@@ -57,7 +57,7 @@ export default function Video() {
       setTimer(t);
       setPlaying(true);
 
-      movie?.play();
+      movie?.play().catch(console.error);
     }
   }
 

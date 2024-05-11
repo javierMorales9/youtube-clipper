@@ -25,12 +25,12 @@ export default function SourceModal() {
     }
   }
 
-  function handleFileChange(e: any) {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]!);
     }
 
-    e.target.value = null;
+    e.target.value = '';
   }
 
   const handleUpload = async () => {
@@ -64,7 +64,7 @@ export default function SourceModal() {
         setUploader(null)
       })
 
-    uploader.start()
+    uploader.start().catch(console.error)
   }
 
   const onCancel = () => {

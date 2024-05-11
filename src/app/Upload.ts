@@ -1,5 +1,10 @@
 import { api } from "@/trpc/server";
 
+type Part = {
+  PartNumber: number;
+  signedUrl: string;
+};
+
 // original source: https://github.com/pilovm/multithreaded-uploader/blob/master/frontend/uploader.js
 export class Uploader {
   private chunkSize: number;
@@ -10,16 +15,26 @@ export class Uploader {
   private uploadedSize: number;
   private progressCache: Record<string, number>;
   private activeConnections: Record<string, XMLHttpRequest>;
-  private parts: any[];
+  private parts: Part[];
   private uploadedParts: any[];
   private fileId: string | null;
   private fileKey: string | null;
   private onProgressFn: (progress: any) => void;
   private onErrorFn: (error: any) => void;
   private onCompletedFn: (result: any) => void;
-  private initiateFn: any;
-  private getUrlsFn: any;
-  private completeFn: any;
+  private initiateFn: (parms: {
+    name: string;
+  }) => Promise<{ fileId: string; fileKey: string }>;
+  private getUrlsFn: (parms: {
+    fileId: string;
+    fileKey: string;
+    parts: number;
+  }) => Promise<{ parts: Part[] }>;
+  private completeFn: (parms: {
+    fileId: string;
+    fileKey: string;
+    parts: any[];
+  }) => Promise<any>;
 
   constructor(options: {
     chunkSize?: number;
@@ -56,7 +71,7 @@ export class Uploader {
 
   // starting the multipart upload request
   start() {
-    this.initialize();
+    return this.initialize();
   }
 
   async initialize() {
@@ -109,7 +124,7 @@ export class Uploader {
 
     if (!this.parts.length) {
       if (!activeConnections) {
-        this.complete();
+        this.complete().catch((error) => console.error(error));
       }
 
       return;
@@ -131,7 +146,7 @@ export class Uploader {
         .catch((error) => {
           this.parts.push(part);
 
-          this.complete(error);
+          this.complete(error).catch((error) => console.error(error));
         });
     }
   }
@@ -170,7 +185,7 @@ export class Uploader {
     }
   }
 
-  sendChunk(chunk: any, part: any, sendChunkStarted: any) {
+  sendChunk(chunk: any, part: Part, sendChunkStarted: () => void) {
     return new Promise((resolve, reject) => {
       this.upload(chunk, part, sendChunkStarted)
         .then((status) => {
@@ -188,7 +203,7 @@ export class Uploader {
   }
 
   // calculating the current progress of the multipart upload request
-  handleProgress(part: any, event: any) {
+  handleProgress(part: number, event: { type: string; loaded: number }) {
     if (this.file) {
       if (
         event.type === "progress" ||
@@ -222,7 +237,7 @@ export class Uploader {
   }
 
   // uploading a part through its pre-signed URL
-  upload(file: any, part: any, sendChunkStarted: any) {
+  upload(file: any, part: Part, sendChunkStarted: () => void) {
     // uploading each part with its pre-signed URL
     return new Promise((resolve, reject) => {
       if (this.fileId && this.fileKey) {

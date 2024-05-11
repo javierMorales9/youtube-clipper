@@ -16,8 +16,8 @@ export const sourceRouter = createTRPCRouter({
       const s3 = new S3({
         region: env.AWS_REGION,
         credentials: {
-          accessKeyId: env.ACCESS_KEY_ID,
-          secretAccessKey: env.SECRET_ACCESS_KEY,
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
         },
       });
 
@@ -40,8 +40,8 @@ export const sourceRouter = createTRPCRouter({
       const s3 = new S3({
         region: env.AWS_REGION,
         credentials: {
-          accessKeyId: env.ACCESS_KEY_ID,
-          secretAccessKey: env.SECRET_ACCESS_KEY,
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
         },
       });
 
@@ -92,8 +92,8 @@ export const sourceRouter = createTRPCRouter({
       const s3 = new S3({
         region: env.AWS_REGION,
         credentials: {
-          accessKeyId: env.ACCESS_KEY_ID,
-          secretAccessKey: env.SECRET_ACCESS_KEY,
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
         },
       });
 
