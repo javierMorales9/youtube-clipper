@@ -1,4 +1,4 @@
-const { S3, UploadPartCommand } = require("@aws-sdk/client-s3");
+const { S3, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -17,11 +17,9 @@ async function ls() {
       Key: process.env.INPUT_KEY
     });
 
-    await s3.send(new UploadPartCommand({
+    await s3.send(new PutObjectCommand({
       Bucket: process.env.OUTPUT_BUCKET,
       Key: process.env.OUTPUT_KEY,
-      PartNumber: 1,
-      UploadId: process.env.UPLOAD_ID,
       Body: data.Body
     }));
 
