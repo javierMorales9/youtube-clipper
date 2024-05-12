@@ -30,6 +30,7 @@ Resources:
 
   S3Stack:
     Type : AWS::Serverless::Application
+    DependsOn: BatchStack
     Properties:
       Location: source_s3_and_lambda.yml
       Parameters:
@@ -38,7 +39,7 @@ Resources:
 
   AppStack:
     Type: AWS::Serverless::Application
-    DependsOn: [VpcStack, S3Stack, BatchStack]
+    DependsOn: S3Stack
     Properties:
       Location: app.yml
       Parameters:
@@ -46,3 +47,12 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
         SourceBucket: !GetAtt S3Stack.Outputs.S3BucketName
+
+  SNSStack:
+    Type: AWS::Serverless::Application
+    DependsOn: AppStack
+    Properties:
+      Location: sns.yml
+      Parameters:
+        ServerUrl: !GetAtt AppStack.Outputs.ServerEndpoint
+

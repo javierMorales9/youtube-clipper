@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Set up SNS topic for connecting the server and the batch
+             containers
+Parameters:
+  ServerUrl:
+    Type: String
+    Description: The url of the server
+  ServerEndpoint:
+    Type: String
+    Default: api/sns
+    Description: The endpoint of the server
+
+Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "ServerBatchTopic"
+      TopicName: "ServerBatchTopic"
+      Subscription:
+        - Endpoint: !Sub 'https://${ServerUrl}/${ServerEndpoint}'
+          Protocol: https

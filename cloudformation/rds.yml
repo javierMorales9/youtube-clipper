@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Set up the RDS database for the server
+
+Parameters:
+  ServerUrl:
+    Type: String
+    Description: The url of the server
+
+Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:

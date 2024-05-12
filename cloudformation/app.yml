@@ -115,3 +115,8 @@ Resources:
           ToPort: "443"
           CidrIp: 0.0.0.0/0
 
+Outputs:
+  ServerEndpoint:
+    Description: The endpoint of the server
+    Value: !GetAtt Service.ServiceUrl
+
