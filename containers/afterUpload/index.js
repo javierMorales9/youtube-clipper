@@ -16,11 +16,10 @@ async function ls() {
       Bucket: process.env.INPUT_BUCKET,
       Key: process.env.INPUT_KEY
     });
-    console.log('data', data.ETag);
 
     await s3.send(new PutObjectCommand({
       Bucket: process.env.OUTPUT_BUCKET,
-      Key: process.env.OUTPUT_KEY,
+      Key: process.env.INPUT_KEY,
       Body: data.Body
     }));
 
