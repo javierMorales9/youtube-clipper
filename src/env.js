@@ -12,9 +12,9 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     AWS_REGION: z.string(),
-    AWS_ACCESS_KEY_ID: z.string(),
-    AWS_SECRET_ACCESS_KEY: z.string(),
     SOURCE_BUCKET: z.string(),
+    AWS_ACCESS_KEY_ID: z.string().optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().optional(),
   },
 
   /**

@@ -4,7 +4,7 @@ Description: An example service that deploys in AWS VPC networking mode
              and with private IP addresses only.
 
 Parameters:
-  ImageUri:
+  ECRUri:
     Type: String
     Description: The url of a container image that contains the application process
   VpcId:
@@ -38,7 +38,7 @@ Resources:
       PlatformCapabilities:
         - FARGATE
       ContainerProperties:
-        Image: !Ref ImageUri
+        Image: !Sub '${!Ref ECRUri}/after_upload'
         ExecutionRoleArn: !GetAtt BatchExecutionRole.Arn
         JobRoleArn: !GetAtt BatchExecutionRole.Arn
         ResourceRequirements:

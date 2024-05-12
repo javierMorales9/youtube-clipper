@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: Parent stack that deploys an isolated VPC and a private
              Amazon ECS service in that isolated VPC.
 Parameters:
-  ImageUri:
+  ECRUri:
     Type: String
     Description: The URI of the private container image to deploy
 
@@ -14,15 +14,16 @@ Resources:
   VpcStack:
     Type: AWS::Serverless::Application
     Properties:
-      Location: isolated-vpc.yml
+      Location: vpc.yml
 
   # This stack defines the container deployment
   BatchStack:
     Type: AWS::Serverless::Application
+    DependsOn: VpcStack
     Properties:
       Location: batch.yml
       Parameters:
-        ImageUri: !Ref ImageUri
+        ECRUri: !Ref ECRUri
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PrivateSubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
         PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
@@ -34,3 +35,14 @@ Resources:
       Parameters:
         JobQueueArn: !GetAtt BatchStack.Outputs.JobQueueArn
         JobDefinitionArn: !GetAtt BatchStack.Outputs.JobDefinitionArn
+
+  AppStack:
+    Type: AWS::Serverless::Application
+    DependsOn: [VpcStack, S3Stack, BatchStack]
+    Properties:
+      Location: app.yml
+      Parameters:
+        ECRUri: !Ref ECRUri 
+        VpcId: !GetAtt VpcStack.Outputs.VpcId
+        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
+        SourceBucket: !GetAtt S3Stack.Outputs.S3BucketName

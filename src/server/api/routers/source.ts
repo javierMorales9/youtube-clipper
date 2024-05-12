@@ -13,14 +13,7 @@ export const sourceRouter = createTRPCRouter({
   initiateUpload: publicProcedure
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      console.log('estoy doramion');
-      const s3 = new S3({
-        region: env.AWS_REGION,
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
+      const s3 = new S3({ region: env.AWS_REGION });
 
       const { name } = input;
       const multipartUpload = await s3.createMultipartUpload({
@@ -38,13 +31,7 @@ export const sourceRouter = createTRPCRouter({
       z.object({ fileId: z.string(), fileKey: z.string(), parts: z.number() }),
     )
     .mutation(async ({ ctx, input }) => {
-      const s3 = new S3({
-        region: env.AWS_REGION,
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
+      const s3 = new S3({ region: env.AWS_REGION });
 
       const { fileId, fileKey, parts } = input;
 
@@ -90,13 +77,7 @@ export const sourceRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const s3 = new S3({
-        region: env.AWS_REGION,
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
+      const s3 = new S3({ region: env.AWS_REGION });
 
       const { fileId, fileKey, parts } = input;
 
