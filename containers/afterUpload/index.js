@@ -13,6 +13,7 @@ async function ls() {
   });
 
   try {
+    console.log('topic', process.env.TOPIC_ARN);
     const data = await s3.getObject({
       Bucket: process.env.INPUT_BUCKET,
       Key: process.env.INPUT_KEY
