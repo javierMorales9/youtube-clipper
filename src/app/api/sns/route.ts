@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const handler = (req: NextRequest) => {
-  console.log('a new sns message', req, req.text());
+const handler = async (req: NextRequest) => {
+  console.log('a new sns message', req, await req.text());
 
   return NextResponse.json({ message: "Hello, World!" });
 }

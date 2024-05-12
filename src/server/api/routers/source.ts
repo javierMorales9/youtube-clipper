@@ -21,6 +21,7 @@ export const sourceRouter = createTRPCRouter({
         Bucket: env.SOURCE_BUCKET,
         Key: name,
       });
+      console.log('que pasa perculeos', multipartUpload);
 
       return {
         fileId: multipartUpload.UploadId,
