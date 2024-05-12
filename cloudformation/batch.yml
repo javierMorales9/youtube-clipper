@@ -38,7 +38,7 @@ Resources:
       PlatformCapabilities:
         - FARGATE
       ContainerProperties:
-        Image: !Sub '${!Ref ECRUri}/after_upload'
+        Image: !Sub '${ECRUri}/after_upload'
         ExecutionRoleArn: !GetAtt BatchExecutionRole.Arn
         JobRoleArn: !GetAtt BatchExecutionRole.Arn
         ResourceRequirements:
