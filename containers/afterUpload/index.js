@@ -1,4 +1,5 @@
 const { S3, UploadPartCommand } = require("@aws-sdk/client-s3");
+const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
@@ -25,6 +26,14 @@ async function ls() {
       Body: data.Body
     }));
 
+    const sns = new SNSClient({
+      region: process.env.AWS_REGION,
+    });
+
+    await sns.send(new PublishCommand({
+      TopicArn: process.env.TOPIC_ARN,
+      Message: 'Video uploaded'
+    }));
   }
   catch (err) {
     console.log('error', err);

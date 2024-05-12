@@ -6,6 +6,10 @@ Parameters:
   ECRUri:
     Type: String
     Description: The URI of the private container image to deploy
+  SourceBucketName:
+    Type: String
+    Description: The name of the S3 bucket to use for the source code
+    Default: "sources-file-bucket"
 
 Resources:
 
@@ -16,10 +20,28 @@ Resources:
     Properties:
       Location: vpc.yml
 
+  AppStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: app.yml
+      Parameters:
+        ECRUri: !Ref ECRUri 
+        VpcId: !GetAtt VpcStack.Outputs.VpcId
+        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
+        SourceBucket: !Ref SourceBucketName
+
+  SNSStack:
+    Type: AWS::Serverless::Application
+    DependsOn: AppStack
+    Properties:
+      Location: sns.yml
+      Parameters:
+        ServerUrl: !GetAtt AppStack.Outputs.ServerEndpoint
+
   # This stack defines the container deployment
   BatchStack:
     Type: AWS::Serverless::Application
-    DependsOn: VpcStack
+    DependsOn: [VpcStack, SNSStack]
     Properties:
       Location: batch.yml
       Parameters:
@@ -27,6 +49,7 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PrivateSubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
         PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
+        TopicArn: !GetAtt SNSStack.Outputs.TopicArn
 
   S3Stack:
     Type : AWS::Serverless::Application
@@ -36,23 +59,5 @@ Resources:
       Parameters:
         JobQueueArn: !GetAtt BatchStack.Outputs.JobQueueArn
         JobDefinitionArn: !GetAtt BatchStack.Outputs.JobDefinitionArn
-
-  AppStack:
-    Type: AWS::Serverless::Application
-    DependsOn: S3Stack
-    Properties:
-      Location: app.yml
-      Parameters:
-        ECRUri: !Ref ECRUri 
-        VpcId: !GetAtt VpcStack.Outputs.VpcId
-        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
-        SourceBucket: !GetAtt S3Stack.Outputs.S3BucketName
-
-  SNSStack:
-    Type: AWS::Serverless::Application
-    DependsOn: AppStack
-    Properties:
-      Location: sns.yml
-      Parameters:
-        ServerUrl: !GetAtt AppStack.Outputs.ServerEndpoint
+        S3BucketName: !Ref SourceBucketName
 

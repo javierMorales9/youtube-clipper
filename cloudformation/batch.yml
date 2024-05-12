@@ -16,6 +16,9 @@ Parameters:
   PrivateLinkEndpointSecurityGroup:
     Type: String
     Description: The security group on the PrivateLink endpoints. It must accept traffic from the service's SG.
+  TopicArn:
+    Type: String
+    Description: The ARN of the SNS topic to send messages to
 
 Resources:
   ComputeEnvironment:
@@ -49,6 +52,8 @@ Resources:
         Environment:
           - Name: "OUTPUT_BUCKET"
             Value: !Ref S3OutputBucket
+          - Name: "TOPIC_ARN"
+            Value: !Ref TopicArn
       RetryStrategy:
         Attempts: 1
 

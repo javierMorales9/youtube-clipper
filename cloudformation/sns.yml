@@ -19,3 +19,7 @@ Resources:
       Subscription:
         - Endpoint: !Sub 'https://${ServerUrl}/${ServerEndpoint}'
           Protocol: https
+
+Outputs:
+  TopicArn:
+    Value: !Ref SNSTopic
