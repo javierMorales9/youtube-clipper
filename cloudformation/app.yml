@@ -27,7 +27,7 @@ Resources:
           AccessRoleArn: !GetAtt AccessRole.Arn
         AutoDeploymentsEnabled: true
         ImageRepository:
-          ImageIdentifier: '909166668781.dkr.ecr.eu-west-1.amazonaws.com/app:latest'
+          ImageIdentifier: !Sub '${ECRUri}/app:latest'
           ImageRepositoryType: ECR
           ImageConfiguration:
             Port: 3000
