@@ -4,8 +4,6 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 async function ls() {
-  console.log('the env', process.env);
-
   const { stdout, stderr } = await exec('ffmpeg -version');
 
   const s3 = new S3({

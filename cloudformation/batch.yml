@@ -125,7 +125,7 @@ Resources:
                   - "ecr:BatchGetImage"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                  - "sns:Publish"
+                  - "sns:*"
                 Resource: "*"
 
   # Open up the PrivateLink endpoints to accepting inbound traffic
