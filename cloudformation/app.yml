@@ -17,6 +17,34 @@ Parameters:
     Description: The S3 bucket that contains the source code of the application
 
 Resources:
+  Service:
+    Type: AWS::AppRunner::Service
+    DependsOn: AccessRole
+    Properties:
+      ServiceName: Server
+      SourceConfiguration:
+        AuthenticationConfiguration:           
+          AccessRoleArn: !GetAtt AccessRole.Arn
+        AutoDeploymentsEnabled: false
+        ImageRepository:
+          ImageIdentifier: '909166668781.dkr.ecr.eu-west-1.amazonaws.com/app:latest'
+          ImageRepositoryType: ECR
+          ImageConfiguration:
+            Port: 3000
+            RuntimeEnvironmentVariables:
+              - Name: HOSTNAME
+                Value: '0.0.0.0'
+              - Name: AWS_REGION
+                Value: !Ref 'AWS::Region'
+              - Name: SOURCE_BUCKET
+                Value: !Ref SourceBucket
+      InstanceConfiguration:
+        InstanceRoleArn: !GetAtt InstanceRole.Arn
+      #NetworkConfiguration:
+        #EgressConfiguration:
+          #EgressType: VPC
+          #VpcConnectorArn: !Ref VPCConnector
+
   AccessRole:
     Type: AWS::IAM::Role
     Properties:
@@ -51,8 +79,16 @@ Resources:
             Statement:
             - Effect: Allow
               Action:
-              - logs:*
+              - s3:GetObject
+              - s3:PutObject
               Resource: arn:aws:logs:*:*:*
+
+  VPCConnector:
+    Type: AWS::AppRunner::VpcConnector
+    Properties:
+      Subnets: !Ref PublicSubnetIds
+      SecurityGroups:
+        - !Ref SecurityGroup
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -69,37 +105,3 @@ Resources:
           ToPort: "443"
           CidrIp: 0.0.0.0/0
 
-  VPCConnector:
-    Type: AWS::AppRunner::VpcConnector
-    Properties:
-      Subnets: !Ref PublicSubnetIds
-      SecurityGroups:
-        - !Ref SecurityGroup
-
-  Service:
-    Type: AWS::AppRunner::Service
-    DependsOn: AccessRole
-    Properties:
-      ServiceName: Server
-      SourceConfiguration:
-        AuthenticationConfiguration:           
-          AccessRoleArn: !GetAtt AccessRole.Arn
-        AutoDeploymentsEnabled: false
-        ImageRepository:
-          ImageIdentifier: '909166668781.dkr.ecr.eu-west-1.amazonaws.com/app:latest'
-          ImageRepositoryType: ECR
-          ImageConfiguration:
-            Port: 3000
-            RuntimeEnvironmentVariables:
-              - Name: HOSTNAME
-                Value: '0.0.0.0'
-              - Name: AWS_REGION
-                Value: !Ref 'AWS::Region'
-              - Name: SOURCE_BUCKET
-                Value: !Ref SourceBucket
-      InstanceConfiguration:
-        InstanceRoleArn: !GetAtt InstanceRole.Arn
-      NetworkConfiguration:
-        EgressConfiguration:
-          EgressType: VPC
-          VpcConnectorArn: !Ref VPCConnector

@@ -9,12 +9,16 @@ Parameters:
   JobDefinitionArn:
     Type: String
     Description: The ARN of the AWS Batch job definition
+  S3BucketName:
+    Type: String
+    Description: The name of the S3 bucket
+    Default: 'sources-file-bucket'
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
-    DependsOn: ProcessingLambdaFunction
+    DependsOn: [ProcessingLambdaFunction, ExampleInvokePermission]
     Properties:
-      BucketName: 'sources-file-bucket'
+      BucketName: !Ref S3BucketName
       AccessControl: Private
       CorsConfiguration:
         CorsRules:
@@ -42,13 +46,16 @@ Resources:
 
   ExampleInvokePermission:
     Type: AWS::Lambda::Permission
-    DependsOn: [ProcessingLambdaFunction, S3Bucket]
+    DependsOn: [ProcessingLambdaFunction]
     Properties:
       FunctionName: !GetAtt ProcessingLambdaFunction.Arn
       Action: lambda:InvokeFunction
       Principal: s3.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
-      SourceArn: !GetAtt S3Bucket.Arn
+      # We create the arn manually to avoid circular dependencies. See
+      # https://repost.aws/knowledge-center/unable-validate-circular-dependency-cloudformation
+      SourceArn: !Sub "arn:aws:s3:::${S3BucketName}"
+
   ProcessingLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
