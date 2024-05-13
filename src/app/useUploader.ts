@@ -35,6 +35,7 @@ export function useUploader({
     uploader
       .onProgress(({ percentage: newPercentage }: { percentage: any }) => {
         // to avoid the same percentage to be logged twice
+        console.log('indside the on progress', newPercentage);
         if (newPercentage !== percentage) {
           setPercentage(newPercentage);
         }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { useUploader } from "./useUpload";
+import { useUploader } from "./useUploader";
 
 export default function SourceModal() {
   const [show, setShow] = useState(false);

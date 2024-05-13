@@ -73,6 +73,7 @@ export const S3Uploader = {
       },
     };
 
-    await s3.completeMultipartUpload(multipartParams as any);
+    const { Location } = await s3.completeMultipartUpload(multipartParams as any);
+    return Location;
   },
 };

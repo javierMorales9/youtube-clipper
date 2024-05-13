@@ -17,24 +17,16 @@ export class Uploader {
   private activeConnections: Record<string, XMLHttpRequest>;
   private parts: Part[];
   private uploadedParts: any[];
-  private fileId: string | null;
-  private fileKey: string | null;
+  private id: string | null;
   private onProgressFn: (progress: any) => void;
   private onErrorFn: (error: any) => void;
   private onCompletedFn: (result: any) => void;
-  private initiateFn: (parms: {
-    name: string;
-  }) => Promise<{ fileId: string; fileKey: string }>;
+  private initiateFn: (parms: { name: string }) => Promise<string>;
   private getUrlsFn: (parms: {
-    fileId: string;
-    fileKey: string;
+    id: string;
     parts: number;
   }) => Promise<{ parts: Part[] }>;
-  private completeFn: (parms: {
-    fileId: string;
-    fileKey: string;
-    parts: any[];
-  }) => Promise<any>;
+  private completeFn: (parms: { id: string; parts: any[] }) => Promise<any>;
 
   constructor(options: {
     chunkSize?: number;
@@ -59,8 +51,7 @@ export class Uploader {
     this.activeConnections = {};
     this.parts = [];
     this.uploadedParts = [];
-    this.fileId = null;
-    this.fileKey = null;
+    this.id = null;
     this.onProgressFn = () => {};
     this.onErrorFn = () => {};
     this.onCompletedFn = () => {};
@@ -78,35 +69,11 @@ export class Uploader {
     try {
       // adding the the file extension (if present) to fileName
       let fileName = this.fileName;
-      const ext = this.file.name.split(".").pop();
-      if (ext) {
-        fileName += `.${ext}`;
-      }
 
-      // initializing the multipart request
-      const videoInitializationUploadInput = {
-        name: fileName,
-      };
+      const parts = Math.ceil(this.file.size / this.chunkSize);
 
-      const AWSFileDataOutput = await this.initiateFn(
-        videoInitializationUploadInput,
-      );
-
-      this.fileId = AWSFileDataOutput.fileId;
-      this.fileKey = AWSFileDataOutput.fileKey;
-
-      // retrieving the pre-signed URLs
-      const numberOfparts = Math.ceil(this.file.size / this.chunkSize);
-
-      const AWSMultipartFileDataInput = {
-        fileId: this.fileId,
-        fileKey: this.fileKey,
-        parts: numberOfparts,
-      };
-
-      const urlsResponse = await this.getUrlsFn(AWSMultipartFileDataInput);
-
-      const newParts = urlsResponse.parts;
+      this.id = await this.initiateFn({ name: fileName });
+      const { parts: newParts } = await this.getUrlsFn({ id: this.id, parts });
       this.parts.push(...newParts);
 
       this.sendNext();
@@ -122,7 +89,7 @@ export class Uploader {
       return;
     }
 
-    if (!this.parts.length) {
+    if (this.parts.length === 0) {
       if (!activeConnections) {
         this.complete().catch((error) => console.error(error));
       }
@@ -173,10 +140,9 @@ export class Uploader {
   // finalizing the multipart upload request on success by calling
   // the finalization API
   async sendCompleteRequest() {
-    if (this.fileId && this.fileKey) {
+    if (this.id) {
       const videoFinalizationMultiPartInput = {
-        fileId: this.fileId,
-        fileKey: this.fileKey,
+        id: this.id,
         parts: this.uploadedParts,
       };
 
@@ -240,7 +206,7 @@ export class Uploader {
   upload(file: any, part: Part, sendChunkStarted: () => void) {
     // uploading each part with its pre-signed URL
     return new Promise((resolve, reject) => {
-      if (this.fileId && this.fileKey) {
+      if (this.id) {
         // - 1 because PartNumber is an index starting from 1 and not 0
         const xhr = (this.activeConnections[part.PartNumber - 1] =
           new XMLHttpRequest());

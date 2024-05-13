@@ -3,6 +3,7 @@
 
 import { sql } from "drizzle-orm";
 import {
+    boolean,
   pgTableCreator,
   timestamp,
   uuid,
@@ -23,6 +24,7 @@ export const source = createTable(
     id: uuid("id").primaryKey(),
     externalId: varchar("external_id", { length: 256 }),
     name: varchar("name", { length: 256 }),
+    processing: boolean("processing"),
     url: varchar("url", { length: 256 }),
     createdAt: timestamp("created_at"),
     updatedAt: timestamp("updatedAt"),
