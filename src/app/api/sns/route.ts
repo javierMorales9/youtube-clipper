@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const handler = async (req: NextRequest) => {
   console.log("señores, en esas estamos", req.body);
 
-  api.source.finishProcessing({ id: "123" });
+  await api.source.finishProcessing({ id: "123" });
 
   return NextResponse.json({ message: "Hello, World!" });
 };

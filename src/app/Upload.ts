@@ -68,7 +68,7 @@ export class Uploader {
   async initialize() {
     try {
       // adding the the file extension (if present) to fileName
-      let fileName = this.fileName;
+      const fileName = this.fileName;
 
       const parts = Math.ceil(this.file.size / this.chunkSize);
 

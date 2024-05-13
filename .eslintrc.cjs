@@ -22,6 +22,7 @@ const config = {
     "@typescript-eslint/prefer-nullish-coalescing": "off",
     "@typescript-eslint/no-unsafe-assignment": "warn",
     "@typescript-eslint/no-this-alias": "warn",
+    "@typescript-eslint/prefer-optional-chain": "warn",
     "@typescript-eslint/consistent-type-imports": [
       "warn",
       {
