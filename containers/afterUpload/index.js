@@ -11,7 +11,6 @@ async function ls() {
   });
 
   try {
-    console.log('env', process.env);
     const data = await s3.getObject({
       Bucket: process.env.INPUT_BUCKET,
       Key: process.env.INPUT_KEY
@@ -28,6 +27,7 @@ async function ls() {
       region: process.env.AWS_REGION,
     });
 
+    console.log('Video uploaded', sns);
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
       Message: 'Video uploaded'
