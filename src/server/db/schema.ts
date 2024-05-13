@@ -21,6 +21,7 @@ export const source = createTable(
   "source",
   {
     id: uuid("id").primaryKey(),
+    externalId: varchar("external_id", { length: 256 }),
     name: varchar("name", { length: 256 }),
     url: varchar("url", { length: 256 }),
     createdAt: timestamp("created_at"),

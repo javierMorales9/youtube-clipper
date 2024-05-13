@@ -134,7 +134,7 @@ Resources:
                   },
                   {
                     name: 'INPUT_KEY',
-                    value: event.Records[0].s3.object.key
+                    value: decodeURI(event.Records[0].s3.object.key)
                   }
                 ]
               }

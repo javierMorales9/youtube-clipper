@@ -38,5 +38,14 @@
     "**/*.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true,
+    "compilerOptions": {
+      "module": "ESNext",
+      "esModuleInterop": true
+    },
+    "esm": true // <--- this is the most important part
+  }
 }
