@@ -2,11 +2,13 @@ import { api } from "@/trpc/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 const handler = async (req: NextRequest) => {
-  console.log("señores, en esas estamos", await req.text());
+  const message = await req.json();
+  const data = JSON.parse(message);
+  console.log(data);
 
-  await api.source.finishProcessing({ id: "123" });
+  await api.source.finishProcessing({ id: data.id });
 
-  return NextResponse.json({ message: "Hello, World!" });
+  return NextResponse.next();
 };
 
 export { handler as GET, handler as POST, handler as PUT };

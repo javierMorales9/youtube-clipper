@@ -27,10 +27,9 @@ async function ls() {
       region: process.env.AWS_REGION,
     });
 
-    console.log('Video uploaded', sns);
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
-      Message: 'Video uploaded'
+      Message: JSON.stringify({ id: process.env.INPUT_KEY }),
     }));
   }
   catch (err) {
