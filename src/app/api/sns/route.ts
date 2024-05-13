@@ -2,7 +2,7 @@ import { api } from "@/trpc/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 const handler = async (req: NextRequest) => {
-  console.log("señores, en esas estamos", req.body);
+  console.log("señores, en esas estamos", await req.text());
 
   await api.source.finishProcessing({ id: "123" });
 
