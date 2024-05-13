@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const handler = async (req: NextRequest) => {
   const message = await req.json();
-  const data = JSON.parse(message);
+  const data: { id: string } = JSON.parse(message);
   console.log(data);
 
   await api.source.finishProcessing({ id: data.id });
