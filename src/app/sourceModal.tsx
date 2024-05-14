@@ -51,7 +51,12 @@ export default function SourceModal() {
               </div>
             </div>
 
-            <input id="file" type="file" onChange={handleFileChange} />
+            <input
+              id="file"
+              type="file"
+              onChange={handleFileChange}
+              accept="video/mp4,video/x-m4v,video/*"
+            />
             {file && !uploading && <button onClick={upload}>Upload a file</button>}
             {uploading && error === null && (
               <div>

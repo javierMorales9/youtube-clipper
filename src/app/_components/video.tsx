@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Timeline from '@/app/_components/timeline';
 
-export default function Video() {
+export default function Video({src}: {src: string}) {
   const [playing, setPlaying] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [movie, setMovie] = useState<HTMLVideoElement | null>(null);
@@ -15,7 +15,7 @@ export default function Video() {
     if (!canvas) return
 
     const video = document.createElement('video');
-    video.src = '/test.mp4';
+    video.src = src;
     video.controls = false;
     video.autoplay = false;
 

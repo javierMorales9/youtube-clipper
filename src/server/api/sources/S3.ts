@@ -1,9 +1,20 @@
 import _ from "lodash";
 import { env } from "@/env";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3, UploadPartCommand } from "@aws-sdk/client-s3";
+import { S3, UploadPartCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
-export const S3Uploader = {
+export const S3Bucket = {
+  getSignedUrl: async function (key: string) {
+    const s3 = new S3({ region: env.AWS_REGION });
+
+    return getSignedUrl(
+      s3,
+      new GetObjectCommand({
+        Bucket: env.SOURCE_BUCKET,
+        Key: key,
+      }),
+    );
+  },
   initiateUpload: async function (name: string) {
     const s3 = new S3({ region: env.AWS_REGION });
 
@@ -17,7 +28,7 @@ export const S3Uploader = {
       fileKey: multipartUpload.Key,
     };
   },
-  getSignedUrls: async function (
+  getUploadUrls: async function (
     fileId: string,
     fileKey: string,
     parts: number,
@@ -73,7 +84,9 @@ export const S3Uploader = {
       },
     };
 
-    const { Location } = await s3.completeMultipartUpload(multipartParams as any);
+    const { Location } = await s3.completeMultipartUpload(
+      multipartParams as any,
+    );
     return Location;
   },
 };
