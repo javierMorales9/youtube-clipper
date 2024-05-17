@@ -1,8 +1,8 @@
-import Video from "@/app/sources/[sourceId]/video";
 import { api } from "@/trpc/server";
 import Link from "next/link";
+import Clip from "../Clip";
 
-export default async function Sources({
+export default async function ClipCreation({
   params: { sourceId },
 }: {
   params: { sourceId: string };
@@ -18,11 +18,7 @@ export default async function Sources({
       <Link href={`/sources/${sourceId}`}>
         Go back
       </Link>
-      <Video
-        src={`${source.url}`}
-        startTime={0}
-        duration={37}
-      />
+      <Clip source={source} />
     </div>
   );
 }

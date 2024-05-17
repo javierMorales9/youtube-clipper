@@ -1,6 +1,6 @@
 import { api } from "@/trpc/server";
 import Link from "next/link";
-import Source from "./source";
+import Source from "./Source";
 
 export default async function Sources({
   params: { sourceId },

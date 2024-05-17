@@ -1,25 +1,21 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import Timeline from '@/app/sources/[sourceId]/timeline';
+import { Timer } from '../useTimer';
 
 export default function Video({
   src,
   startTime,
-  length,
-  setLength,
-  currentTime,
-  setCurrentTime,
-  movie,
-  setMovie,
+  timer: {
+    length,
+    setLength,
+    setCurrentTime,
+    movie,
+    setMovie,
+  }
 }: {
   src: string,
   startTime?: number,
-  length: number | null,
-  setLength: (length: number) => void,
-  currentTime: [number, number] | null,
-  setCurrentTime: (time: [number, number]) => void
-  movie: HTMLVideoElement | null,
-  setMovie: (movie: HTMLVideoElement) => void
+  timer: Timer,
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -99,7 +95,6 @@ export default function Video({
         }
 
         return result;
-
       });
     }, 1000);
 
