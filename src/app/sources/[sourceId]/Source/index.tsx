@@ -15,6 +15,8 @@ export default function Source({ source }: { source: any }) {
         timer={timer}
       />
 
+      <button onClick={() => timer.togglePlay()}>{timer.playing ? 'Stop' : 'Play'}</button>
+
       {timer.length && (
         <Timeline
           length={timer.length}

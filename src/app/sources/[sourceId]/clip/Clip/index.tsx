@@ -29,8 +29,7 @@ export default function Clip({ source }: { source: any }) {
   });
   const [step, setStep] = useState(Steps.RangeSelection);
 
-  function onSubmit() {
-  }
+  function onSubmit() { }
 
   return (
     <FormProvider {...form}>
@@ -52,6 +51,7 @@ function RangeSelection({ source, timer }: { source: any, timer: any }) {
         timer={timer}
       />
 
+      <button onClick={() => timer.togglePlay()}>{timer.playing ? 'Stop' : 'Play'}</button>
       {timer.length && (
         <Timeline
           length={timer.length}
@@ -60,6 +60,5 @@ function RangeSelection({ source, timer }: { source: any, timer: any }) {
         />
       )}
     </>
-
   );
 }

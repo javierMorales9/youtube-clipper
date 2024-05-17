@@ -8,9 +8,8 @@ export default function Video({
   timer: {
     length,
     setLength,
-    setCurrentTime,
-    movie,
-    setMovie,
+    currentTime,
+    playing,
   }
 }: {
   src: string,
@@ -19,9 +18,8 @@ export default function Video({
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [playing, setPlaying] = useState(false);
+  const [movie, setMovie] = useState<HTMLVideoElement | null>(null);
   const [videoTimer, setVideoTimer] = useState<ReturnType<typeof setInterval> | null>(null);
-  const [timelineTimer, setTimelineTimer] = useState<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,6 +46,18 @@ export default function Video({
     setMovie(video);
   }, []);
 
+  useEffect(() => {
+    if (movie)
+      movie.currentTime = toSeconds(currentTime);
+  }, [currentTime]);
+
+  useEffect(() => {
+    if (playing)
+      play();
+    else
+      pause();
+  }, [playing]);
+
   function initializeVideo(video: HTMLVideoElement) {
     if (startTime)
       video.currentTime = startTime;
@@ -55,21 +65,9 @@ export default function Video({
       video.currentTime = 0;
   }
 
-  function togglePlay() {
-    if (playing)
-      pause();
-    else
-      play();
-  }
-
   function pause() {
     clearInterval(videoTimer!);
     setVideoTimer(null);
-
-    clearInterval(timelineTimer!);
-    setTimelineTimer(null);
-
-    setPlaying(false);
 
     movie?.pause();
   }
@@ -85,32 +83,10 @@ export default function Video({
       context.drawImage(movie, 0, 0);
     }, 1000 / 30);
 
-    const timeT = setInterval(() => {
-      setCurrentTime(ct => {
-        const result = increaseTime(ct)
-
-        if (toSeconds(result) >= length!) {
-          initializeVideo(movie!);
-          return [0, 0];
-        }
-
-        return result;
-      });
-    }, 1000);
 
     setVideoTimer(vidT);
-    setTimelineTimer(timeT);
-    setPlaying(true);
 
     movie?.play().catch(console.error);
-  }
-
-
-  function increaseTime(time: [number, number]): [number, number] {
-    const [minutes, seconds] = time;
-    const result: [number, number] = seconds === 59 ? [minutes + 1, 0] : [minutes, seconds + 1];
-
-    return result;
   }
 
   function toSeconds(time: [number, number]): number {
@@ -121,7 +97,6 @@ export default function Video({
     <div>
       <div className="w-full flex justify-center items-center">
         <canvas ref={canvasRef} width={1280} height={720} className="w-[960px] h-[540px]"></canvas>
-        <button onClick={() => togglePlay()}>{playing ? 'Stop' : 'Play'}</button>
       </div>
     </div>
   );
