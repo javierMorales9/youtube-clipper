@@ -1,5 +1,5 @@
 import { api } from "@/trpc/server";
-import SourceModal from "./sourceModal";
+import SourceModal from "./SourceModal";
 import Link from "next/link";
 
 export default async function Page() {
