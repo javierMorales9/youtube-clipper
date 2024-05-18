@@ -69,6 +69,7 @@ export function useTimer(duration?: number) {
     seek,
     playing,
     togglePlay,
+    currentSeconds: toSeconds(currentTime),
   };
 }
 
