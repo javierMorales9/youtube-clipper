@@ -1,26 +1,29 @@
 'use client';
-import { useState, MouseEvent, useRef, useEffect, useMemo } from 'react';
+import { useState, MouseEvent, useRef, useEffect, useMemo, FC } from 'react';
 
 export default function Timeline({
   length,
   currentTime,
   setCurrentTime,
+  children,
 }: {
   length: number,
   currentTime: [number, number]
-  setCurrentTime: (time: number) => void
+  setCurrentTime: (time: number) => void,
+  children: (timelineWidth: number, zoom: number, length: number) => JSX.Element,
 }) {
   const timelineWidth = 1200;
   const timeLineRef = useRef<HTMLDivElement | null>(null);
   const [zoom, setZoom] = useState(1);
 
+  const markSecInc = useMemo(() => length / (7 * zoom), [length, zoom]);
+  const marks = useMemo(() => 7 * zoom, [zoom]);
+  const leftPxInc = useMemo(() => timelineWidth * zoom / marks, [zoom, marks]);
+
   const reference = useMemo(
     () => timelineWidth * zoom * currSec() / length,
     [zoom, currentTime, length]
   );
-  const markSecInc = useMemo(() => length / (7 * zoom), [length, zoom]);
-  const marks = useMemo(() => 7 * zoom, [zoom]);
-  const leftPxInc = useMemo(() => timelineWidth * zoom / marks, [zoom, marks]);
 
   useEffect(() => {
     updateScroll(zoom);
@@ -39,16 +42,21 @@ export default function Timeline({
     setZoom(newZoom);
   }
 
-
-  function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
-    const target = e.currentTarget as HTMLDivElement;
-    const bcr = target.getBoundingClientRect();
-    const percent = (e.clientX - bcr.left) / bcr.width;
-    setCurrentTime(percent * length);
-  }
-
   function currSec() {
     return currentTime[0] * 60 + currentTime[1];
+  }
+
+  function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
+    const second = percent(e) * length;
+    setCurrentTime(second);
+  }
+
+
+  function percent(e: MouseEvent<HTMLDivElement>) {
+    const target = e.currentTarget as HTMLDivElement;
+    const bcr = target.getBoundingClientRect();
+    const clientX = (e.clientX - bcr.left);
+    return clientX / bcr.width;
   }
 
   function toReadableTime(time: number | undefined) {
@@ -78,12 +86,13 @@ export default function Timeline({
         }}
       >
         <div
-          className="flex flex-col relative"
+          className="flex flex-col justify-end relative h-10"
           onClick={handleTimelineClick}
         >
-          <span className="absolute" style={{ left: reference }}>
-            <div className="w-[2px] h-[34px] bg-red-500"></div>
+          <span className="absolute bottom-0" style={{ left: reference }}>
+            <div className="w-[2px] h-[54px] bg-red-500"></div>
           </span>
+          {children(timelineWidth, zoom, length)}
           <div className="flex flex-row justify-start">
             {Array.from({ length: marks }).map((_, i) => (
               <div
@@ -102,3 +111,4 @@ export default function Timeline({
     </div>
   );
 }
+
