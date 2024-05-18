@@ -5,16 +5,22 @@ import { useState } from "react";
 export default function RangeSelection({
   timelineWidth,
   zoom,
-  length
+  length,
+  range,
+  setRange,
+  rangeCreated,
+  setRangeCreated,
 }: {
   timelineWidth: number,
   zoom: number,
   length: number
+  range: [number, number],
+  setRange: (range: [number, number]) => void,
+  rangeCreated: boolean,
+  setRangeCreated: (created: boolean) => void,
 }) {
   const [creatingRange, setCreatingRage] = useState(false);
-  const [rangeCreated, setRangeCreated] = useState(false);
   const [pxRange, setPxRange] = useState<[number, number]>([0, 0]);
-  const [range, setRange] = useState<[number, number]>([0, 0]);
 
   function handleMouseDown(e: MouseEvent<HTMLDivElement>) {
     e.preventDefault();

@@ -10,7 +10,7 @@ export default function Timeline({
   length: number,
   currentTime: [number, number]
   setCurrentTime: (time: number) => void,
-  children: (timelineWidth: number, zoom: number, length: number) => JSX.Element,
+  children?: (timelineWidth: number, zoom: number, length: number) => JSX.Element,
 }) {
   const timelineWidth = 1200;
   const timeLineRef = useRef<HTMLDivElement | null>(null);
@@ -92,7 +92,7 @@ export default function Timeline({
           <span className="absolute bottom-0" style={{ left: reference }}>
             <div className="w-[2px] h-[54px] bg-red-500"></div>
           </span>
-          {children(timelineWidth, zoom, length)}
+          {children && children(timelineWidth, zoom, length)}
           <div className="flex flex-row justify-start">
             {Array.from({ length: marks }).map((_, i) => (
               <div

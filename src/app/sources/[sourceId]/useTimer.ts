@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-export function useTimer() {
-  const [length, setLength] = useState<number | null>(37);
+export function useTimer(duration?: number) {
+  const [length, setLength] = useState<number | null>(duration || null);
   const [currentTime, setCurrentTime] = useState<[number, number]>([0, 0]);
   const [playing, setPlaying] = useState(false);
 

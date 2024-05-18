@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Timer } from '../useTimer';
+import { Timer } from './useTimer';
 
 export default function Video({
   src,
-  startTime,
+  startTime = 0,
   timer: {
     length,
     setLength,
@@ -13,7 +13,7 @@ export default function Video({
   }
 }: {
   src: string,
-  startTime?: number,
+  startTime: number,
   timer: Timer,
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -32,9 +32,6 @@ export default function Video({
 
     initializeVideo(video);
 
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
     video.onloadedmetadata = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -48,7 +45,7 @@ export default function Video({
 
   useEffect(() => {
     if (movie)
-      movie.currentTime = toSeconds(currentTime);
+      movie.currentTime = startTime + toSeconds(currentTime);
   }, [currentTime]);
 
   useEffect(() => {

@@ -4,8 +4,10 @@ import Clip from "../Clip";
 
 export default async function ClipCreation({
   params: { sourceId },
+  searchParams,
 }: {
   params: { sourceId: string };
+  searchParams: {start: string, end: string};
 }) {
   const source = await api.source.find({ id: sourceId });
 
@@ -13,12 +15,17 @@ export default async function ClipCreation({
     return <h1>Source not found</h1>
   }
 
+  console.log(searchParams);
   return (
     <div className="px-12">
       <Link href={`/sources/${sourceId}`}>
         Go back
       </Link>
-      <Clip source={source} />
+      <Clip
+        source={source}
+        start={parseInt(searchParams.start)}
+        end={parseInt(searchParams.end)}
+      />
     </div>
   );
 }
