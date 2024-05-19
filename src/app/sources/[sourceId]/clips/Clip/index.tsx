@@ -26,6 +26,33 @@ type Schema = {
   ],
 }
 
+const Displays = {
+  One: {
+    name: 'One',
+    //image: '/public/images/displays/one.png',
+    elements: [
+      {
+        width: 1080,
+        height: 1920,
+      },
+    ],
+  },
+  TwoVertical: {
+    name: 'Two Vertical',
+    //image: '/public/images/displays/two-vertical.png',
+    elements: [
+      {
+        width: 270,
+        height: 480,
+      },
+      {
+        width: 270,
+        height: 480,
+      },
+    ],
+  },
+} as const;
+
 export default function Clip({ source, start, end }: { source: any, start: number, end: number }) {
   const timer = useTimer(end - start);
 
@@ -98,36 +125,55 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <Video
-          src={`${source.url}`}
-          timer={timer}
-          startTime={start}
-        />
-
-        <div className="flex flex-col">
-          <button onClick={() => timer.togglePlay()}>{timer.playing ? 'Stop' : 'Play'}</button>
-          <button onClick={divideSection}>Divide Section</button>
-          <button onClick={() => deleteSection(selectedSectionStart)}>Delete Section</button>
+      <form
+        className="flex flex-row"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="w-1/4 border border-1 border-black">
+          <div className="p-4 border border-b-black">
+            Displays
+          </div>
+          <div className="p-3 w-full flex flex-row justify-between flex-wrap">
+            {(Object.keys(Displays) as any).map((key: keyof typeof Displays) => (
+              <div key={key} className="flex flex-col justify-center items-center w-[135px] h-[240px] border border-black cursor-pointer">
+                <span>{Displays[key].name}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        {timer.length && (
-          <Timeline
-            length={timer.length}
-            currentTime={timer.currentTime}
-            setCurrentTime={(time: number) => timer.seek(time)}
-          >
-            {(timelineWidth: number, zoom: number, length: number) => (
-              <SectionSelector
-                timelineWidth={timelineWidth}
-                zoom={zoom}
-                length={length}
-                sections={form.watch('sections')}
-                selectedSectionStart={selectedSectionStart}
-                setSelectedSectionStart={setSelectedSectionStart}
-              />
-            )}
-          </Timeline>
-        )}
+        <div className="flex flex-col w-full">
+          <Video
+            src={`${source.url}`}
+            timer={timer}
+            startTime={start}
+          />
+
+          <div className="flex flex-row gap-x-10 justify-center">
+            <div className="flex flex-row gap-x-4">
+              <button onClick={divideSection}>Divide Section</button>
+              <button onClick={() => deleteSection(selectedSectionStart)}>Delete Section</button>
+            </div>
+            <button onClick={() => timer.togglePlay()}>{timer.playing ? 'Stop' : 'Play'}</button>
+          </div>
+          {timer.length && (
+            <Timeline
+              length={timer.length}
+              currentTime={timer.currentTime}
+              setCurrentTime={(time: number) => timer.seek(time)}
+            >
+              {(timelineWidth: number, zoom: number, length: number) => (
+                <SectionSelector
+                  timelineWidth={timelineWidth}
+                  zoom={zoom}
+                  length={length}
+                  sections={form.watch('sections')}
+                  selectedSectionStart={selectedSectionStart}
+                  setSelectedSectionStart={setSelectedSectionStart}
+                />
+              )}
+            </Timeline>
+          )}
+        </div>
       </form>
     </FormProvider>
   );

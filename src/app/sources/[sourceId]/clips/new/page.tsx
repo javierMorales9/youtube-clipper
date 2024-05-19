@@ -17,7 +17,7 @@ export default async function ClipCreation({
 
   console.log(searchParams);
   return (
-    <div className="px-12">
+    <div className="px-4">
       <Link href={`/sources/${sourceId}`}>
         Go back
       </Link>
