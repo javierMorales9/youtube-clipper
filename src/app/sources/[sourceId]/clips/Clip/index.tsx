@@ -3,8 +3,8 @@ import Timeline from "../../timeline";
 import Video from "../../video";
 import { useTimer } from "../../useTimer";
 import { useForm, FormProvider } from "react-hook-form";
-import { useState } from "react";
-import { Stage, Layer, Image, Transformer, Group } from 'react-konva';
+import { useEffect, useRef, useState } from "react";
+import { Stage, Layer, Transformer, Rect } from 'react-konva';
 
 type Schema = {
   range: {
@@ -15,14 +15,7 @@ type Schema = {
     {
       start: number,
       end: number,
-      elements: [
-        {
-          x: number,
-          y: number,
-          width: number,
-          height: number,
-        },
-      ],
+      display?: Display,
     },
   ],
 }
@@ -33,8 +26,10 @@ const Displays = {
     //image: '/public/images/displays/one.png',
     elements: [
       {
-        width: 1080,
-        height: 1920,
+        x: 10,
+        y: 30,
+        width: 270,
+        height: 480,
       },
     ],
   },
@@ -43,23 +38,28 @@ const Displays = {
     //image: '/public/images/displays/two-vertical.png',
     elements: [
       {
+        x: 10,
+        y: 30,
         width: 270,
-        height: 480,
+        height: 240,
       },
       {
+        x: 10,
+        y: 270,
         width: 270,
-        height: 480,
+        height: 240,
       },
     ],
   },
-} as const;
+};
+
+type Display = typeof Displays[keyof typeof Displays];
+type DisplayKey = keyof typeof Displays;
 
 export default function Clip({ source, start, end }: { source: any, start: number, end: number }) {
   const timer = useTimer(end - start);
 
-  const [selectedSectionStart, setSelectedSectionStart] = useState<number>(0);
-  const [display, setDisplay] = useState<typeof Displays[keyof typeof Displays] | null>(null);
-
+  const [selectedSection, setSelectedSection] = useState<number>(0);
   const [selectedId, selectShape] = useState<string | null>(null);
 
   const form = useForm<Schema>({
@@ -72,11 +72,12 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
         {
           start: 0,
           end: end - start,
-          elements: [],
         },
       ],
     }
   });
+
+  const display = form.watch(`sections`)[selectedSection]?.display;
 
   function onSubmit() { }
 
@@ -103,28 +104,41 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
     }
   }
 
-  function deleteSection(start: number) {
+  function deleteSection() {
     const sections = form.getValues().sections;
 
     if (sections.length === 1)
       return;
 
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
+    const section = sections[selectedSection];
 
-      if (section && section.start === start) {
-        if (i === 0) {
-          //We put this instead of harcoding 1 because typescript will complain
-          sections[i + 1]!.start = 0;
-        } else {
-          sections[i - 1]!.end = section.end;
-        }
+    if (!section)
+      return;
 
-        sections.splice(i, 1);
-        form.setValue('sections', sections);
-        return;
-      }
+    if (selectedSection === 0) {
+      //We put this instead of harcoding 1 because typescript complains.
+      sections[selectedSection + 1]!.start = 0;
+    } else {
+      sections[selectedSection - 1]!.end = section.end;
     }
+
+    sections.splice(selectedSection, 1);
+    form.setValue('sections', sections);
+  }
+
+  const handleSelectDisplay = (display: Display) => {
+    const sections = form.getValues().sections;
+    const section = sections[selectedSection];
+
+    if (!section)
+      return;
+
+    section.display = display;
+
+    form.setValue('sections', sections);
+  }
+
+  const handleDeleteDisplay = () => {
   }
 
   const checkDeselect = (e: any) => {
@@ -148,10 +162,10 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
                 Displays
               </div>
               <div className="p-3 w-full flex flex-row justify-between flex-wrap">
-                {(Object.keys(Displays) as any).map((key: keyof typeof Displays) => (
+                {(Object.keys(Displays) as any).map((key: DisplayKey) => (
                   <div
                     key={key}
-                    onClick={() => setDisplay(Displays[key])}
+                    onClick={() => handleSelectDisplay(Displays[key])}
                     className="flex flex-col justify-center items-center w-[135px] h-[240px] border border-black cursor-pointer">
                     <span>{Displays[key].name}</span>
                   </div>
@@ -163,7 +177,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             <>
               <div
                 className="cursor-pointer p-4"
-                onClick={() => setDisplay(null)}
+                onClick={handleDeleteDisplay}
               >
                 {'<-'} Select other display
               </div>
@@ -174,8 +188,8 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
           <Stage
             width={960}
             height={540}
-          //onMouseDown={checkDeselect}
-          //onTouchStart={checkDeselect}
+            onMouseDown={checkDeselect}
+            onTouchStart={checkDeselect}
           >
 
             <Layer>
@@ -183,14 +197,31 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
                 src={`${source.url}`}
                 timer={timer}
                 startTime={start}
+                overlay={!!display}
               />
+              {display && (
+                display.elements.map((element, i) => (
+                  <Rectangle
+                    key={i}
+                    shapeProps={element}
+                    isSelected={selectedId === i.toString()}
+                    onSelect={() => {
+                      selectShape(i.toString());
+                    }}
+                    onChange={(newAttrs) => {
+                      display.elements[i] = newAttrs;
+                      form.setValue('sections', form.watch('sections'));
+                    }}
+                  />
+                ))
+              )}
             </Layer>
           </Stage>
 
           <div className="flex flex-row gap-x-10 justify-center">
             <div className="flex flex-row gap-x-4">
               <button onClick={divideSection}>Divide Section</button>
-              <button onClick={() => deleteSection(selectedSectionStart)}>Delete Section</button>
+              <button onClick={() => deleteSection()}>Delete Section</button>
             </div>
             <button onClick={() => timer.togglePlay()}>{timer.playing ? 'Stop' : 'Play'}</button>
           </div>
@@ -206,8 +237,8 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
                   zoom={zoom}
                   length={length}
                   sections={form.watch('sections')}
-                  selectedSectionStart={selectedSectionStart}
-                  setSelectedSectionStart={setSelectedSectionStart}
+                  selectedSection={selectedSection}
+                  setSelectedSection={setSelectedSection}
                 />
               )}
             </Timeline>
@@ -223,15 +254,15 @@ function SectionSelector({
   zoom,
   length,
   sections,
-  selectedSectionStart,
-  setSelectedSectionStart,
+  selectedSection,
+  setSelectedSection,
 }: {
   timelineWidth: number,
   zoom: number,
   length: number,
   sections: Schema['sections']
-  selectedSectionStart: number,
-  setSelectedSectionStart: (start: number) => void,
+  selectedSection: number,
+  setSelectedSection: (start: number) => void,
 }) {
   return (
     <div className="absolute w-full h-full">
@@ -239,8 +270,8 @@ function SectionSelector({
         <Section
           key={i}
           section={section}
-          selected={section.start === selectedSectionStart}
-          onClick={() => setSelectedSectionStart(section.start)}
+          selected={selectedSection === i}
+          onClick={() => setSelectedSection(i)}
         />
       ))}
     </div>
@@ -262,7 +293,7 @@ function SectionSelector({
 
     return (
       <div
-        className={`absolute h-full border border-2 border-gray-400 ${selected && 'bg-gray-200 opacity-50'}`}
+        className={`absolute h-full border-2 border-gray-400 ${selected && 'bg-gray-200 opacity-50'}`}
         style={{ left, width }}
         onClick={onClick}
       >
@@ -270,3 +301,106 @@ function SectionSelector({
     );
   }
 }
+
+const Rectangle = ({
+  shapeProps,
+  isSelected,
+  onSelect,
+  onChange
+}: {
+  shapeProps: {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  },
+  isSelected: boolean,
+  onSelect: () => void,
+  onChange: (newShape: {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  }) => void,
+}) => {
+  const shapeRef = useRef<any>();
+  const trRef = useRef<any>();
+
+  useEffect(() => {
+    if (isSelected) {
+      // we need to attach transformer manually
+      trRef.current.nodes([shapeRef.current]);
+      trRef.current.getLayer().batchDraw();
+    }
+  }, [isSelected]);
+
+  return (
+    <>
+      <Rect
+        onClick={onSelect}
+        onTap={onSelect}
+        ref={shapeRef}
+        {...shapeProps}
+        stroke={isSelected ? undefined : 'red'}
+        draggable
+        onDragEnd={(e) => {
+          onChange({
+            ...shapeProps,
+            x: e.target.x(),
+            y: e.target.y(),
+          });
+        }}
+        onMouseDown={onSelect}
+        onMouseUp={(e) => {
+          onChange({
+            ...shapeProps,
+            x: e.target.x(),
+            y: e.target.y(),
+          });
+        }}
+        onTransformEnd={(e) => {
+          // transformer is changing scale of the node
+          // and NOT its width or height
+          // but in the store we have only width and height
+          // to match the data better we will reset scale on transform end
+          const node = shapeRef.current;
+          const scaleX = node.scaleX();
+          const scaleY = node.scaleY();
+
+          // we will reset it back
+          node.scaleX(1);
+          node.scaleY(1);
+          onChange({
+            ...shapeProps,
+            x: node.x(),
+            y: node.y(),
+            // set minimal value
+            width: Math.max(5, node.width() * scaleX),
+            height: Math.max(node.height() * scaleY),
+          });
+        }}
+      />
+      {isSelected && (
+        <Transformer
+          ref={trRef}
+          flipEnabled={false}
+          rotateEnabled={false}
+          resizeEnabled={true}
+          enabledAnchors={[
+            'top-left',
+            'top-right',
+            'bottom-left',
+            'bottom-right',
+          ]}
+          boundBoxFunc={(oldBox, newBox) => {
+            // limit resize
+            if (Math.abs(newBox.width) < 5 || Math.abs(newBox.height) < 5) {
+              return oldBox;
+            }
+            return newBox;
+          }}
+        />
+      )}
+    </>
+  );
+};

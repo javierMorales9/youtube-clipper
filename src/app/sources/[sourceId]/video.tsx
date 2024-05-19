@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Konva from 'konva';
 import { Timer } from './useTimer';
 import { Image } from 'react-konva';
 
@@ -11,11 +12,13 @@ export default function Video({
     setLength,
     currentTime,
     playing,
-  }
+  },
+  overlay,
 }: {
   src: string,
   startTime: number,
   timer: Timer,
+  overlay: boolean,
 }) {
   const [movie, setMovie] = useState<HTMLVideoElement | null>(null);
   const [videoTimer, setVideoTimer] = useState<ReturnType<typeof setInterval> | null>(null);
@@ -84,6 +87,8 @@ export default function Video({
       width={960}
       height={540}
       image={movie!}
+      filters={overlay ? [Konva.Filters.Blur] : []}
+      shadowBlur={overlay ? 100 : 0}
     />
   );
 }
