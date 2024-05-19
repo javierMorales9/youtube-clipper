@@ -126,19 +126,19 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
     form.setValue('sections', sections);
   }
 
-  const handleSelectDisplay = (display: Display) => {
+  const handleSelectDisplay = (newDisplay: Display) => {
+    if(newDisplay.name === display?.name) 
+      return;
+
     const sections = form.getValues().sections;
     const section = sections[selectedSection];
 
     if (!section)
       return;
 
-    section.display = display;
+    section.display = newDisplay;
 
     form.setValue('sections', sections);
-  }
-
-  const handleDeleteDisplay = () => {
   }
 
   const checkDeselect = (e: any) => {
@@ -156,33 +156,23 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="w-1/4 border border-1 border-black">
-          {!display && (
-            <>
-              <div className="p-4 border border-b-black">
-                Displays
-              </div>
-              <div className="p-3 w-full flex flex-row justify-between flex-wrap">
-                {(Object.keys(Displays) as any).map((key: DisplayKey) => (
-                  <div
-                    key={key}
-                    onClick={() => handleSelectDisplay(Displays[key])}
-                    className="flex flex-col justify-center items-center w-[135px] h-[240px] border border-black cursor-pointer">
-                    <span>{Displays[key].name}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-          {display && (
-            <>
+          <div className="p-4 border border-b-black">
+            Displays
+          </div>
+          <div className="p-3 w-full flex flex-row justify-between flex-wrap">
+            {(Object.keys(Displays) as any).map((key: DisplayKey) => (
               <div
-                className="cursor-pointer p-4"
-                onClick={handleDeleteDisplay}
-              >
-                {'<-'} Select other display
+                key={key}
+                onClick={() => handleSelectDisplay(Displays[key])}
+                className={`
+                  flex flex-col justify-center items-center
+                  w-[135px] h-[240px] border border-black cursor-pointer
+                  ${display?.name === Displays[key].name && 'bg-gray-200'}
+                `}>
+                <span>{Displays[key].name}</span>
               </div>
-            </>
-          )}
+            ))}
+          </div>
         </div>
         <div className="flex flex-col items-center w-full">
           <Stage
