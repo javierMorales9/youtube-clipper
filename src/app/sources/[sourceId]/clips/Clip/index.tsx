@@ -57,6 +57,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
   const timer = useTimer(end - start);
 
   const [selectedSectionStart, setSelectedSectionStart] = useState<number>(0);
+  const [display, setDisplay] = useState<typeof Displays[keyof typeof Displays] | null>(null);
 
   const form = useForm<Schema>({
     defaultValues: {
@@ -130,16 +131,33 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="w-1/4 border border-1 border-black">
-          <div className="p-4 border border-b-black">
-            Displays
-          </div>
-          <div className="p-3 w-full flex flex-row justify-between flex-wrap">
-            {(Object.keys(Displays) as any).map((key: keyof typeof Displays) => (
-              <div key={key} className="flex flex-col justify-center items-center w-[135px] h-[240px] border border-black cursor-pointer">
-                <span>{Displays[key].name}</span>
+          {!display && (
+            <>
+              <div className="p-4 border border-b-black">
+                Displays
               </div>
-            ))}
-          </div>
+              <div className="p-3 w-full flex flex-row justify-between flex-wrap">
+                {(Object.keys(Displays) as any).map((key: keyof typeof Displays) => (
+                  <div
+                    key={key}
+                    onClick={() => setDisplay(Displays[key])}
+                    className="flex flex-col justify-center items-center w-[135px] h-[240px] border border-black cursor-pointer">
+                    <span>{Displays[key].name}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {display && (
+            <>
+              <div
+                className="cursor-pointer p-4"
+                onClick={() => setDisplay(null)}
+              >
+                {'<-'} Select other display
+              </div>
+            </>
+          )}
         </div>
         <div className="flex flex-col w-full">
           <Video
