@@ -4,6 +4,7 @@ import Video from "../../video";
 import { useTimer } from "../../useTimer";
 import { useForm, FormProvider } from "react-hook-form";
 import { useState } from "react";
+import { Stage, Layer, Image, Transformer, Group } from 'react-konva';
 
 type Schema = {
   range: {
@@ -58,6 +59,8 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
 
   const [selectedSectionStart, setSelectedSectionStart] = useState<number>(0);
   const [display, setDisplay] = useState<typeof Displays[keyof typeof Displays] | null>(null);
+
+  const [selectedId, selectShape] = useState<string | null>(null);
 
   const form = useForm<Schema>({
     defaultValues: {
@@ -124,6 +127,14 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
     }
   }
 
+  const checkDeselect = (e: any) => {
+    // deselect when clicked on empty area
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      selectShape(null);
+    }
+  };
+
   return (
     <FormProvider {...form}>
       <form
@@ -159,12 +170,22 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             </>
           )}
         </div>
-        <div className="flex flex-col w-full">
-          <Video
-            src={`${source.url}`}
-            timer={timer}
-            startTime={start}
-          />
+        <div className="flex flex-col items-center w-full">
+          <Stage
+            width={960}
+            height={540}
+          //onMouseDown={checkDeselect}
+          //onTouchStart={checkDeselect}
+          >
+
+            <Layer>
+              <Video
+                src={`${source.url}`}
+                timer={timer}
+                startTime={start}
+              />
+            </Layer>
+          </Stage>
 
           <div className="flex flex-row gap-x-10 justify-center">
             <div className="flex flex-row gap-x-4">

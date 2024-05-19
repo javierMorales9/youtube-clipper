@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Timer } from './useTimer';
+import { Image } from 'react-konva';
 
 export default function Video({
   src,
@@ -16,25 +17,22 @@ export default function Video({
   startTime: number,
   timer: Timer,
 }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
   const [movie, setMovie] = useState<HTMLVideoElement | null>(null);
   const [videoTimer, setVideoTimer] = useState<ReturnType<typeof setInterval> | null>(null);
+  const [videoNode, setVideoNode] = useState<any>();
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return
-
     const video = document.createElement('video');
     video.src = src;
     video.controls = false;
     video.autoplay = false;
 
-    initializeVideo(video);
+    if (startTime)
+      video.currentTime = startTime;
+    else
+      video.currentTime = 0;
 
     video.onloadedmetadata = () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
       if (!length) {
         setLength(video.duration);
       }
@@ -55,13 +53,6 @@ export default function Video({
       pause();
   }, [playing]);
 
-  function initializeVideo(video: HTMLVideoElement) {
-    if (startTime)
-      video.currentTime = startTime;
-    else
-      video.currentTime = 0;
-  }
-
   function pause() {
     clearInterval(videoTimer!);
     setVideoTimer(null);
@@ -72,12 +63,7 @@ export default function Video({
   function play() {
     const vidT = setInterval(() => {
       if (!movie) return;
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const context = canvas.getContext('2d');
-      if (!context) return;
-      context.drawImage(movie, 0, 0);
+      videoNode?.getLayer().batchDraw();
     }, 1000 / 30);
 
 
@@ -91,11 +77,14 @@ export default function Video({
   }
 
   return (
-    <div>
-      <div className="w-full flex justify-center items-center">
-        <canvas ref={canvasRef} width={1280} height={720} className="w-[960px] h-[540px]"></canvas>
-      </div>
-    </div>
+    <Image
+      ref={(node) => {
+        setVideoNode(node);
+      }}
+      width={960}
+      height={540}
+      image={movie!}
+    />
   );
 }
 
