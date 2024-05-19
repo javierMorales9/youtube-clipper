@@ -127,7 +127,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
   }
 
   const handleSelectDisplay = (newDisplay: Display) => {
-    if(newDisplay.name === display?.name) 
+    if (newDisplay.name === display?.name)
       return;
 
     const sections = form.getValues().sections;
@@ -181,7 +181,6 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             onMouseDown={checkDeselect}
             onTouchStart={checkDeselect}
           >
-
             <Layer>
               <Video
                 src={`${source.url}`}
@@ -234,6 +233,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             </Timeline>
           )}
         </div>
+        <Preview />
       </form>
     </FormProvider>
   );
@@ -394,3 +394,17 @@ const Rectangle = ({
     </>
   );
 };
+
+function Preview() {
+  return (
+    <div className="border border-black border-1">
+      <Stage
+        width={270}
+        height={480}
+      >
+        <Layer>
+        </Layer>
+      </Stage>
+    </div>
+  );
+}

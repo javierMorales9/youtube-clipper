@@ -12,18 +12,26 @@ export default function Timeline({
   setCurrentTime: (time: number) => void,
   children?: (timelineWidth: number, zoom: number, length: number) => JSX.Element,
 }) {
-  const timelineWidth = 1200;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [timelineWidth, setTimelineWidth] = useState(0);
   const timeLineRef = useRef<HTMLDivElement | null>(null);
   const [zoom, setZoom] = useState(1);
 
   const markSecInc = useMemo(() => length / (7 * zoom), [length, zoom]);
   const marks = useMemo(() => 7 * zoom, [zoom]);
-  const leftPxInc = useMemo(() => timelineWidth * zoom / marks, [zoom, marks]);
+  const leftPxInc = useMemo(() => timelineWidth * zoom / marks, [timelineWidth, zoom, marks]);
 
   const reference = useMemo(
     () => timelineWidth * zoom * currSec() / length,
     [zoom, currentTime, length]
   );
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    setTimelineWidth(container.clientWidth);
+  }, [containerRef.current]);
 
   useEffect(() => {
     updateScroll(zoom);
@@ -69,7 +77,10 @@ export default function Timeline({
   }
 
   return (
-    <div className="w-full flex flex-col items-center gap-y-4">
+    <div
+      ref={containerRef}
+      className="w-full flex flex-col items-center gap-y-4"
+    >
       <input
         type="range"
         min={1}
