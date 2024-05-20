@@ -2,7 +2,7 @@
 import Timeline from "../../timeline";
 import Video from "../../video";
 import { Timer, useTimer } from "../../useTimer";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
 import { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import VideoFragment from "../../videoFragment";
@@ -68,8 +68,6 @@ type Display = typeof Displays[DisplayKey];
 export default function Clip({ source, start, end }: { source: any, start: number, end: number }) {
   const timer = useTimer(end - start);
 
-  const [selectedSection, setSelectedSection] = useState<number>(0);
-
   const form = useForm<Schema>({
     defaultValues: {
       range: {
@@ -80,14 +78,125 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
         {
           start: 0,
           end: end - start,
+          display: Displays.One,
+          fragments: [
+            ...Displays.One.elements,
+          ]
         },
       ],
     }
   });
 
-  const section = form.watch(`sections`)[selectedSection];
+  const {
+    section,
+    selectedSection,
+    setSelectedSection,
+    divideSection,
+    deleteSection
+  } = useSections(timer, form);
 
   function onSubmit() { }
+
+  return (
+    <FormProvider {...form}>
+      <form
+        className="flex flex-row"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="w-1/4 border border-1 border-black">
+          <DisplaysSelector section={section} />
+        </div>
+        <div className="flex flex-col items-center w-full">
+          <Viewer
+            source={source.url}
+            start={start}
+            timer={timer}
+            section={section}
+            form={form}
+          />
+
+          <div className="flex flex-row gap-x-10 justify-center">
+            <Controls
+              timer={timer}
+              divideSection={divideSection}
+              deleteSection={deleteSection}
+            />
+          </div>
+          {timer.length && (
+            <Timeline
+              length={timer.length}
+              currentTime={timer.currentTime}
+              setCurrentTime={(time: number) => timer.seek(time)}
+            >
+              {(timelineWidth: number, zoom: number, length: number) => (
+                <SectionSelector
+                  timelineWidth={timelineWidth}
+                  zoom={zoom}
+                  length={length}
+                  sections={form.watch('sections')}
+                  selectedSection={selectedSection}
+                  setSelectedSection={setSelectedSection}
+                />
+              )}
+            </Timeline>
+          )}
+        </div>
+        <Preview
+          section={section}
+          source={source}
+          timer={timer}
+          startTime={start}
+        />
+      </form>
+    </FormProvider >
+  );
+}
+
+function DisplaysSelector({ section }: { section?: Section, }) {
+  const form = useForm<Schema>();
+
+  const handleSelectDisplay = (newDisplay: Display) => {
+    if (!section || newDisplay.name === section.display?.name)
+      return;
+
+    section.display = newDisplay;
+    section.fragments = newDisplay.elements.map((element, i) => ({
+      ...element,
+      x: 20,
+      y: 20 + i * 240,
+    }));
+
+    form.setValue('sections', form.getValues('sections'));
+  }
+
+  return (
+    <>
+      <div className="p-4 border border-b-black">
+        Displays
+      </div>
+      <div className="p-3 w-full flex flex-row justify-between flex-wrap">
+        {(Object.keys(Displays) as any).map((key: DisplayKey) => (
+          <div
+            key={key}
+            onClick={() => handleSelectDisplay(Displays[key])}
+            className={`
+              flex flex-col justify-center items-center
+              border border-black cursor-pointer
+              ${section?.display?.name === Displays[key].name && 'bg-gray-200'}
+           `}
+          >
+            <span>{Displays[key].name}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>) {
+  const [selectedSection, setSelectedSection] = useState<number>(0);
+  //const form = useForm<Schema>();
+  const section = form.watch('sections')[selectedSection];
 
   useEffect(() => {
     const sections = form.getValues().sections;
@@ -109,12 +218,12 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
       const section = sections[i];
       if (section && section.start <= timer.currentSeconds && timer.currentSeconds <= section.end) {
         const newSection = {
+          ...section,
           start: timer.currentSeconds,
-          end: section.end,
-          elements: [] as any,
         };
-
         section.end = timer.currentSeconds;
+
+        //we add a new section after the current one.
         sections.splice(i + 1, 0, newSection);
 
         form.setValue('sections', sections);
@@ -145,112 +254,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
     form.setValue('sections', sections);
   }
 
-  const handleSelectDisplay = (newDisplay: Display) => {
-    if (!section || newDisplay.name === section.display?.name)
-      return;
-
-    section.display = newDisplay;
-    section.fragments = newDisplay.elements.map((element, i) => ({
-      ...element,
-      x: 20,
-      y: 20 + i * 240,
-    }));
-
-    form.setValue('sections', form.getValues('sections'));
-  }
-
-  return (
-    <FormProvider {...form}>
-      <form
-        className="flex flex-row"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
-        <div className="w-1/4 border border-1 border-black">
-          <div className="p-4 border border-b-black">
-            Displays
-          </div>
-          <div className="p-3 w-full flex flex-row justify-between flex-wrap">
-            {(Object.keys(Displays) as any).map((key: DisplayKey) => (
-              <div
-                key={key}
-                onClick={() => handleSelectDisplay(Displays[key])}
-                className={`
-                  flex flex-col justify-center items-center
-                  border border-black cursor-pointer
-                  ${section?.display?.name === Displays[key].name && 'bg-gray-200'}
-                `}
-              >
-                <span>{Displays[key].name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col items-center w-full">
-          <Stage
-            width={960}
-            height={540}
-          >
-            <Layer>
-              <Video
-                src={`${source.url}`}
-                timer={timer}
-                startTime={start}
-                width={960}
-                height={540}
-              />
-              {section?.fragments && (
-                section?.fragments.map((element, i) => (
-                  <Rectangle
-                    key={i}
-                    shapeProps={element}
-                    onChange={(newAttrs) => {
-                      if (!section?.fragments || !section?.fragments[i])
-                        return;
-
-                      section.fragments[i] = newAttrs;
-                      form.setValue('sections', form.watch('sections'));
-                    }}
-                  />
-                ))
-              )}
-            </Layer>
-          </Stage>
-
-          <div className="flex flex-row gap-x-10 justify-center">
-            <div className="flex flex-row gap-x-4">
-              <button onClick={divideSection}>Divide Section</button>
-              <button onClick={() => deleteSection()}>Delete Section</button>
-            </div>
-            <button onClick={() => timer.togglePlay()}>{timer.playing ? 'Stop' : 'Play'}</button>
-          </div>
-          {timer.length && (
-            <Timeline
-              length={timer.length}
-              currentTime={timer.currentTime}
-              setCurrentTime={(time: number) => timer.seek(time)}
-            >
-              {(timelineWidth: number, zoom: number, length: number) => (
-                <SectionSelector
-                  timelineWidth={timelineWidth}
-                  zoom={zoom}
-                  length={length}
-                  sections={form.watch('sections')}
-                  selectedSection={selectedSection}
-                  setSelectedSection={setSelectedSection}
-                />
-              )}
-            </Timeline>
-          )}
-        </div>
-        <Preview
-          section={section}
-          source={source}
-          timer={timer}
-          startTime={start}
-        />
-      </form>
-    </FormProvider >
-  );
+  return { section, selectedSection, setSelectedSection, divideSection, deleteSection };
 }
 
 function SectionSelector({
@@ -304,6 +308,52 @@ function SectionSelector({
       </div>
     );
   }
+}
+
+function Viewer({
+  source,
+  start,
+  timer,
+  section,
+  form,
+}: {
+  source: string,
+  start: number,
+  timer: Timer,
+  section?: Section
+  form: UseFormReturn<Schema, null, undefined>
+}) {
+  return (
+    <Stage
+      width={960}
+      height={540}
+    >
+      <Layer>
+        <Video
+          src={`${source}`}
+          timer={timer}
+          startTime={start}
+          width={960}
+          height={540}
+        />
+        {section?.fragments && (
+          section?.fragments.map((element, i) => (
+            <Rectangle
+              key={i}
+              shapeProps={element}
+              onChange={(newAttrs) => {
+                if (!section?.fragments || !section?.fragments[i])
+                  return;
+
+                section.fragments[i] = newAttrs;
+                form.setValue('sections', form.watch('sections'));
+              }}
+            />
+          ))
+        )}
+      </Layer>
+    </Stage>
+  );
 }
 
 const Rectangle = ({
@@ -395,6 +445,27 @@ const Rectangle = ({
     </>
   );
 };
+
+function Controls({
+  timer,
+  divideSection,
+  deleteSection
+}: {
+  timer: Timer,
+  divideSection: () => void,
+  deleteSection: () => void
+}) {
+
+  return (
+    <>
+      <div className="flex flex-row gap-x-4">
+        <button onClick={divideSection}>Divide Section</button>
+        <button onClick={deleteSection}>Delete Section</button>
+      </div>
+      <button onClick={timer.togglePlay}>{timer.playing ? 'Stop' : 'Play'}</button>
+    </>
+  );
+}
 
 function Preview({
   section,
