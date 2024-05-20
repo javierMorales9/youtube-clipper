@@ -42,9 +42,9 @@ const Displays = {
       },
     ],
   },
-  TwoVertical: {
-    name: 'Two Vertical',
-    //image: '/public/images/displays/two-vertical.png',
+  TwoColumn: {
+    name: 'Two Column',
+    //image: '/public/images/displays/two-column.png',
     elements: [
       {
         x: 0,
@@ -57,6 +57,24 @@ const Displays = {
         y: 240,
         width: 270,
         height: 240,
+      },
+    ],
+  },
+  TwoRow: {
+    name: 'Two Row',
+    //image: '/public/images/displays/two-row.png',
+    elements: [
+      {
+        x: 0,
+        y: 0,
+        width: 135,
+        height: 480,
+      },
+      {
+        x: 135,
+        y: 0,
+        width: 135,
+        height: 480,
       },
     ],
   },
@@ -185,8 +203,6 @@ function DisplaysSelector({
     section.display = newDisplay;
     section.fragments = newDisplay.elements.map((element, i) => ({
       ...element,
-      x: 20,
-      y: 20 + i * 240,
     }));
 
     form.setValue('sections', form.getValues('sections'));
@@ -339,31 +355,37 @@ function Viewer({
   timer,
   section,
   form,
+  width = 960,
+  height = 540,
 }: {
   source: string,
   start: number,
   timer: Timer,
   section?: Section
-  form: UseFormReturn<Schema, null, undefined>
+  form: UseFormReturn<Schema, null, undefined>,
+  width?: number,
+  height?: number,
 }) {
   return (
     <Stage
-      width={960}
-      height={540}
+      width={width}
+      height={height}
     >
       <Layer>
         <Video
           src={`${source}`}
           timer={timer}
           startTime={start}
-          width={960}
-          height={540}
+          width={width}
+          height={height}
         />
         {section?.fragments && (
           section?.fragments.map((element, i) => (
             <Rectangle
               key={i}
               shapeProps={element}
+              stageWidth={width}
+              stageHeight={height}
               onChange={(newAttrs) => {
                 if (!section?.fragments || !section?.fragments[i])
                   return;
@@ -380,9 +402,13 @@ function Viewer({
 }
 
 const Rectangle = ({
+  stageWidth,
+  stageHeight,
   shapeProps,
-  onChange
+  onChange,
 }: {
+  stageWidth: number,
+  stageHeight: number,
   shapeProps: {
     x: number,
     y: number,
@@ -445,6 +471,30 @@ const Rectangle = ({
             height: Math.max(node.height() * scaleY),
           });
         }}
+        onDragMove={() => {
+          const node = shapeRef.current;
+          const box = node.getClientRect();
+
+          const absPos = node.getAbsolutePosition();
+          const offsetX = box.x - absPos.x;
+          const offsetY = box.y - absPos.y;
+
+          const newAbsPos = { ...absPos };
+          if (box.x < 0) {
+            newAbsPos.x = -offsetX;
+          }
+          if (box.y < 0) {
+            newAbsPos.y = -offsetY;
+          }
+          if (box.x + box.width > stageWidth) {
+            newAbsPos.x = stageWidth - box.width - offsetX;
+          }
+          if (box.y + box.height > stageHeight) {
+            newAbsPos.y = stageHeight - box.height - offsetY;
+          }
+
+          node.setAbsolutePosition(newAbsPos);
+        }}
       />
       <Transformer
         ref={trRef}
@@ -502,7 +552,7 @@ function Preview({
   startTime: number
 }) {
   return (
-    <div className="relative w-[270px] h-[480px] border border-black border-1">
+    <div className="relative w-[270px] h-[480px]">
       {section && section.fragments && section.fragments.map((element, i, elements) => (
         <VideoFragment
           src={source.url}
