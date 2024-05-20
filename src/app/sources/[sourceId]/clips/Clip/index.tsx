@@ -69,7 +69,6 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
   const timer = useTimer(end - start);
 
   const [selectedSection, setSelectedSection] = useState<number>(0);
-  const [selectedId, selectShape] = useState<string | null>(null);
 
   const form = useForm<Schema>({
     defaultValues: {
@@ -87,12 +86,19 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
   });
 
   const section = form.watch(`sections`)[selectedSection];
-  /*
-  const display = form.watch(`sections`)[selectedSection]?.display;
-  const fragments = form.watch(`sections`)[selectedSection]?.fragments;
-  */
 
   function onSubmit() { }
+
+  useEffect(() => {
+    const sections = form.getValues().sections;
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      if (section && section.start <= timer.currentSeconds && timer.currentSeconds <= section.end) {
+        setSelectedSection(i);
+        return;
+      }
+    }
+  }, [timer.currentTime]);
 
   function divideSection() {
     const sections = form.getValues().sections;
@@ -153,14 +159,6 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
     form.setValue('sections', form.getValues('sections'));
   }
 
-  const checkDeselect = (e: any) => {
-    // deselect when clicked on empty area
-    const clickedOnEmpty = e.target === e.target.getStage();
-    if (clickedOnEmpty) {
-      selectShape(null);
-    }
-  };
-
   return (
     <FormProvider {...form}>
       <form
@@ -191,8 +189,6 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
           <Stage
             width={960}
             height={540}
-            onMouseDown={checkDeselect}
-            onTouchStart={checkDeselect}
           >
             <Layer>
               <Video
@@ -207,10 +203,6 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
                   <Rectangle
                     key={i}
                     shapeProps={element}
-                    isSelected={selectedId === i.toString()}
-                    onSelect={() => {
-                      selectShape(i.toString());
-                    }}
                     onChange={(newAttrs) => {
                       if (!section?.fragments || !section?.fragments[i])
                         return;
@@ -316,8 +308,6 @@ function SectionSelector({
 
 const Rectangle = ({
   shapeProps,
-  isSelected,
-  onSelect,
   onChange
 }: {
   shapeProps: {
@@ -326,8 +316,6 @@ const Rectangle = ({
     width: number,
     height: number,
   },
-  isSelected: boolean,
-  onSelect: () => void,
   onChange: (newShape: {
     x: number,
     y: number,
@@ -339,21 +327,15 @@ const Rectangle = ({
   const trRef = useRef<any>();
 
   useEffect(() => {
-    if (isSelected) {
-      // we need to attach transformer manually
-      trRef.current.nodes([shapeRef.current]);
-      trRef.current.getLayer().batchDraw();
-    }
-  }, [isSelected]);
+    trRef.current.nodes([shapeRef.current]);
+    trRef.current.getLayer().batchDraw();
+  }, []);
 
   return (
     <>
       <Rect
-        onClick={onSelect}
-        onTap={onSelect}
         ref={shapeRef}
         {...shapeProps}
-        stroke={isSelected ? undefined : 'red'}
         draggable
         onDragEnd={(e) => {
           onChange({
@@ -362,7 +344,6 @@ const Rectangle = ({
             y: e.target.y(),
           });
         }}
-        onMouseDown={onSelect}
         onMouseUp={(e) => {
           onChange({
             ...shapeProps,
@@ -392,27 +373,25 @@ const Rectangle = ({
           });
         }}
       />
-      {isSelected && (
-        <Transformer
-          ref={trRef}
-          flipEnabled={false}
-          rotateEnabled={false}
-          resizeEnabled={true}
-          enabledAnchors={[
-            'top-left',
-            'top-right',
-            'bottom-left',
-            'bottom-right',
-          ]}
-          boundBoxFunc={(oldBox, newBox) => {
-            // limit resize
-            if (Math.abs(newBox.width) < 5 || Math.abs(newBox.height) < 5) {
-              return oldBox;
-            }
-            return newBox;
-          }}
-        />
-      )}
+      <Transformer
+        ref={trRef}
+        flipEnabled={false}
+        rotateEnabled={false}
+        resizeEnabled={true}
+        enabledAnchors={[
+          'top-left',
+          'top-right',
+          'bottom-left',
+          'bottom-right',
+        ]}
+        boundBoxFunc={(oldBox, newBox) => {
+          // limit resize
+          if (Math.abs(newBox.width) < 5 || Math.abs(newBox.height) < 5) {
+            return oldBox;
+          }
+          return newBox;
+        }}
+      />
     </>
   );
 };
