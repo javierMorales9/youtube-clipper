@@ -1,10 +1,11 @@
 'use client';
 import Timeline from "../../timeline";
 import Video from "../../video";
-import { useTimer } from "../../useTimer";
+import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider } from "react-hook-form";
 import { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
+import VideoFragment from "../../videoFragment";
 
 type Schema = {
   range: {
@@ -16,9 +17,17 @@ type Schema = {
       start: number,
       end: number,
       display?: Display,
+      fragments?: {
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+      }[],
     },
   ],
 }
+
+type Section = Schema['sections'][0];
 
 const Displays = {
   One: {
@@ -26,8 +35,8 @@ const Displays = {
     //image: '/public/images/displays/one.png',
     elements: [
       {
-        x: 10,
-        y: 30,
+        x: 0,
+        y: 0,
         width: 270,
         height: 480,
       },
@@ -38,14 +47,14 @@ const Displays = {
     //image: '/public/images/displays/two-vertical.png',
     elements: [
       {
-        x: 10,
-        y: 30,
+        x: 0,
+        y: 0,
         width: 270,
         height: 240,
       },
       {
-        x: 10,
-        y: 270,
+        x: 0,
+        y: 240,
         width: 270,
         height: 240,
       },
@@ -53,8 +62,8 @@ const Displays = {
   },
 };
 
-type Display = typeof Displays[keyof typeof Displays];
 type DisplayKey = keyof typeof Displays;
+type Display = typeof Displays[DisplayKey];
 
 export default function Clip({ source, start, end }: { source: any, start: number, end: number }) {
   const timer = useTimer(end - start);
@@ -77,7 +86,11 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
     }
   });
 
+  const section = form.watch(`sections`)[selectedSection];
+  /*
   const display = form.watch(`sections`)[selectedSection]?.display;
+  const fragments = form.watch(`sections`)[selectedSection]?.fragments;
+  */
 
   function onSubmit() { }
 
@@ -127,18 +140,17 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
   }
 
   const handleSelectDisplay = (newDisplay: Display) => {
-    if (newDisplay.name === display?.name)
-      return;
-
-    const sections = form.getValues().sections;
-    const section = sections[selectedSection];
-
-    if (!section)
+    if (!section || newDisplay.name === section.display?.name)
       return;
 
     section.display = newDisplay;
+    section.fragments = newDisplay.elements.map((element, i) => ({
+      ...element,
+      x: 20,
+      y: 20 + i * 240,
+    }));
 
-    form.setValue('sections', sections);
+    form.setValue('sections', form.getValues('sections'));
   }
 
   const checkDeselect = (e: any) => {
@@ -166,9 +178,10 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
                 onClick={() => handleSelectDisplay(Displays[key])}
                 className={`
                   flex flex-col justify-center items-center
-                  w-[135px] h-[240px] border border-black cursor-pointer
-                  ${display?.name === Displays[key].name && 'bg-gray-200'}
-                `}>
+                  border border-black cursor-pointer
+                  ${section?.display?.name === Displays[key].name && 'bg-gray-200'}
+                `}
+              >
                 <span>{Displays[key].name}</span>
               </div>
             ))}
@@ -186,10 +199,11 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
                 src={`${source.url}`}
                 timer={timer}
                 startTime={start}
-                overlay={!!display}
+                width={960}
+                height={540}
               />
-              {display && (
-                display.elements.map((element, i) => (
+              {section?.fragments && (
+                section?.fragments.map((element, i) => (
                   <Rectangle
                     key={i}
                     shapeProps={element}
@@ -198,7 +212,10 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
                       selectShape(i.toString());
                     }}
                     onChange={(newAttrs) => {
-                      display.elements[i] = newAttrs;
+                      if (!section?.fragments || !section?.fragments[i])
+                        return;
+
+                      section.fragments[i] = newAttrs;
                       form.setValue('sections', form.watch('sections'));
                     }}
                   />
@@ -233,9 +250,14 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             </Timeline>
           )}
         </div>
-        <Preview />
+        <Preview
+          section={section}
+          source={source}
+          timer={timer}
+          startTime={start}
+        />
       </form>
-    </FormProvider>
+    </FormProvider >
   );
 }
 
@@ -272,7 +294,7 @@ function SectionSelector({
     selected,
     onClick,
   }: {
-    section: Schema['sections'][0],
+    section: Section,
     selected: boolean,
     onClick: () => void,
   }) {
@@ -395,16 +417,37 @@ const Rectangle = ({
   );
 };
 
-function Preview() {
+function Preview({
+  section,
+  source,
+  timer,
+  startTime
+}: {
+  section?: Section,
+  source: any,
+  timer: Timer,
+  startTime: number
+}) {
   return (
-    <div className="border border-black border-1">
-      <Stage
-        width={270}
-        height={480}
-      >
-        <Layer>
-        </Layer>
-      </Stage>
+    <div className="relative w-[270px] h-[480px] border border-black border-1">
+      {section && section.fragments && section.fragments.map((element, i, elements) => (
+        <VideoFragment
+          src={source.url}
+          timer={timer}
+          startTime={startTime}
+          x={section.display!.elements[i]!.x}
+          y={section.display!.elements[i]!.y}
+          width={section.display!.elements[i]!.width}
+          height={section.display!.elements[i]!.height}
+          clip={{
+            x: element.x,
+            y: element.y,
+            width: element.width,
+            height: element.height,
+          }}
+          positionOffset={elements[i - 1] ? elements[i - 1]!.height : 0}
+        />
+      ))}
     </div>
   );
 }
