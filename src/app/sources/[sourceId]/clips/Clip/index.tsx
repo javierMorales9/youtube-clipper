@@ -67,6 +67,7 @@ type Display = typeof Displays[DisplayKey];
 
 export default function Clip({ source, start, end }: { source: any, start: number, end: number }) {
   const timer = useTimer(end - start);
+  const [showModal, setShowModal] = useState(false);
 
   const form = useForm<Schema>({
     defaultValues: {
@@ -104,15 +105,18 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="w-1/4 border border-1 border-black">
-          <DisplaysSelector section={section} />
-        </div>
-        <div className="flex flex-col items-center w-full">
-          <Viewer
-            source={source.url}
-            start={start}
-            timer={timer}
+          <DisplaysSelector
             section={section}
             form={form}
+          />
+        </div>
+        <div className="flex flex-col items-center w-full">
+          <button onClick={() => setShowModal(!showModal)}>Clip</button>
+          <Preview
+            section={section}
+            source={source}
+            timer={timer}
+            startTime={start}
           />
 
           <div className="flex flex-row gap-x-10 justify-center">
@@ -141,20 +145,39 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             </Timeline>
           )}
         </div>
-        <Preview
-          section={section}
-          source={source}
-          timer={timer}
-          startTime={start}
-        />
+        <div
+          className={`
+            fixed top-0 left-0 w-full h-full
+            ${showModal ? 'flex' : 'hidden'}
+            justify-center items-center
+            bg-black bg-opacity-80
+          `}
+          onClick={() => setShowModal(false)}
+        >
+          <div onClick={(e) => {
+            e.stopPropagation();
+          }}>
+            <Viewer
+              source={source.url}
+              start={start}
+              timer={timer}
+              section={section}
+              form={form}
+            />
+          </div>
+        </div>
       </form>
     </FormProvider >
   );
 }
 
-function DisplaysSelector({ section }: { section?: Section, }) {
-  const form = useForm<Schema>();
-
+function DisplaysSelector({
+  section,
+  form
+}: {
+  section?: Section,
+  form: UseFormReturn<Schema, null, undefined>
+}) {
   const handleSelectDisplay = (newDisplay: Display) => {
     if (!section || newDisplay.name === section.display?.name)
       return;
