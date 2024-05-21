@@ -1,11 +1,11 @@
 'use client';
 
-import Video from "@/app/sources/[sourceId]/video";
 import Timeline from "@/app/sources/[sourceId]/timeline";
 import { useTimer } from "../useTimer";
 import RangeSelection from "./rangeSelector";
 import { useState } from "react";
 import Link from "next/link";
+import SourceVideo from "./sourceVideo";
 
 export default function Source({ source }: { source: any }) {
   const timer = useTimer();
@@ -14,13 +14,16 @@ export default function Source({ source }: { source: any }) {
   const [rangeCreated, setRangeCreated] = useState(false);
 
   return (
-    <>
-      <Video
+    <div className="flex flex-col w-full items-center">
+      <SourceVideo
         src={`${source.url}`}
         timer={timer}
+        startTime={0}
+        width={800}
+        height={600}
       />
 
-      <div className="flex flex-col">
+      <div className="w-full flex flex-col">
         <button onClick={() => timer.togglePlay()}>{timer.playing ? 'Stop' : 'Play'}</button>
         {rangeCreated && (
           <Link href={`/sources/${source.id}/clips/new?start=${range[0]}&end=${range[1]}`}>
@@ -33,6 +36,7 @@ export default function Source({ source }: { source: any }) {
         <Timeline
           length={timer.length}
           currentTime={timer.currentTime}
+          currentSeconds={timer.currentSeconds}
           setCurrentTime={(time: number) => timer.seek(time)}
         >
           {(timelineWidth: number, zoom: number, length: number) => (
@@ -48,6 +52,6 @@ export default function Source({ source }: { source: any }) {
           )}
         </Timeline>
       )}
-    </>
+    </div>
   );
 }

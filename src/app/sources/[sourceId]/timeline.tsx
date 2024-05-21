@@ -4,11 +4,13 @@ import { useState, MouseEvent, useRef, useEffect, useMemo, FC } from 'react';
 export default function Timeline({
   length,
   currentTime,
+  currentSeconds,
   setCurrentTime,
   children,
 }: {
   length: number,
-  currentTime: [number, number]
+  currentTime: [number, number, number, number]
+  currentSeconds: number,
   setCurrentTime: (time: number) => void,
   children?: (timelineWidth: number, zoom: number, length: number) => JSX.Element,
 }) {
@@ -22,8 +24,8 @@ export default function Timeline({
   const leftPxInc = useMemo(() => timelineWidth * zoom / marks, [timelineWidth, zoom, marks]);
 
   const reference = useMemo(
-    () => timelineWidth * zoom * currSec() / length,
-    [zoom, currentTime, length]
+    () => timelineWidth * zoom * currentSeconds / length,
+    [zoom, currentSeconds, length]
   );
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function Timeline({
   }, [zoom]);
 
   function updateScroll(zoom: number) {
-    const timelineScroll = (currSec() / length) * timelineWidth * zoom - timelineWidth / 2;
+    const timelineScroll = (currentSeconds / length) * timelineWidth * zoom - timelineWidth / 2;
 
     const timeline = timeLineRef.current;
     if (!timeline) return;
@@ -48,10 +50,6 @@ export default function Timeline({
 
   function modifyZoom(newZoom: number) {
     setZoom(newZoom);
-  }
-
-  function currSec() {
-    return currentTime[0] * 60 + currentTime[1];
   }
 
   function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
@@ -88,7 +86,7 @@ export default function Timeline({
         value={zoom}
         onChange={(e) => modifyZoom(parseInt(e.target.value))}
       />
-      <div>{currentTime[0]} : {currentTime[1]}</div>
+      <div>{currentTime[0]} : {currentTime[1]} : {currentTime[2]}</div>
       <div
         ref={timeLineRef}
         className="flex items-start overflow-x-auto no-scrollbar"

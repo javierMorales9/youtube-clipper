@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Timer } from './useTimer';
+import { Timer } from '../../useTimer';
 import { Image } from 'react-konva';
 
 export default function Video({
@@ -10,6 +10,7 @@ export default function Video({
     length,
     setLength,
     currentTime,
+    currentSeconds,
     playing,
   },
   width,
@@ -46,8 +47,13 @@ export default function Video({
   }, []);
 
   useEffect(() => {
-    if (movie)
-      movie.currentTime = startTime + toSeconds(currentTime);
+    if (!movie) return;
+
+    if(Math.abs(currentSeconds + startTime - movie.currentTime) < 1)
+      return;
+
+    console.log('setting time', movie.currentTime, currentSeconds);
+    movie.currentTime = startTime + currentSeconds;
   }, [currentTime]);
 
   useEffect(() => {
@@ -74,10 +80,6 @@ export default function Video({
     setVideoTimer(vidT);
 
     movie?.play().catch(console.error);
-  }
-
-  function toSeconds(time: [number, number]): number {
-    return time[0] * 60 + time[1];
   }
 
   return (

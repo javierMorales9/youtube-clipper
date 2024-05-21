@@ -15,7 +15,6 @@ export default async function ClipCreation({
     return <h1>Source not found</h1>
   }
 
-  console.log(searchParams);
   return (
     <div className="px-4">
       <Link href={`/sources/${sourceId}`}>

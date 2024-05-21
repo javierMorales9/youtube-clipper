@@ -1,11 +1,11 @@
 'use client';
 import Timeline from "../../timeline";
-import Video from "../../video";
+import Video from "./video";
 import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
 import { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
-import VideoFragment from "../../videoFragment";
+import VideoFragment from "./videoFragment";
 
 type Schema = {
   range: {
@@ -148,6 +148,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             <Timeline
               length={timer.length}
               currentTime={timer.currentTime}
+              currentSeconds={timer.currentSeconds}
               setCurrentTime={(time: number) => timer.seek(time)}
             >
               {(timelineWidth: number, zoom: number, length: number) => (
@@ -234,7 +235,6 @@ function DisplaysSelector({
 
 function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>) {
   const [selectedSection, setSelectedSection] = useState<number>(0);
-  //const form = useForm<Schema>();
   const section = form.watch('sections')[selectedSection];
 
   useEffect(() => {

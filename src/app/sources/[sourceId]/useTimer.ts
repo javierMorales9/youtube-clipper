@@ -1,8 +1,9 @@
 import { useState } from "react";
 
 export function useTimer(duration?: number) {
+  const increaseIncrement = 1000 / 5;
   const [length, setLength] = useState<number | null>(duration || null);
-  const [currentTime, setCurrentTime] = useState<[number, number]>([0, 0]);
+  const [currentTime, setCurrentTime] = useState<[number, number, number, number]>([0, 0, 0, 0]);
   const [playing, setPlaying] = useState(false);
 
   const [timelineTimer, setTimelineTimer] = useState<ReturnType<
@@ -13,8 +14,13 @@ export function useTimer(duration?: number) {
     setCurrentTime(formatTime(time));
   }
 
-  function formatTime(time: number): [number, number] {
-    return [Math.floor(time / 60), Math.floor(time % 60)];
+  function formatTime(time: number): [number, number, number, number] {
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = Math.floor((time % 3600) % 60);
+    const milliseconds = Math.floor(((time % 3600) % 60) % 1000);
+
+    return [hours, minutes, seconds, milliseconds];
   }
 
   function togglePlay() {
@@ -38,27 +44,45 @@ export function useTimer(duration?: number) {
         const result = increaseTime(ct);
 
         if (toSeconds(result) >= length!) {
-          return [0, 0];
+          return [0, 0, 0, 0];
         }
 
         return result;
       });
-    }, 1000);
+    }, increaseIncrement);
 
     setTimelineTimer(timeT);
     setPlaying(true);
   }
 
-  function toSeconds(time: [number, number]): number {
-    return time[0] * 60 + time[1];
+  function toSeconds(time: [number, number, number, number]): number {
+    return time[0] * 3600 + time[1] * 60 + time[2] + time[3] / 1000;
   }
 
-  function increaseTime(time: [number, number]): [number, number] {
-    const [minutes, seconds] = time;
-    const result: [number, number] =
-      seconds === 59 ? [minutes + 1, 0] : [minutes, seconds + 1];
+  function increaseTime(time: [number, number, number, number]): [number, number, number, number] {
+    const [hours, minutes, seconds, milliseconds] = time;
 
-    return result;
+    let newMilliseconds = milliseconds + increaseIncrement;
+    let newSeconds = seconds;
+    let newMinutes = minutes;
+    let newHours = hours;
+
+    if (newMilliseconds >= 1000) {
+      newMilliseconds = 0;
+      newSeconds++;
+    }
+
+    if (newSeconds >= 60) {
+      newSeconds = 0;
+      newMinutes++;
+    }
+
+    if (newMinutes >= 60) {
+      newMinutes = 0;
+      newHours++;
+    }
+
+    return [newHours, newMinutes, newSeconds, newMilliseconds];
   }
 
   return {

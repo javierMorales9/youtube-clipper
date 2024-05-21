@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { Timer } from './useTimer';
+import { useEffect, useRef } from 'react';
+import { Timer } from '../../useTimer';
 
-export default function Video({
+export default function VideoFragment({
   src,
   startTime = 0,
   timer: {
@@ -10,6 +10,7 @@ export default function Video({
     setLength,
     currentTime,
     playing,
+    currentSeconds
   },
   x,
   y,
@@ -37,7 +38,6 @@ export default function Video({
   },
   positionOffset: number,
 }) {
-  console.log(clipWidth, width);
   const movieRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function Video({
   useEffect(() => {
     const movie = movieRef.current;
     if (movie)
-      movie.currentTime = startTime + toSeconds(currentTime);
+      movie.currentTime = startTime + currentSeconds;
   }, [currentTime]);
 
   useEffect(() => {
@@ -86,10 +86,6 @@ export default function Video({
 
   function play() {
     movieRef?.current?.play().catch(console.error);
-  }
-
-  function toSeconds(time: [number, number]): number {
-    return time[0] * 60 + time[1];
   }
 
   return (
