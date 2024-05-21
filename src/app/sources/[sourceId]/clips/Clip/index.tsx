@@ -11,7 +11,7 @@ type Schema = {
   range: {
     start: number;
     end: number;
-  } | undefined,
+  },
   sections: [
     {
       start: number,
@@ -103,19 +103,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
         start,
         end,
       },
-      sections: [
-        {
-          start: 0,
-          end: end - start,
-          display: Displays.One,
-          fragments: Displays.One.elements.map((element, i) => ({
-            x: element.x,
-            y: element.y,
-            width: element.width / 2,
-            height: element.height / 2,
-          }))
-        },
-      ],
+      sections: [],
     }
   });
 
@@ -124,7 +112,8 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
     selectedSection,
     setSelectedSection,
     divideSection,
-    deleteSection
+    deleteSection,
+    handleSelectDisplay
   } = useSections(timer, form);
 
   function onSubmit() { }
@@ -138,7 +127,8 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
         <div className="w-1/4 border border-1 border-black">
           <DisplaysSelector
             section={section}
-            form={form}
+            handleSelectDisplay={handleSelectDisplay}
+            //form={form}
           />
         </div>
         <div className="flex flex-col items-center w-full">
@@ -208,22 +198,11 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
 
 function DisplaysSelector({
   section,
-  form
+  handleSelectDisplay,
 }: {
   section?: Section,
-  form: UseFormReturn<Schema, null, undefined>
+  handleSelectDisplay: (newDisplay: Display) => void,
 }) {
-  const handleSelectDisplay = (newDisplay: Display) => {
-    if (!section || newDisplay.name === section.display?.name)
-      return;
-
-    section.display = newDisplay;
-    section.fragments = newDisplay.elements.map((element, i) => ({
-      ...element,
-    }));
-
-    form.setValue('sections', form.getValues('sections'));
-  }
 
   return (
     <>
@@ -252,6 +231,26 @@ function DisplaysSelector({
 function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>) {
   const [selectedSection, setSelectedSection] = useState<number>(0);
   const section = form.watch('sections')[selectedSection];
+
+  useEffect(() => {
+    const range = form.getValues().range;
+
+    if (!form.getValues().sections.length) {
+      form.setValue('sections', [{
+        start: 0,
+        end: range.end - range.start,
+        display: Displays.One,
+        fragments: [
+          {
+            x: 0,
+            y: 0,
+            width: 270,
+            height: 480,
+          }
+        ],
+      }]);
+    }
+  }, [])
 
   useEffect(() => {
     const sections = form.getValues().sections;
@@ -309,7 +308,22 @@ function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>)
     form.setValue('sections', sections);
   }
 
-  return { section, selectedSection, setSelectedSection, divideSection, deleteSection };
+  const handleSelectDisplay = (newDisplay: Display) => {
+    if (!section || newDisplay.name === section.display?.name)
+      return;
+
+    section.display = newDisplay;
+    section.fragments = newDisplay.elements.map((element, i) => ({
+      x: element.x,
+      y: element.y,
+      width: element.width / 2,
+      height: element.height / 2,
+    }));
+
+    form.setValue('sections', form.getValues('sections'));
+  }
+
+  return { section, selectedSection, setSelectedSection, divideSection, deleteSection, handleSelectDisplay };
 }
 
 function SectionSelector({
