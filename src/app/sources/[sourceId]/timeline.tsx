@@ -70,7 +70,7 @@ export default function Timeline({
 
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
-    const seconds = Math.floor(time % 3600 % 60 / 60);
+    const seconds = Math.floor(time % 3600 % 60);
 
     const hoursStr = hours === 0 ? '' : hours < 10 ? `0${hours}:` : `${hours}:`;
     const minutesStr = minutes < 10 ? `0${minutes}:` : `${minutes}:`;
