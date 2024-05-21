@@ -12,6 +12,7 @@ export default function VideoFragment({
     playing,
     currentSeconds
   },
+  dimensions,
   x,
   y,
   width,
@@ -26,6 +27,7 @@ export default function VideoFragment({
   src: string,
   startTime: number,
   timer: Timer,
+  dimensions: [number, number],
   x: number,
   y: number,
   width: number,
@@ -36,7 +38,6 @@ export default function VideoFragment({
     width: number,
     height: number,
   },
-  positionOffset: number,
 }) {
   const movieRef = useRef<HTMLVideoElement | null>(null);
 
@@ -48,8 +49,6 @@ export default function VideoFragment({
     video.controls = false;
     video.autoplay = false;
     video.muted = true;
-    video.width = 960;
-    video.height = 540;
 
     initializeVideo(video);
 
@@ -59,6 +58,14 @@ export default function VideoFragment({
       }
     }
   }, []);
+
+  useEffect(() => {
+    const movie = movieRef.current;
+    if (!movie) return;
+
+    movie.width = dimensions[0];
+    movie.height = dimensions[1];
+  }, [dimensions]);
 
   useEffect(() => {
     const movie = movieRef.current;
@@ -104,8 +111,8 @@ export default function VideoFragment({
       <div
         style={{
           position: 'absolute',
-          width: 960,
-          height: 540,
+          width: dimensions[0],
+          height: dimensions[1],
           left: -clipX,
           top: -clipY,
         }}

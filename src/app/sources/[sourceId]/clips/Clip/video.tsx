@@ -13,14 +13,14 @@ export default function Video({
     currentSeconds,
     playing,
   },
-  width,
-  height,
+  dimensions,
+  setDimensions,
 }: {
   src: string,
   startTime: number,
   timer: Timer,
-  width: number,
-  height: number,
+  dimensions: [number, number],
+  setDimensions: (dim: [number, number]) => void
 }) {
   const [movie, setMovie] = useState<HTMLVideoElement | null>(null);
   const [videoTimer, setVideoTimer] = useState<ReturnType<typeof setInterval> | null>(null);
@@ -41,6 +41,8 @@ export default function Video({
       if (!length) {
         setLength(video.duration);
       }
+      console.log('setting dimensions', video.videoWidth, video.videoHeight);
+      setDimensions([video.videoWidth, video.videoHeight]);
     }
 
     setMovie(video);
@@ -87,8 +89,8 @@ export default function Video({
       ref={(node) => {
         setVideoNode(node);
       }}
-      width={width}
-      height={height}
+      width={dimensions[0]}
+      height={dimensions[1]}
       image={movie!}
     />
   );

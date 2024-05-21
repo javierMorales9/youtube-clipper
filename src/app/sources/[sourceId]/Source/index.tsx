@@ -19,8 +19,7 @@ export default function Source({ source }: { source: any }) {
         src={`${source.url}`}
         timer={timer}
         startTime={0}
-        width={800}
-        height={600}
+        height={500}
       />
 
       <div className="w-full flex flex-col">

@@ -18,8 +18,8 @@ export default function SourceVideo({
   src: string,
   startTime: number,
   timer: Timer,
-  width: number,
-  height: number,
+  width?: number,
+  height?: number,
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -30,8 +30,10 @@ export default function SourceVideo({
     video.src = src;
     video.controls = false;
     video.autoplay = false;
-    video.width = width;
-    video.height = height;
+    if (width)
+      video.width = width;
+    if (height)
+      video.height = height;
 
     if (startTime)
       video.currentTime = startTime;
@@ -77,6 +79,9 @@ export default function SourceVideo({
   }
 
   return (
-    <video ref={videoRef} />
+    <video 
+      ref={videoRef} 
+      style={{ width, height }}
+    />
   );
 }

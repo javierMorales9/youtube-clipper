@@ -87,6 +87,16 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
 
+  const [dimensions, setDimensions] = useState<[number, number]>([0, 0]);
+
+  const handleDimensionsUpdate = (newDim: [number, number]) => {
+    const height = 480;
+    const multiplier = height / newDim[1];
+    const newW = newDim[0] * multiplier;
+
+    setDimensions([newW, height]);
+  }
+
   const form = useForm<Schema>({
     defaultValues: {
       range: {
@@ -98,9 +108,12 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
           start: 0,
           end: end - start,
           display: Displays.One,
-          fragments: [
-            ...Displays.One.elements,
-          ]
+          fragments: Displays.One.elements.map((element, i) => ({
+            x: element.x,
+            y: element.y,
+            width: element.width / 2,
+            height: element.height / 2,
+          }))
         },
       ],
     }
@@ -135,6 +148,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             source={source}
             timer={timer}
             startTime={start}
+            dimensions={dimensions}
           />
 
           <div className="flex flex-row gap-x-10 justify-center">
@@ -182,6 +196,8 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
               timer={timer}
               section={section}
               form={form}
+              dimensions={dimensions}
+              setDimensions={handleDimensionsUpdate}
             />
           </div>
         </div>
@@ -355,37 +371,40 @@ function Viewer({
   timer,
   section,
   form,
-  width = 960,
-  height = 540,
+  dimensions,
+  setDimensions,
 }: {
   source: string,
   start: number,
   timer: Timer,
   section?: Section
   form: UseFormReturn<Schema, null, undefined>,
-  width?: number,
-  height?: number,
+  dimensions: [number, number],
+  setDimensions: (dim: [number, number]) => void
 }) {
+  const stageRef = useRef<any>();
+
   return (
     <Stage
-      width={width}
-      height={height}
+      ref={stageRef}
+      width={dimensions[0]}
+      height={dimensions[1]}
     >
       <Layer>
         <Video
           src={`${source}`}
           timer={timer}
           startTime={start}
-          width={width}
-          height={height}
+          dimensions={dimensions}
+          setDimensions={setDimensions}
         />
         {section?.fragments && (
           section?.fragments.map((element, i) => (
             <Rectangle
               key={i}
               shapeProps={element}
-              stageWidth={width}
-              stageHeight={height}
+              stageWidth={dimensions[0]}
+              stageHeight={dimensions[1]}
               onChange={(newAttrs) => {
                 if (!section?.fragments || !section?.fragments[i])
                   return;
@@ -544,20 +563,24 @@ function Preview({
   section,
   source,
   timer,
-  startTime
+  startTime,
+  dimensions,
 }: {
   section?: Section,
   source: any,
   timer: Timer,
   startTime: number
+  dimensions: [number, number],
 }) {
   return (
     <div className="relative w-[270px] h-[480px]">
-      {section && section.fragments && section.fragments.map((element, i, elements) => (
+      {section && section.fragments && section.fragments.map((element, i) => (
         <VideoFragment
+          key={i}
           src={source.url}
           timer={timer}
           startTime={startTime}
+          dimensions={dimensions}
           x={section.display!.elements[i]!.x}
           y={section.display!.elements[i]!.y}
           width={section.display!.elements[i]!.width}
@@ -568,7 +591,6 @@ function Preview({
             width: element.width,
             height: element.height,
           }}
-          positionOffset={elements[i - 1] ? elements[i - 1]!.height : 0}
         />
       ))}
     </div>
