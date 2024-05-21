@@ -22,7 +22,7 @@ export default function RangeSelection({
   const [creatingRange, setCreatingRage] = useState(false);
   const [pxRange, setPxRange] = useState<[number, number]>([0, 0]);
 
-  function handleMouseDown(e: MouseEvent<HTMLDivElement>) {
+  function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
 
     if (rangeCreated) return;
@@ -36,7 +36,7 @@ export default function RangeSelection({
     setCreatingRage(true);
   }
 
-  function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     if (rangeCreated) return;
     if (!creatingRange) return;
@@ -48,7 +48,7 @@ export default function RangeSelection({
     setPxRange([pxRange[0]!, pxEnd]);
   }
 
-  function handleMouseUp(e: MouseEvent<HTMLDivElement>) {
+  function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
 
     if (rangeCreated) return;
@@ -63,14 +63,14 @@ export default function RangeSelection({
     setRangeCreated(true);
   }
 
-  function deleteRange(e: MouseEvent<HTMLDivElement>) {
+  function deleteRange(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     setRange([0, 0]);
     setPxRange([0, 0]);
     setRangeCreated(false);
   }
 
-  function percent(e: MouseEvent<HTMLDivElement>) {
+  function percent(e: React.MouseEvent<HTMLDivElement>) {
     const target = e.currentTarget as HTMLDivElement;
     const bcr = target.getBoundingClientRect();
     const clientX = (e.clientX - bcr.left);
