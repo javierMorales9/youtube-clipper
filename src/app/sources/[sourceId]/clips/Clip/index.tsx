@@ -6,6 +6,8 @@ import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
 import { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import VideoFragment from "./videoFragment";
+import { Source } from "@/server/db/schema";
+import Konva from "konva";
 
 type Schema = {
   range: {
@@ -83,7 +85,15 @@ const Displays = {
 type DisplayKey = keyof typeof Displays;
 type Display = typeof Displays[DisplayKey];
 
-export default function Clip({ source, start, end }: { source: any, start: number, end: number }) {
+export default function Clip({
+  source,
+  start,
+  end
+}: {
+  source: Source,
+  start: number,
+  end: number
+}) {
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
 
@@ -128,7 +138,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
           <DisplaysSelector
             section={section}
             handleSelectDisplay={handleSelectDisplay}
-            //form={form}
+          //form={form}
           />
         </div>
         <div className="flex flex-col items-center w-full">
@@ -181,7 +191,7 @@ export default function Clip({ source, start, end }: { source: any, start: numbe
             e.stopPropagation();
           }}>
             <Viewer
-              source={source.url}
+              source={source.url!}
               start={start}
               timer={timer}
               section={section}
@@ -210,7 +220,7 @@ function DisplaysSelector({
         Displays
       </div>
       <div className="p-3 w-full flex flex-row justify-between flex-wrap">
-        {(Object.keys(Displays) as any).map((key: DisplayKey) => (
+        {(Object.keys(Displays) as DisplayKey[]).map((key) => (
           <div
             key={key}
             onClick={() => handleSelectDisplay(Displays[key])}
@@ -396,7 +406,7 @@ function Viewer({
   dimensions: [number, number],
   setDimensions: (dim: [number, number]) => void
 }) {
-  const stageRef = useRef<any>();
+  const stageRef = useRef<Konva.Stage | null>(null);
 
   return (
     <Stage
@@ -455,12 +465,16 @@ const Rectangle = ({
     height: number,
   }) => void,
 }) => {
-  const shapeRef = useRef<any>();
-  const trRef = useRef<any>();
+  const shapeRef = useRef<Konva.Rect | null>(null);
+  const trRef = useRef<Konva.Transformer | null>(null);
 
   useEffect(() => {
-    trRef.current.nodes([shapeRef.current]);
-    trRef.current.getLayer().batchDraw();
+    const shapes = [];
+    if (shapeRef.current)
+      shapes.push(shapeRef.current);
+
+    trRef.current?.nodes(shapes);
+    trRef.current?.getLayer()?.batchDraw();
   }, []);
 
   return (
@@ -489,6 +503,8 @@ const Rectangle = ({
           // but in the store we have only width and height
           // to match the data better we will reset scale on transform end
           const node = shapeRef.current;
+          if(!node) return;
+
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
 
@@ -506,6 +522,8 @@ const Rectangle = ({
         }}
         onDragMove={() => {
           const node = shapeRef.current;
+          if(!node) return;
+
           const box = node.getClientRect();
 
           const absPos = node.getAbsolutePosition();
@@ -581,7 +599,7 @@ function Preview({
   dimensions,
 }: {
   section?: Section,
-  source: any,
+  source: Source,
   timer: Timer,
   startTime: number
   dimensions: [number, number],
@@ -591,7 +609,7 @@ function Preview({
       {section && section.fragments && section.fragments.map((element, i) => (
         <VideoFragment
           key={i}
-          src={source.url}
+          src={source.url!}
           timer={timer}
           startTime={startTime}
           dimensions={dimensions}

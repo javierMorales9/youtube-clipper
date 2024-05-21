@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Timer } from '../../useTimer';
 import { Image } from 'react-konva';
+import Konva from 'konva';
 
 export default function Video({
   src,
@@ -24,7 +25,7 @@ export default function Video({
 }) {
   const [movie, setMovie] = useState<HTMLVideoElement | null>(null);
   const [videoTimer, setVideoTimer] = useState<ReturnType<typeof setInterval> | null>(null);
-  const [videoNode, setVideoNode] = useState<any>();
+  const [videoNode, setVideoNode] = useState<Konva.Image | null>();
 
   useEffect(() => {
     const video = document.createElement('video');
@@ -75,7 +76,7 @@ export default function Video({
   function play() {
     const vidT = setInterval(() => {
       if (!movie) return;
-      videoNode?.getLayer().batchDraw();
+      videoNode?.getLayer()?.batchDraw();
     }, 1000 / 30);
 
 

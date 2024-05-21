@@ -19,10 +19,10 @@ export const sourceRouter = createTRPCRouter({
         where: eq(source.id, input.id),
       });
 
-      return {
-        ...theSource,
-        url,
-      };
+      if (!theSource) return null;
+
+      theSource.url = url;
+      return theSource;
     }),
   finishProcessing: publicProcedure
     .input(z.object({ id: z.string() }))
@@ -104,5 +104,4 @@ export const sourceRouter = createTRPCRouter({
         })
         .where(eq(source.id, id));
     }),
-
 });

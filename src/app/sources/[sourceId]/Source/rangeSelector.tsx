@@ -42,10 +42,10 @@ export default function RangeSelection({
     if (!creatingRange) return;
 
     const endSec = percent(e) * length;
-    setRange([range[0]!, endSec]);
+    setRange([range[0], endSec]);
 
     const pxEnd = timelineWidth * zoom * percent(e);
-    setPxRange([pxRange[0]!, pxEnd]);
+    setPxRange([pxRange[0], pxEnd]);
   }
 
   function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
@@ -54,10 +54,10 @@ export default function RangeSelection({
     if (rangeCreated) return;
 
     const endSec = percent(e) * length;
-    setRange([range[0]!, endSec]);
+    setRange([range[0], endSec]);
 
     const pxEnd = timelineWidth * zoom * percent(e);
-    setPxRange([pxRange[0]!, pxEnd]);
+    setPxRange([pxRange[0], pxEnd]);
 
     setCreatingRage(false);
     setRangeCreated(true);

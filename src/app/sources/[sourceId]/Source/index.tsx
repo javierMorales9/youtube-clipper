@@ -6,8 +6,9 @@ import RangeSelection from "./rangeSelector";
 import { useState } from "react";
 import Link from "next/link";
 import SourceVideo from "./sourceVideo";
+import { Source } from "@/server/db/schema";
 
-export default function Source({ source }: { source: any }) {
+export default function SourceEditor({ source }: { source: Source }) {
   const timer = useTimer();
 
   const [range, setRange] = useState<[number, number]>([0, 0]);
