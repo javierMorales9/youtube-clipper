@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 WORKDIR /app
 
-COPY package.json index.js ./
+COPY index.js ./
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
@@ -18,7 +18,8 @@ ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 RUN npm --version
 RUN npm init -y
-#RUN npm install express @aws-sdk/client-s3 @aws-sdk/s3-request-presigner @aws-sdk/client-sns  @aws-sdk/lib-storage
-RUN npm install
+RUN npm install express @aws-sdk/client-s3 @aws-sdk/s3-request-presigner @aws-sdk/client-sns  @aws-sdk/lib-storage
 
 CMD ["node", "index.js"]
+
+

@@ -1,0 +1,20 @@
+{
+  "name": "afterupload",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "NODE_ENV=development PORT=3003 DIR=.. node index.js"
+  },
+  "keywords": [],
+  "author": "Javier Morales de Vera",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.577.0",
+    "@aws-sdk/client-sns": "^3.577.0",
+    "@aws-sdk/lib-storage": "^3.578.0",
+    "@aws-sdk/s3-request-presigner": "^3.577.0",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

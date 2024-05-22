@@ -21,9 +21,8 @@ export class Uploader {
   private onProgressFn: (progress: any) => void;
   private onErrorFn: (error: any) => void;
   private onCompletedFn: (result: any) => void;
-  private initiateFn: (parms: { name: string }) => Promise<string>;
-  private getUrlsFn: (parms: {
-    id: string;
+  private initiateFn: (parms: {
+    name: string;
     parts: number;
   }) => Promise<{ parts: Part[] }>;
   private completeFn: (parms: { id: string; parts: any[] }) => Promise<any>;
@@ -34,7 +33,6 @@ export class Uploader {
     file: File;
     fileName: string;
     initiate: any;
-    getUrls: any;
     complete: any;
   }) {
     // this must be bigger than or equal to 5MB,
@@ -56,7 +54,6 @@ export class Uploader {
     this.onErrorFn = () => {};
     this.onCompletedFn = () => {};
     this.initiateFn = options.initiate;
-    this.getUrlsFn = options.getUrls;
     this.completeFn = options.complete;
   }
 
@@ -72,8 +69,10 @@ export class Uploader {
 
       const parts = Math.ceil(this.file.size / this.chunkSize);
 
-      this.id = await this.initiateFn({ name: fileName });
-      const { parts: newParts } = await this.getUrlsFn({ id: this.id, parts });
+      const { parts: newParts } = await this.initiateFn({
+        name: fileName,
+        parts,
+      });
       this.parts.push(...newParts);
 
       this.sendNext();

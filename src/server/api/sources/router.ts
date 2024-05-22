@@ -38,7 +38,7 @@ export const sourceRouter = createTRPCRouter({
         .where(eq(source.id, id));
     }),
   initiateUpload: publicProcedure
-    .input(z.object({ name: z.string().min(1) }))
+    .input(z.object({ name: z.string().min(1), parts: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const { name } = input;
 
@@ -55,22 +55,13 @@ export const sourceRouter = createTRPCRouter({
         updatedAt: new Date(),
       });
 
-      return id;
-    }),
-  getSignedUrls: publicProcedure
-    .input(z.object({ id: z.string(), parts: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const video = await ctx.db.query.source.findFirst({
-        where: eq(source.id, input.id),
-      });
-
-      if (!video || !video.externalId) {
-        throw new Error("Video not found");
+      if(!fileId) {
+        throw new Error("Failed to initiate upload");
       }
 
       return await S3Bucket.getUploadUrls(
-        video.externalId,
-        video.id,
+        fileId,
+        id,
         input.parts,
       );
     }),

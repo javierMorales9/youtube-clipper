@@ -48,3 +48,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 CMD node server.js
+
+FROM base AS dev
+WORKDIR /app
+EXPOSE 3000
+
+ENV NODE_ENV=development
+
+COPY . .
+
+COPY --from=deps /app/node_modules ./node_modules
+
+CMD ["npm", "run", "dev"]

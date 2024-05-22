@@ -1,14 +1,27 @@
-#Add a tag to the container
 services:
+  afterUpload:
+    image: after_upload_dev
+    build:
+      context: containers/afterUpload
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - APP_URL=http://localhost:3000
+      - DIR=/public
+    volumes:
+      - /public
+    ports:
+      - "3003:3003"
   app:
-    image: clipper-app-demo
+    image: bluesun_dev
     build:
       context: ./
-      target: runner
+      target: dev
       dockerfile: Dockerfile
-    volumes:
-        - .:/app
-        - /app/node_modules
-        - /app/.next
+    environment:
+      - NEXT_PUBLIC_AFTER_UPLOAD_URL=http://localhost:3003
     ports:
       - "3000:3000"
+
+volumes:
+  public:
