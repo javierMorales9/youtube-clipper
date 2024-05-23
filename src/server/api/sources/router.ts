@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { source } from "@/server/db/schema";
-import { S3Bucket } from "./S3";
+import { Store } from "./Store";
 import { eq } from "drizzle-orm";
 
 export const sourceRouter = createTRPCRouter({
@@ -13,7 +13,7 @@ export const sourceRouter = createTRPCRouter({
   find: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const url = await S3Bucket.getSignedUrl(input.id);
+      const url = await Store().getSignedUrl(input.id);
 
       const theSource = await ctx.db.query.source.findFirst({
         where: eq(source.id, input.id),
@@ -44,7 +44,11 @@ export const sourceRouter = createTRPCRouter({
 
       const id = uuidv4();
 
-      const { fileId } = await S3Bucket.initiateUpload(id);
+      const { fileId, parts } = await Store().initiateUpload(id, input.parts);
+
+      if (!fileId) {
+        throw new Error("Failed to initiate upload");
+      }
 
       await ctx.db.insert(source).values({
         id,
@@ -55,15 +59,7 @@ export const sourceRouter = createTRPCRouter({
         updatedAt: new Date(),
       });
 
-      if(!fileId) {
-        throw new Error("Failed to initiate upload");
-      }
-
-      return await S3Bucket.getUploadUrls(
-        fileId,
-        id,
-        input.parts,
-      );
+      return parts;
     }),
   completeUpload: publicProcedure
     .input(
@@ -81,7 +77,7 @@ export const sourceRouter = createTRPCRouter({
         throw new Error("Video not found");
       }
 
-      const location = await S3Bucket.completeUpload(
+      const location = await Store().completeUpload(
         video.externalId,
         video.id,
         parts,

@@ -3,7 +3,7 @@ import { env } from "@/env";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3, UploadPartCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
-export const S3Bucket = {
+export const S3Store = {
   getSignedUrl: async function (key: string) {
     const s3 = new S3({ region: env.AWS_REGION });
 
@@ -15,7 +15,7 @@ export const S3Bucket = {
       }),
     );
   },
-  initiateUpload: async function (name: string) {
+  initiateUpload: async function (name: string, parts: number) {
     const s3 = new S3({ region: env.AWS_REGION });
 
     const multipartUpload = await s3.createMultipartUpload({
@@ -23,17 +23,8 @@ export const S3Bucket = {
       Key: name,
     });
 
-    return {
-      fileId: multipartUpload.UploadId,
-      fileKey: multipartUpload.Key,
-    };
-  },
-  getUploadUrls: async function (
-    fileId: string,
-    fileKey: string,
-    parts: number,
-  ) {
-    const s3 = new S3({ region: env.AWS_REGION });
+    const fileId = multipartUpload.UploadId;
+    const fileKey = multipartUpload.Key;
 
     const multipartParams = {
       Bucket: env.SOURCE_BUCKET,
@@ -65,6 +56,7 @@ export const S3Bucket = {
     });
 
     return {
+      fileId,
       parts: partSignedUrlList,
     };
   },

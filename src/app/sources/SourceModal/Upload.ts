@@ -1,5 +1,3 @@
-import { api } from "@/trpc/server";
-
 type Part = {
   PartNumber: number;
   signedUrl: string;
