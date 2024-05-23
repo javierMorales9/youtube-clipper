@@ -19,6 +19,7 @@ export default function ClipEditor({
   source: Source,
   clip: Clip,
 }) {
+  console.log('clip', clip);
   const { start, end } = clip.range;
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
@@ -53,6 +54,7 @@ export default function ClipEditor({
 
     await createClip({
       sourceId: source.id,
+      clipId: clip.clipId,
       range: data.range,
       sections: data.sections.map((section) => ({
         start: section.start,

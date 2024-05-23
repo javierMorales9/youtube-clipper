@@ -4,7 +4,6 @@
 import { sql, InferModel } from "drizzle-orm";
 import {
   boolean,
-  numeric,
   integer,
   pgTableCreator,
   primaryKey,
@@ -18,7 +17,7 @@ import {
  * database instance for multiple projects.
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
-*/
+ */
 export const createTable = pgTableCreator((name) => `${name}`);
 
 export const source = createTable("source", {
@@ -45,8 +44,8 @@ export const clipRange = createTable(
   "clip_range",
   {
     clipId: uuid("clip_id").references(() => clip.id),
-    start: numeric("start").notNull(),
-    end: numeric("end").notNull(),
+    start: integer("start").notNull(),
+    end: integer("end").notNull(),
   },
   (table) => {
     return {
@@ -56,20 +55,37 @@ export const clipRange = createTable(
 );
 export type ClipRange = InferModel<typeof clipRange>;
 
-export const clipSection = createTable("clip_section", {
-  order: integer("number").primaryKey(),
-  clipId: uuid("clip_id").references(() => clip.id),
-  start: numeric("start").notNull(),
-  end: numeric("end").notNull(),
-  display: varchar("display", { length: 256 }),
-});
+export const clipSection = createTable(
+  "clip_section",
+  {
+    order: integer("number"),
+    clipId: uuid("clip_id").references(() => clip.id),
+    start: integer("start").notNull(),
+    end: integer("end").notNull(),
+    display: varchar("display", { length: 256 }),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.order, table.clipId] }),
+    };
+  },
+);
 export type ClipSection = InferModel<typeof clipSection>;
 
-export const sectionFragment = createTable("section_fragment", {
-  sectionId: integer("section_id").references(() => clipSection.order),
-  x: numeric("x").notNull(),
-  y: numeric("y").notNull(),
-  width: numeric("width").notNull(),
-  height: numeric("height").notNull(),
-});
+export const sectionFragment = createTable(
+  "section_fragment",
+  {
+    sectionOrder: integer("section_order").references(() => clipSection.order),
+    clipId: uuid("clip_id").references(() => clip.id),
+    x: integer("x").notNull(),
+    y: integer("y").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.sectionOrder, table.clipId] }),
+    };
+  },
+);
 export type SectionFragment = InferModel<typeof sectionFragment>;

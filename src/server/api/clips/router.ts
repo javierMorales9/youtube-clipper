@@ -8,7 +8,7 @@ import {
   clipSection,
   sectionFragment,
 } from "@/server/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 
 export const clipRouter = createTRPCRouter({
   find: publicProcedure
@@ -26,17 +26,20 @@ export const clipRouter = createTRPCRouter({
 
       if (!range) return null;
 
-      const sections = await ctx.db.query.clipSection.findMany({
+      const sections = (await ctx.db.query.clipSection.findMany({
         where: eq(clipSection.clipId, theClip.id),
         orderBy: [asc(clipSection.order)],
-      }) as any[];
+      })) as any[];
 
       for (let i = 0; i < sections.length; i++) {
         const section = sections[i];
         if (!section) continue;
 
         const fragments = await ctx.db.query.sectionFragment.findMany({
-          where: eq(sectionFragment.sectionId, section.order),
+          where: and(
+            eq(sectionFragment.sectionOrder, section.order),
+            eq(sectionFragment.clipId, theClip.id),
+          ),
         });
 
         sections[i] = {
@@ -48,8 +51,8 @@ export const clipRouter = createTRPCRouter({
       return {
         ...theClip,
         range: {
-          start: parseFloat(range.start),
-          end: parseFloat(range.end),
+          start: range.start,
+          end: range.end,
         },
         sections,
       };
@@ -58,6 +61,7 @@ export const clipRouter = createTRPCRouter({
     .input(
       z.object({
         sourceId: z.string(),
+        clipId: z.string().optional(),
         range: z.object({
           start: z.number(),
           end: z.number(),
@@ -80,43 +84,68 @@ export const clipRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { range, sourceId, sections } = input;
+      console.log("input", input);
+      ctx.db.transaction(async (trans) => {
+        const { clipId, range, sourceId, sections } = input;
 
-      const id = uuidv4();
-      await ctx.db.insert(clip).values({
-        id,
-        sourceId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      await ctx.db.insert(clipRange).values({
-        clipId: id,
-        start: range.start.toString(),
-        end: range.end.toString(),
-      });
-
-      for (let i = 0; i < sections.length; i++) {
-        const section = sections[i];
-        if (!section) continue;
-
-        await ctx.db.insert(clipSection).values({
-          order: i,
-          clipId: id,
-          start: section.start.toString(),
-          end: section.end.toString(),
-          display: section.display,
-        });
-
-        for (const fragment of section.fragments) {
-          await ctx.db.insert(sectionFragment).values({
-            sectionId: i,
-            x: fragment.x.toString(),
-            y: fragment.y.toString(),
-            width: fragment.width.toString(),
-            height: fragment.height.toString(),
+        const id = clipId || uuidv4();
+        await trans
+          .insert(clip)
+          .values({
+            id,
+            sourceId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: [clip.id],
+            set: {
+              updatedAt: new Date(),
+            },
           });
+
+        await trans
+          .insert(clipRange)
+          .values({
+            clipId: id,
+            start: Math.floor(range.start),
+            end: Math.floor(range.end),
+          })
+          .onConflictDoUpdate({
+            target: [clipRange.clipId, clipRange.start, clipRange.end],
+            set: {
+              start: Math.floor(range.start),
+              end: Math.floor(range.end),
+            },
+          });
+
+        await trans
+          .delete(sectionFragment)
+          .where(eq(sectionFragment.clipId, id));
+        await trans.delete(clipSection).where(eq(clipSection.clipId, id));
+
+        for (let i = 0; i < sections.length; i++) {
+          const section = sections[i];
+          if (!section) continue;
+
+          await trans.insert(clipSection).values({
+            order: i,
+            clipId: id,
+            start: Math.floor(section.start),
+            end: Math.floor(section.end),
+            display: section.display,
+          });
+          for (const fragment of section.fragments) {
+            await trans.insert(sectionFragment).values({
+              sectionOrder: i,
+              clipId: id,
+              x: Math.floor(fragment.x),
+              y: Math.floor(fragment.y),
+              width: Math.floor(fragment.width),
+              height: Math.floor(fragment.height),
+            });
+          }
         }
-      }
+      });
     }),
 });

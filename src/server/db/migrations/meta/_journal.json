@@ -29,6 +29,27 @@
       "when": 1716460934505,
       "tag": "0003_nervous_newton_destine",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1716476251119,
+      "tag": "0004_spicy_swarm",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1716476854115,
+      "tag": "0005_broken_arachne",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1716478420521,
+      "tag": "0006_slim_mentallo",
+      "breakpoints": true
     }
   ]
 }

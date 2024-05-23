@@ -12,7 +12,7 @@ export const Displays = {
     ],
   },
   TwoColumn: {
-    name: 'Two Column',
+    name: 'TwoColumn',
     //image: '/public/images/displays/two-column.png',
     elements: [
       {
@@ -30,7 +30,7 @@ export const Displays = {
     ],
   },
   TwoRow: {
-    name: 'Two Row',
+    name: 'TwoRow',
     //image: '/public/images/displays/two-row.png',
     elements: [
       {
