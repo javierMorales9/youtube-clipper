@@ -15,6 +15,20 @@
       "when": 1715609077434,
       "tag": "0001_minor_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1716458496358,
+      "tag": "0002_real_pandemic",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1716460934505,
+      "tag": "0003_nervous_newton_destine",
+      "breakpoints": true
     }
   ]
 }

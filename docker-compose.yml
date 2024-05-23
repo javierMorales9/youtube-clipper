@@ -1,27 +1,38 @@
 services:
-  afterUpload:
-    image: after_upload_dev
-    build:
-      context: containers/afterUpload
-    environment:
-      - NODE_ENV=development
-      - PORT=3003
-      - APP_URL=http://localhost:3000
-      - DIR=/public
+  db:
+    image: postgres:14-alpine
+    ports:
+      - 5432:5432
     volumes:
-      - /public
-    ports:
-      - "3003:3003"
-  app:
-    image: bluesun_dev
-    build:
-      context: ./
-      target: dev
-      dockerfile: Dockerfile
+      - ~/apps/postgres:/var/lib/postgresql/data
     environment:
-      - NEXT_PUBLIC_AFTER_UPLOAD_URL=http://localhost:3003
-    ports:
-      - "3000:3000"
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_USER=user
+      - POSTGRES_DB=db
+  #afterUpload:
+    #image: after_upload_dev
+    #build:
+    #  context: containers/afterUpload
+    #environment:
+    #  - NODE_ENV=development
+    #  - PORT=3003
+    #  - APP_URL=http://localhost:3000
+    #  - DIR=/public
+    #volumes:
+    #  - /public
+    #ports:
+    #  - "3003:3003"
+  #app:
+    #image: bluesun_dev
+    #build:
+    #  context: ./
+    #  target: dev
+    #  dockerfile: Dockerfile
+    #environment:
+    #  - NEXT_PUBLIC_AFTER_UPLOAD_URL=http://localhost:3003
+    #  - DATABASE_URL="postgresql://user:pass@localhost:5432/db"
+    #ports:
+    #  - "3000:3000"
 
-volumes:
-  public:
+#volumes:
+  #public:

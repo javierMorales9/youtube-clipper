@@ -1,5 +1,6 @@
 import { sourceRouter } from "@/server/api/sources/router";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { clipRouter } from "./clips/router";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   source: sourceRouter,
+  clip: clipRouter,
 });
 
 // export type definition of API

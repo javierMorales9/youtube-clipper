@@ -8,94 +8,21 @@ import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import VideoFragment from "./videoFragment";
 import { Source } from "@/server/db/schema";
 import Konva from "konva";
+import { api } from "@/trpc/react";
+import { Clip, Display, Section } from "../Clip";
+import { Displays, DisplayKey } from "../Displays";
 
-type Schema = {
-  range: {
-    start: number;
-    end: number;
-  },
-  sections: [
-    {
-      start: number,
-      end: number,
-      display?: Display,
-      fragments?: {
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-      }[],
-    },
-  ],
-}
-
-type Section = Schema['sections'][0];
-
-const Displays = {
-  One: {
-    name: 'One',
-    //image: '/public/images/displays/one.png',
-    elements: [
-      {
-        x: 0,
-        y: 0,
-        width: 270,
-        height: 480,
-      },
-    ],
-  },
-  TwoColumn: {
-    name: 'Two Column',
-    //image: '/public/images/displays/two-column.png',
-    elements: [
-      {
-        x: 0,
-        y: 0,
-        width: 270,
-        height: 240,
-      },
-      {
-        x: 0,
-        y: 240,
-        width: 270,
-        height: 240,
-      },
-    ],
-  },
-  TwoRow: {
-    name: 'Two Row',
-    //image: '/public/images/displays/two-row.png',
-    elements: [
-      {
-        x: 0,
-        y: 0,
-        width: 135,
-        height: 480,
-      },
-      {
-        x: 135,
-        y: 0,
-        width: 135,
-        height: 480,
-      },
-    ],
-  },
-};
-
-type DisplayKey = keyof typeof Displays;
-type Display = typeof Displays[DisplayKey];
-
-export default function Clip({
+export default function ClipEditor({
   source,
-  start,
-  end
+  clip,
 }: {
   source: Source,
-  start: number,
-  end: number
+  clip: Clip,
 }) {
+  const { start, end } = clip.range;
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
+  const { mutateAsync: createClip } = api.clip.create.useMutation();
 
   const [dimensions, setDimensions] = useState<[number, number]>([0, 0]);
 
@@ -107,15 +34,10 @@ export default function Clip({
     setDimensions([newW, height]);
   }
 
-  const form = useForm<Schema>({
-    defaultValues: {
-      range: {
-        start,
-        end,
-      },
-      sections: [],
-    }
+  const form = useForm<Clip>({
+    defaultValues: clip,
   });
+  console.log(form.getValues());
 
   const {
     section,
@@ -126,19 +48,28 @@ export default function Clip({
     handleSelectDisplay
   } = useSections(timer, form);
 
-  function onSubmit() { }
+  async function onSubmit() {
+    const data = form.getValues();
+
+    await createClip({
+      sourceId: source.id,
+      range: data.range,
+      sections: data.sections.map((section) => ({
+        start: section.start,
+        end: section.end,
+        display: section.display!.name,
+        fragments: section.fragments!,
+      }))
+    });
+  }
 
   return (
     <FormProvider {...form}>
-      <form
-        className="flex flex-row"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
+      <form className="flex flex-row" onSubmit={(e) => { e.preventDefault(); }}>
         <div className="w-1/4 border border-1 border-black">
           <DisplaysSelector
             section={section}
             handleSelectDisplay={handleSelectDisplay}
-          //form={form}
           />
         </div>
         <div className="flex flex-col items-center w-full">
@@ -156,6 +87,7 @@ export default function Clip({
               timer={timer}
               divideSection={divideSection}
               deleteSection={deleteSection}
+              createClip={onSubmit}
             />
           </div>
           {timer.length && (
@@ -238,7 +170,7 @@ function DisplaysSelector({
   );
 }
 
-function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>) {
+function useSections(timer: Timer, form: UseFormReturn<Clip, null, undefined>) {
   const [selectedSection, setSelectedSection] = useState<number>(0);
   const section = form.watch('sections')[selectedSection];
 
@@ -266,7 +198,10 @@ function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>)
     const sections = form.getValues().sections;
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
-      if (section && section.start <= timer.currentSeconds && timer.currentSeconds <= section.end) {
+      if (section
+        && section.start <= timer.currentSeconds
+        && timer.currentSeconds <= section.end
+      ) {
         setSelectedSection(i);
         return;
       }
@@ -280,7 +215,10 @@ function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>)
 
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
-      if (section && section.start <= timer.currentSeconds && timer.currentSeconds <= section.end) {
+      if (section
+        && section.start <= timer.currentSeconds
+        && timer.currentSeconds <= section.end
+      ) {
         const newSection = {
           ...section,
           start: timer.currentSeconds,
@@ -333,7 +271,14 @@ function useSections(timer: Timer, form: UseFormReturn<Schema, null, undefined>)
     form.setValue('sections', form.getValues('sections'));
   }
 
-  return { section, selectedSection, setSelectedSection, divideSection, deleteSection, handleSelectDisplay };
+  return {
+    section,
+    selectedSection,
+    setSelectedSection,
+    divideSection,
+    deleteSection,
+    handleSelectDisplay
+  };
 }
 
 function SectionSelector({
@@ -347,7 +292,7 @@ function SectionSelector({
   timelineWidth: number,
   zoom: number,
   length: number,
-  sections: Schema['sections']
+  sections: Clip['sections']
   selectedSection: number,
   setSelectedSection: (start: number) => void,
 }) {
@@ -380,7 +325,10 @@ function SectionSelector({
 
     return (
       <div
-        className={`absolute h-full border-2 border-gray-400 ${selected && 'bg-gray-200 opacity-50'}`}
+        className={`
+          absolute h-full border-2 border-gray-400
+          ${selected && 'bg-gray-200 opacity-50'}
+        `}
         style={{ left, width }}
         onClick={onClick}
       >
@@ -402,7 +350,7 @@ function Viewer({
   start: number,
   timer: Timer,
   section?: Section
-  form: UseFormReturn<Schema, null, undefined>,
+  form: UseFormReturn<Clip, null, undefined>,
   dimensions: [number, number],
   setDimensions: (dim: [number, number]) => void
 }) {
@@ -503,7 +451,7 @@ const Rectangle = ({
           // but in the store we have only width and height
           // to match the data better we will reset scale on transform end
           const node = shapeRef.current;
-          if(!node) return;
+          if (!node) return;
 
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
@@ -522,7 +470,7 @@ const Rectangle = ({
         }}
         onDragMove={() => {
           const node = shapeRef.current;
-          if(!node) return;
+          if (!node) return;
 
           const box = node.getClientRect();
 
@@ -573,11 +521,13 @@ const Rectangle = ({
 function Controls({
   timer,
   divideSection,
-  deleteSection
+  deleteSection,
+  createClip,
 }: {
   timer: Timer,
   divideSection: () => void,
   deleteSection: () => void
+  createClip: () => void
 }) {
 
   return (
@@ -585,6 +535,7 @@ function Controls({
       <div className="flex flex-row gap-x-4">
         <button onClick={divideSection}>Divide Section</button>
         <button onClick={deleteSection}>Delete Section</button>
+        <button onClick={createClip}>Save</button>
       </div>
       <button onClick={timer.togglePlay}>{timer.playing ? 'Stop' : 'Play'}</button>
     </>

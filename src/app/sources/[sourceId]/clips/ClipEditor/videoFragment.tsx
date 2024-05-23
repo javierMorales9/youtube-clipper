@@ -69,8 +69,9 @@ export default function VideoFragment({
 
   useEffect(() => {
     const movie = movieRef.current;
-    if (movie)
+    if (movie) {
       movie.currentTime = startTime + currentSeconds;
+    }
   }, [currentTime]);
 
   useEffect(() => {

@@ -15,7 +15,7 @@ export default async function Sources({
 
   return (
     <div className="px-12">
-      <Link href="/">
+      <Link href="/sources">
         Go back
       </Link>
       <Source source={source} />

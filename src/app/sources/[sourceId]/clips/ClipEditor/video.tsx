@@ -42,7 +42,6 @@ export default function Video({
       if (!length) {
         setLength(video.duration);
       }
-      console.log('setting dimensions', video.videoWidth, video.videoHeight);
       setDimensions([video.videoWidth, video.videoHeight]);
     }
 
@@ -55,7 +54,6 @@ export default function Video({
     if(Math.abs(currentSeconds + startTime - movie.currentTime) < 1)
       return;
 
-    console.log('setting time', movie.currentTime, currentSeconds);
     movie.currentTime = startTime + currentSeconds;
   }, [currentTime]);
 

@@ -1,13 +1,13 @@
 import { api } from "@/trpc/server";
 import Link from "next/link";
-import Clip from "../Clip";
+import ClipEditor from "../ClipEditor";
 
 export default async function ClipCreation({
   params: { sourceId },
   searchParams,
 }: {
   params: { sourceId: string };
-  searchParams: {start: string, end: string};
+  searchParams: { start: string, end: string };
 }) {
   const source = await api.source.find({ id: sourceId });
 
@@ -20,10 +20,15 @@ export default async function ClipCreation({
       <Link href={`/sources/${sourceId}`}>
         Go back
       </Link>
-      <Clip
+      <ClipEditor
         source={source}
-        start={parseInt(searchParams.start)}
-        end={parseInt(searchParams.end)}
+        clip={{
+          range: {
+            start: parseFloat(searchParams.start),
+            end: parseFloat(searchParams.end),
+          },
+          sections: [],
+        }}
       />
     </div>
   );
