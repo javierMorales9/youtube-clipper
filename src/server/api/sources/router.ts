@@ -59,7 +59,7 @@ export const sourceRouter = createTRPCRouter({
         updatedAt: new Date(),
       });
 
-      return parts;
+      return { parts, id };
     }),
   completeUpload: publicProcedure
     .input(

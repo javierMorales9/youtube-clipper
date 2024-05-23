@@ -22,7 +22,7 @@ export class Uploader {
   private initiateFn: (parms: {
     name: string;
     parts: number;
-  }) => Promise<{ parts: Part[] }>;
+  }) => Promise<{ id: string, parts: Part[] }>;
   private completeFn: (parms: { id: string; parts: any[] }) => Promise<any>;
 
   constructor(options: {
@@ -67,10 +67,11 @@ export class Uploader {
 
       const parts = Math.ceil(this.file.size / this.chunkSize);
 
-      const { parts: newParts } = await this.initiateFn({
+      const { id, parts: newParts } = await this.initiateFn({
         name: fileName,
         parts,
       });
+      this.id = id;
       this.parts.push(...newParts);
 
       this.sendNext();
