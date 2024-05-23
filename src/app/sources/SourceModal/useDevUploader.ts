@@ -20,22 +20,26 @@ export function useDevUploader({
     if (!file) {
       return;
     }
+    setPercentage(0);
+    setUploading(true);
+
+    const { parts, id } = await initiate({ name: file.name || "", parts: 1 });
+    const url = parts[0]?.signedUrl;
+
+    if (!url) {
+      setError(new Error("Failed to initiate upload"));
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file as Blob);
 
-    setPercentage(0);
-    setUploading(true);
-
-    const parts = await initiate({ name: file.name || "", parts: 1 });
-    const url = parts[0]?.signedUrl;
-
-    await fetch(`${url}/upload`, {
+    await fetch(url, {
       method: "POST",
       body: formData,
     });
 
-    await complete({ id: file.name || "", parts: [] });
+    await complete({ id, parts: [] });
 
     setPercentage(100);
     setUploading(false);

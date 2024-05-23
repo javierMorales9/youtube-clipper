@@ -18,7 +18,6 @@ ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 RUN npm --version
 RUN npm init -y
-#RUN npm install express @aws-sdk/client-s3 @aws-sdk/s3-request-presigner @aws-sdk/client-sns  @aws-sdk/lib-storage
 RUN npm install
 
 CMD ["node", "index.js"]

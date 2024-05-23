@@ -24,12 +24,14 @@ async function dev() {
   if (!dest) {
     throw new Error('DIR is required');
   }
-  const upload_middleware = multer({
-    dest,
+  const storage = multer.diskStorage({
+    destination: dest,
     filename: (req, file, cb) => {
-      cb(null, file.originalname);
+      const name = req.params.path;
+      cb(null, name);
     }
   });
+  const upload_middleware = multer({ storage });
 
   app.options('*', (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
@@ -38,12 +40,18 @@ async function dev() {
     res.send();
   });
 
-  app.post('/upload', upload_middleware.single('file'), async (req, res) => {
-    console.log('new upload', req.file);
+  app.post('/upload/:path', upload_middleware.single('file'), async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'POST');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
     res.send('ok');
+  });
+
+  app.get('/:path', async (req, res) => {
+    const path = req.params.path;
+    const file = await fs.readFile(`${dest}/${path}`);
+    res.set('Content-Type', 'video/mp4');
+    res.send(file);
   });
 
   app.use((err, req, res, next) => {

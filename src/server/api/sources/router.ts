@@ -88,6 +88,7 @@ export const sourceRouter = createTRPCRouter({
         .set({
           url: location,
           updatedAt: new Date(),
+          processing: false,
         })
         .where(eq(source.id, id));
     }),

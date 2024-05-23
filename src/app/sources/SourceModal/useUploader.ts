@@ -11,6 +11,7 @@ export function useUploader({
   file: File | null;
   setFile: (file: File | null) => void;
 }) {
+  return useDevUploader({ file, setFile });
   if (env.NODE_ENV === "production") {
     return useS3Uploader({ file, setFile });
   } else {
