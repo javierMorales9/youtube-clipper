@@ -24,7 +24,7 @@ export const source = createTable("source", {
   id: uuid("id").primaryKey().notNull(),
   externalId: varchar("external_id", { length: 256 }),
   name: varchar("name", { length: 256 }).notNull(),
-  processing: boolean("processing").notNull(),
+  processing: boolean("processing").notNull().default(sql`false`),
   url: varchar("url", { length: 256 }),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updatedAt").notNull(),
@@ -35,6 +35,7 @@ export const clip = createTable("clip", {
   id: uuid("id").primaryKey(),
   sourceId: uuid("source_id").references(() => source.id),
   url: varchar("url", { length: 256 }),
+  processing: boolean("processing").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updatedAt"),
 });

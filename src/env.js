@@ -16,6 +16,7 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string().optional(),
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
     AFTER_UPLOAD_URL: z.string().optional(),
+    AFTER_CLIP_URL: z.string().optional(),
   },
 
   /**
@@ -38,6 +39,7 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AFTER_UPLOAD_URL: process.env.AFTER_UPLOAD_URL,
+    AFTER_CLIP_URL: process.env.AFTER_CLIP_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

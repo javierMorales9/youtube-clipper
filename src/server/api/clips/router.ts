@@ -9,6 +9,8 @@ import {
   sectionFragment,
 } from "@/server/db/schema";
 import { and, asc, eq } from "drizzle-orm";
+import { ClipProcessor } from "./ClipProcessor";
+import { ClipSchema } from "./ClipSchema";
 
 export const clipRouter = createTRPCRouter({
   find: publicProcedure
@@ -58,37 +60,12 @@ export const clipRouter = createTRPCRouter({
       };
     }),
   create: publicProcedure
-    .input(
-      z.object({
-        sourceId: z.string(),
-        clipId: z.string().optional(),
-        range: z.object({
-          start: z.number(),
-          end: z.number(),
-        }),
-        sections: z.array(
-          z.object({
-            start: z.number(),
-            end: z.number(),
-            display: z.string(),
-            fragments: z.array(
-              z.object({
-                x: z.number(),
-                y: z.number(),
-                width: z.number(),
-                height: z.number(),
-              }),
-            ),
-          }),
-        ),
-      }),
-    )
+    .input(ClipSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log("input", input);
-      ctx.db.transaction(async (trans) => {
-        const { clipId, range, sourceId, sections } = input;
+      const { clipId, range, sourceId, sections } = input;
+      const id = clipId || uuidv4();
 
-        const id = clipId || uuidv4();
+      ctx.db.transaction(async (trans) => {
         await trans
           .insert(clip)
           .values({
@@ -96,11 +73,13 @@ export const clipRouter = createTRPCRouter({
             sourceId,
             createdAt: new Date(),
             updatedAt: new Date(),
+            processing: true,
           })
           .onConflictDoUpdate({
             target: [clip.id],
             set: {
               updatedAt: new Date(),
+              processing: true,
             },
           });
 
@@ -147,5 +126,20 @@ export const clipRouter = createTRPCRouter({
           }
         }
       });
+
+      ClipProcessor().processClip(id, input);
+    }),
+    finishProcessing: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id } = input;
+
+      await ctx.db
+        .update(clip)
+        .set({
+          processing: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(clip.id, id));
     }),
 });

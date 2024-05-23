@@ -1,9 +1,8 @@
-const http = require('http');
 const util = require('util');
 const fs = require('fs/promises');
 
 const exec = util.promisify(require('child_process').exec);
-import express from 'express';
+const express = require('express');
 const { S3 } = require("@aws-sdk/client-s3");
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 
@@ -46,22 +45,47 @@ async function prod() {
 async function dev() {
   const app = express();
 
-  app.post('/upload', async (req, res) => {
-    console.log('req.body', req.body);
-    const path = process.env.DIR;
-
-    if (!path) {
-      throw new Error('DIR is required');
-    }
-
-    const file = await fs.readFile(`${path}/source.mp4`, { encoding: 'binary' });
+  const dest = process.env.DIR;
+  if (!dest) {
+    throw new Error('DIR is required');
+  }
+  app.options('*', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.send();
   });
+
+  app.post('/upload/:path', async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    await fetch(`${process.env.APP_URL}/api/finish_clip_processing`, {
+      method: 'POST',
+      body: JSON.stringify({ id: req.params.path }),
+    });
+
+    res.send('ok');
+  });
+
+  app.get('/:path', async (req, res) => {
+    const path = req.params.path;
+    const file = await fs.readFile(`${dest}/${path}`);
+    res.set('Content-Type', 'video/mp4');
+    res.send(file);
+  });
+
+  app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send('Something went wrong!');
+  });
+
 
   const port = process.env.PORT;
-  app.listen(port, () => {
+  app.listen(port, '0.0.0.0', () => {
     console.log(`After upload running at http://localhost:${port}/`);
   });
-
 }
 
 start();

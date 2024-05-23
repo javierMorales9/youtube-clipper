@@ -45,7 +45,7 @@ async function dev() {
     res.set('Access-Control-Allow-Methods', 'POST');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
 
-    await fetch(`${process.env.APP_URL}/api/sns`, {
+    await fetch(`${process.env.APP_URL}/api/finished_clip_processing`, {
       method: 'POST',
       body: JSON.stringify({ id: req.params.path }),
     });
