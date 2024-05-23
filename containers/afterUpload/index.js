@@ -44,6 +44,12 @@ async function dev() {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'POST');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    await fetch(`${process.env.APP_URL}/api/sns`, {
+      method: 'POST',
+      body: JSON.stringify({ id: req.params.path }),
+    });
+
     res.send('ok');
   });
 
