@@ -7,6 +7,9 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {
   output: 'standalone',
+  env: {
+    ENV: process.env.NODE_ENV,
+  },
 };
 
 export default config;

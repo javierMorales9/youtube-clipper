@@ -45,6 +45,9 @@ async function dev() {
     res.set('Access-Control-Allow-Methods', 'POST');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
 
+
+    ffmpeg(req.file.path);
+
     await fetch(`${process.env.APP_URL}/api/finished_clip_processing`, {
       method: 'POST',
       body: JSON.stringify({ id: req.params.path }),
@@ -73,8 +76,6 @@ async function dev() {
 }
 
 async function prod() {
-  const { stdout, stderr } = await exec('ffmpeg -version');
-
   const s3 = new S3({
     region: process.env.AWS_REGION,
   });
@@ -104,6 +105,12 @@ async function prod() {
   catch (err) {
     console.log('error', err);
   }
+
+}
+
+async function ffmpeg(path) {
+  console.log('que pasa chavales', path);
+  const { stdout, stderr } = await exec('ffmpeg -version');
 
 }
 

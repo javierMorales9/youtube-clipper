@@ -3,11 +3,9 @@ import { S3Store } from "./S3Store";
 import { DevStore } from "./DevStore";
 
 export function Store() {
+  if (env.NODE_ENV === "production") {
     return S3Store;
-  if(env.NODE_ENV === "production") {
-    return S3Store;
-  }
-  else {
+  } else {
     return DevStore;
   }
 }
