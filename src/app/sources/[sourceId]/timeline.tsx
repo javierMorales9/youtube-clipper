@@ -1,14 +1,17 @@
 'use client';
+import { Source } from '@/server/db/schema';
 import { useState, MouseEvent, useRef, useEffect, useMemo, FC } from 'react';
 
 export default function Timeline({
   length,
+  source,
   currentTime,
   currentSeconds,
   setCurrentTime,
   children,
 }: {
   length: number,
+  source: Source,
   currentTime: [number, number, number, number]
   currentSeconds: number,
   setCurrentTime: (time: number) => void,
@@ -20,13 +23,15 @@ export default function Timeline({
   const [zoom, setZoom] = useState(1);
 
   const markSecInc = useMemo(() => length / (7 * zoom), [length, zoom]);
-  const marks = useMemo(() => 7 * zoom, [zoom]);
+  const marks = useMemo(() => 8 * zoom, [zoom]);
   const leftPxInc = useMemo(() => timelineWidth * zoom / marks, [timelineWidth, zoom, marks]);
-
   const reference = useMemo(
     () => timelineWidth * zoom * currentSeconds / length,
     [zoom, currentSeconds, length]
   );
+
+  const [imageHeight, setImageHeight] = useState(0);
+  const imageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -34,6 +39,15 @@ export default function Timeline({
 
     setTimelineWidth(container.clientWidth);
   }, [containerRef.current]);
+
+  useEffect(() => {
+    const image = imageRef.current;
+    if (!image) return;
+
+    image.onload = () => {
+      setImageHeight(image.height);
+    };
+  }, [imageRef.current]);
 
   useEffect(() => {
     updateScroll(zoom);
@@ -100,11 +114,11 @@ export default function Timeline({
         }}
       >
         <div
-          className="flex flex-col justify-end relative h-10"
+          className="flex flex-col justify-end relative"
           onClick={handleTimelineClick}
         >
           <span className="absolute bottom-0" style={{ left: reference }}>
-            <div className="w-[2px] h-[54px] bg-red-500"></div>
+            <div className="w-[2px] h-[100px] bg-red-500"></div>
           </span>
           {children && children(timelineWidth, zoom, length)}
           <div className="flex flex-row justify-start">
@@ -120,6 +134,29 @@ export default function Timeline({
             ))}
           </div>
           <div className="h-[3px] bg-gray-300" style={{ width: timelineWidth * zoom + 'px' }}></div>
+          <div className="flex flex-row justify-start">
+            {Array.from({ length: marks }).map((_, i) => (
+              <div
+                key={i}
+                className="overflow-y-hidden"
+                style={{
+                  width: leftPxInc + 'px',
+                  height: '90px',
+                  overflowY: 'hidden',
+                }}
+              >
+                <img
+                  ref={imageRef}
+                  src={`${source.url}/timeline1.png`} alt="Timeline"
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    top: `-${imageHeight * i * markSecInc / length}px`,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

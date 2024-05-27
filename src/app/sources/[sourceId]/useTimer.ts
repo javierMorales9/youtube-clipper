@@ -16,9 +16,9 @@ export function useTimer(duration?: number) {
 
   function formatTime(time: number): [number, number, number, number] {
     const hours = Math.floor(time / 3600);
-    const minutes = Math.floor((time % 3600) / 60);
-    const seconds = Math.floor((time % 3600) % 60);
-    const milliseconds = Math.floor(((time % 3600) % 60) % 1000);
+    const minutes = Math.floor(time % 3600 / 60);
+    const seconds = Math.floor(time % 3600 % 60);
+    const milliseconds = Math.floor((time % 3600 % 60 - seconds) * 1000);
 
     return [hours, minutes, seconds, milliseconds];
   }
