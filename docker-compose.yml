@@ -9,19 +9,19 @@ services:
       - POSTGRES_PASSWORD=pass
       - POSTGRES_USER=user
       - POSTGRES_DB=db
-  #afterUpload:
-    #image: after_upload_dev
-    #build:
-    #  context: containers/afterUpload
-    #environment:
-    #  - NODE_ENV=development
-    #  - PORT=3003
-    #  - APP_URL=http://localhost:3000
-    #  - DIR=/public
-    #volumes:
-    #  - /public
-    #ports:
-    #  - "3003:3003"
+  afterUpload:
+    image: after_upload_dev
+    build:
+      context: containers/afterUpload
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - APP_URL=http://localhost:3000
+      - DIR=/public
+    volumes:
+      - ../../public/files:/public
+    ports:
+      - "3003:3003"
   #app:
     #image: bluesun_dev
     #build:
@@ -34,6 +34,3 @@ services:
     #  - DATABASE_URL="postgresql://user:pass@localhost:5432/db"
     #ports:
     #  - "3000:3000"
-
-#volumes:
-  #public:

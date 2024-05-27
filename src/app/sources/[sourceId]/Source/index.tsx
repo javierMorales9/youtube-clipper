@@ -17,7 +17,7 @@ export default function SourceEditor({ source }: { source: Source }) {
   return (
     <div className="flex flex-col w-full items-center">
       <SourceVideo
-        src={`${source.url}`}
+        src={`${source.url}/original.mp4`}
         timer={timer}
         startTime={0}
         height={500}
@@ -35,6 +35,7 @@ export default function SourceEditor({ source }: { source: Source }) {
       {timer.length && (
         <Timeline
           length={timer.length}
+          source={source}
           currentTime={timer.currentTime}
           currentSeconds={timer.currentSeconds}
           setCurrentTime={(time: number) => timer.seek(time)}

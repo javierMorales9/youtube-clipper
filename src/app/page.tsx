@@ -6,6 +6,7 @@ export default function Page() {
   return (
     <>
       <Link href="/sources">Sources</Link>
+      <img src="files/frame001.png" alt="Image" />
     </>
   );
 }

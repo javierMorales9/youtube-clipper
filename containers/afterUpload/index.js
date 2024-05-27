@@ -4,6 +4,7 @@ const express = require('express');
 const multer = require('multer');
 const util = require('util');
 const fs = require('fs/promises');
+const axios = require('axios');
 const exec = util.promisify(require('child_process').exec);
 
 async function start() {
@@ -25,10 +26,14 @@ async function dev() {
     throw new Error('DIR is required');
   }
   const storage = multer.diskStorage({
-    destination: dest,
-    filename: (req, file, cb) => {
+    destination: async (req, file, cb) => {
       const name = req.params.path;
-      cb(null, name);
+      const path = `${dest}/${name}`;
+      await fs.mkdir(path, { recursive: true })
+      return cb(null, path);
+    },
+    filename: async (req, file, cb) => {
+      return cb(null, 'original.mp4');
     }
   });
   const upload_middleware = multer({ storage });
@@ -45,22 +50,32 @@ async function dev() {
     res.set('Access-Control-Allow-Methods', 'POST');
     res.set('Access-Control-Allow-Headers', 'Content-Type');
 
+    res.send('ok');
 
-    ffmpeg(req.file.path);
+    await ffmpeg(req.file.destination);
 
-    await fetch(`${process.env.APP_URL}/api/finished_clip_processing`, {
+    /*
+    await axios.post(`${process.env.APP_URL}/api/finished_source_processing`, {
+      id: req.params.path,
+    });
+
+    await fetch(`${process.env.APP_URL}/api/finished_source_processing`, {
       method: 'POST',
       body: JSON.stringify({ id: req.params.path }),
     });
-
-    res.send('ok');
+    */
   });
 
-  app.get('/:path', async (req, res) => {
-    const path = req.params.path;
-    const file = await fs.readFile(`${dest}/${path}`);
-    res.set('Content-Type', 'video/mp4');
-    res.send(file);
+  app.get('/:path/:file', async (req, res) => {
+    const { path, file } = req.params;
+    try {
+      const f = await fs.readFile(`${dest}/${path}/${file}`);
+      res.set('Content-Type', 'video/mp4');
+      res.send(f);
+    } catch (err) {
+      console.error(err);
+      res.status(404).send('Not found');
+    }
   });
 
   app.use((err, req, res, next) => {
@@ -109,9 +124,15 @@ async function prod() {
 }
 
 async function ffmpeg(path) {
-  console.log('que pasa chavales', path);
-  const { stdout, stderr } = await exec('ffmpeg -version');
+  console.log('Execute ffmpeg');
+  await exec(`ffmpeg -i ${path}/original.mp4 -filter_complex "[0:v]fps=30,split=3[720_in][480_in][240_in];[720_in]scale=-2:720[720_out];[480_in]scale=-2:480[480_out];[240_in]scale=-2:240[240_out]" -map "[720_out]" -map "[480_out]" -map "[240_out]" -map 0:a -b:v:0 3500k -maxrate:v:0 3500k -bufsize:v:0 3500k -b:v:1 1690k -maxrate:v:1 1690k -bufsize:v:1 1690k -b:v:2 326k -maxrate:v:2 326k -bufsize:v:2 326k -b:a:0 128k -x264-params "keyint=60:min-keyint=60:scenecut=0" -hls_playlist 1 -hls_master_name adaptive.m3u8 -seg_duration 2 adaptive.mpd`);
 
+  console.log('Move files to', path);
+  await exec(`mv adaptiv* chunk* media* init* ${path}/`);
+
+  const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
+  console.log('Duration', stdout, parseInt(stdout));
+  await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
 }
 
 start();
