@@ -17,7 +17,7 @@ export default function SourceEditor({ source }: { source: Source }) {
   return (
     <div className="flex flex-col w-full items-center">
       <SourceVideo
-        src={`${source.url}/original.mp4`}
+        src={`${source.url}/adaptive.m3u8`}
         timer={timer}
         startTime={0}
         height={500}

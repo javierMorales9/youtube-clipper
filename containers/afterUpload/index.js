@@ -70,7 +70,6 @@ async function dev() {
     const { path, file } = req.params;
     try {
       const f = await fs.readFile(`${dest}/${path}/${file}`);
-      res.set('Content-Type', 'video/mp4');
       res.send(f);
     } catch (err) {
       console.error(err);
