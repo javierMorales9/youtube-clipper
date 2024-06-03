@@ -67,6 +67,10 @@ async function dev() {
   });
 
   app.get('/:path/:file', async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
     const { path, file } = req.params;
     try {
       const f = await fs.readFile(`${dest}/${path}/${file}`);

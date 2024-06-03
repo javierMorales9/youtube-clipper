@@ -1,3 +1,15 @@
+import { z } from "zod";
+
+export const DisplaySchema = z.object({
+  name: z.string(),
+  elements: z.array(z.object({
+    x: z.number(),
+    y: z.number(),
+    width: z.number(),
+    height: z.number(),
+  })),
+});
+
 export const Displays = {
   One: {
     name: 'One',

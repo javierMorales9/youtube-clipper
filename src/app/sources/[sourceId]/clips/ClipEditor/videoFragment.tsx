@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { Timer } from '../../useTimer';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import Player from 'video.js/dist/types/player';
 
 export default function VideoFragment({
   src,
@@ -39,10 +42,37 @@ export default function VideoFragment({
     height: number,
   },
 }) {
-  const movieRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<Player | null>(null);
 
   useEffect(() => {
-    const video = movieRef.current;
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (!playerRef.current) {
+      const videoElement = document.createElement("video-js");
+
+      videoElement.classList.add('vjs-big-play-centered');
+      video.appendChild(videoElement);
+
+      const player = playerRef.current = videojs(videoElement, {
+        autoplay: false,
+        controls: false,
+        responsive: true,
+        fluid: true,
+        sources: [{
+          src: `${src}/adaptive.m3u8`,
+          type: 'application/x-mpegURL'
+        }],
+      },
+        () => {
+          videojs.log('player is ready');
+        }
+      );
+    }
+
+    /*
+    const video = videoRef.current;
     if (!video) return
 
     video.src = src;
@@ -50,27 +80,43 @@ export default function VideoFragment({
     video.autoplay = false;
     video.muted = true;
 
-    initializeVideo(video);
+
+    if (startTime)
+      video.currentTime = startTime;
+    else
+      video.currentTime = 0;
 
     video.onloadedmetadata = () => {
       if (!length) {
         setLength(video.duration);
       }
     }
-  }, []);
+    */
+  }, [videoRef]);
 
   useEffect(() => {
-    const movie = movieRef.current;
+    const player = playerRef.current;
+
+    return () => {
+      if (player && !player.isDisposed()) {
+        player.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, [playerRef]);
+
+  useEffect(() => {
+    const movie = playerRef.current;
     if (!movie) return;
 
-    movie.width = dimensions[0];
-    movie.height = dimensions[1];
+    movie.width(dimensions[0]);
+    movie.height(dimensions[1]);
   }, [dimensions]);
 
   useEffect(() => {
-    const movie = movieRef.current;
+    const movie = playerRef.current;
     if (movie) {
-      movie.currentTime = startTime + currentSeconds;
+      movie.currentTime(startTime + currentSeconds);
     }
   }, [currentTime]);
 
@@ -81,19 +127,12 @@ export default function VideoFragment({
       pause();
   }, [playing]);
 
-  function initializeVideo(video: HTMLVideoElement) {
-    if (startTime)
-      video.currentTime = startTime;
-    else
-      video.currentTime = 0;
-  }
-
   function pause() {
-    movieRef?.current?.pause();
+    playerRef?.current?.pause();
   }
 
   function play() {
-    movieRef?.current?.play().catch(console.error);
+    playerRef?.current?.play()?.catch(console.error);
   }
 
   return (
@@ -105,7 +144,7 @@ export default function VideoFragment({
         width: clipWidth,
         height: clipHeight,
         transformOrigin: 'left top',
-        transform: `scale(${width/clipWidth}, ${height/clipHeight})`,
+        transform: `scale(${width / clipWidth}, ${height / clipHeight})`,
         overflow: 'hidden',
       }}
     >
@@ -118,7 +157,9 @@ export default function VideoFragment({
           top: -clipY,
         }}
       >
-        <video ref={movieRef} />
+        <div data-vjs-player>
+          <div ref={videoRef} />
+        </div>
       </div>
     </div>
   );

@@ -21,8 +21,6 @@ export default async function EditClip({
   }
 
   const { range, sections } = clip;
-  const display = Displays[sections[0].display as DisplayKey];
-  console.log('display', sections[0].display);
 
   return (
     <div className="px-4">

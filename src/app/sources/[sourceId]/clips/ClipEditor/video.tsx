@@ -1,8 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Timer } from '../../useTimer';
 import { Image } from 'react-konva';
 import Konva from 'konva';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import Player from 'video.js/dist/types/player';
 
 export default function Video({
   src,
@@ -23,38 +26,63 @@ export default function Video({
   dimensions: [number, number],
   setDimensions: (dim: [number, number]) => void
 }) {
-  const [movie, setMovie] = useState<HTMLVideoElement | null>(null);
+  const playerRef = useRef<Player | null>(null);
+
   const [videoTimer, setVideoTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const [videoNode, setVideoNode] = useState<Konva.Image | null>();
 
   useEffect(() => {
-    const video = document.createElement('video');
-    video.src = src;
-    video.controls = false;
-    video.autoplay = false;
+    if (!playerRef.current) {
+      const videoElement = document.createElement("video-js");
 
-    if (startTime)
-      video.currentTime = startTime;
-    else
-      video.currentTime = 0;
+      videoElement.classList.add('vjs-big-play-centered');
+      videoElement.style.display = 'none';
+      document.body.appendChild(videoElement);
 
-    video.onloadedmetadata = () => {
-      if (!length) {
-        setLength(video.duration);
-      }
-      setDimensions([video.videoWidth, video.videoHeight]);
+      const player = playerRef.current = videojs(
+        videoElement,
+        {
+          autoplay: false,
+          controls: false,
+          responsive: true,
+          fluid: true,
+          sources: [{
+            src: `${src}/adaptive.m3u8`,
+            type: 'application/x-mpegURL'
+          }],
+        },
+        () => {
+          player.on('loadedmetadata', () => {
+            if (!length)
+              setLength(player.duration()!);
+
+            console.log('tu puta', player.videoWidth(), player.videoHeight());
+            setDimensions([player.videoWidth(), player.videoHeight()]);
+          });
+        }
+      );
     }
-
-    setMovie(video);
   }, []);
 
   useEffect(() => {
+    const player = playerRef.current;
+
+    return () => {
+      if (player && !player.isDisposed()) {
+        player.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, [playerRef]);
+
+  useEffect(() => {
+    const movie = playerRef.current;
     if (!movie) return;
 
-    if(Math.abs(currentSeconds + startTime - movie.currentTime) < 1)
+    if (Math.abs(currentSeconds + startTime - movie.currentTime()!) < 1)
       return;
 
-    movie.currentTime = startTime + currentSeconds;
+    movie.currentTime(startTime + currentSeconds);
   }, [currentTime]);
 
   useEffect(() => {
@@ -68,10 +96,12 @@ export default function Video({
     clearInterval(videoTimer!);
     setVideoTimer(null);
 
-    movie?.pause();
+    playerRef.current?.pause();
   }
 
   function play() {
+    const movie = playerRef.current;
+
     const vidT = setInterval(() => {
       if (!movie) return;
       videoNode?.getLayer()?.batchDraw();
@@ -80,18 +110,22 @@ export default function Video({
 
     setVideoTimer(vidT);
 
-    movie?.play().catch(console.error);
+    movie?.play()?.catch(console.error);
   }
 
   return (
-    <Image
-      ref={(node) => {
-        setVideoNode(node);
-      }}
-      width={dimensions[0]}
-      height={dimensions[1]}
-      image={movie!}
-    />
+    <>
+      {playerRef.current && (
+        <Image
+          ref={(node) => {
+            setVideoNode(node);
+          }}
+          width={dimensions[0]}
+          height={dimensions[1]}
+          image={playerRef.current?.el().querySelector('video') as any}
+        />
+      )}
+    </>
   );
 }
 

@@ -59,77 +59,83 @@ export const clipRouter = createTRPCRouter({
         sections,
       };
     }),
-  create: publicProcedure
-    .input(ClipSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { clipId, range, sourceId, sections } = input;
-      const id = clipId || uuidv4();
-
-      ctx.db.transaction(async (trans) => {
-        await trans
-          .insert(clip)
-          .values({
-            id,
-            sourceId,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            processing: true,
-          })
-          .onConflictDoUpdate({
-            target: [clip.id],
-            set: {
-              updatedAt: new Date(),
-              processing: true,
-            },
-          });
-
-        await trans
-          .insert(clipRange)
-          .values({
-            clipId: id,
-            start: Math.floor(range.start),
-            end: Math.floor(range.end),
-          })
-          .onConflictDoUpdate({
-            target: [clipRange.clipId, clipRange.start, clipRange.end],
-            set: {
-              start: Math.floor(range.start),
-              end: Math.floor(range.end),
-            },
-          });
-
-        await trans
-          .delete(sectionFragment)
-          .where(eq(sectionFragment.clipId, id));
-        await trans.delete(clipSection).where(eq(clipSection.clipId, id));
-
-        for (let i = 0; i < sections.length; i++) {
-          const section = sections[i];
-          if (!section) continue;
-
-          await trans.insert(clipSection).values({
-            order: i,
-            clipId: id,
-            start: Math.floor(section.start),
-            end: Math.floor(section.end),
-            display: section.display,
-          });
-          for (const fragment of section.fragments) {
-            await trans.insert(sectionFragment).values({
-              sectionOrder: i,
-              clipId: id,
-              x: Math.floor(fragment.x),
-              y: Math.floor(fragment.y),
-              width: Math.floor(fragment.width),
-              height: Math.floor(fragment.height),
-            });
-          }
-        }
+  fromSource: publicProcedure
+    .input(z.object({ sourceId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const clips = await ctx.db.query.clip.findMany({
+        where: eq(clip.sourceId, input.sourceId),
       });
 
-      ClipProcessor().processClip(id, input);
+      return clips;
     }),
-    finishProcessing: publicProcedure
+  create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
+    const { clipId, range, sourceId, sections } = input;
+    const id = clipId || uuidv4();
+
+    await ctx.db.transaction(async (trans) => {
+      await trans
+        .insert(clip)
+        .values({
+          id,
+          sourceId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          processing: true,
+        })
+        .onConflictDoUpdate({
+          target: [clip.id],
+          set: {
+            updatedAt: new Date(),
+            processing: true,
+          },
+        });
+
+      await trans
+        .insert(clipRange)
+        .values({
+          clipId: id,
+          start: Math.floor(range.start),
+          end: Math.floor(range.end),
+        })
+        .onConflictDoUpdate({
+          target: [clipRange.clipId, clipRange.start, clipRange.end],
+          set: {
+            start: Math.floor(range.start),
+            end: Math.floor(range.end),
+          },
+        });
+
+      await trans.delete(sectionFragment).where(eq(sectionFragment.clipId, id));
+
+      await trans.delete(clipSection).where(eq(clipSection.clipId, id));
+
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
+        if (!section) continue;
+
+        await trans.insert(clipSection).values({
+          order: i,
+          clipId: id,
+          start: Math.floor(section.start),
+          end: Math.floor(section.end),
+          display: section.display,
+        });
+        for (const fragment of section.fragments) {
+          await trans.insert(sectionFragment).values({
+            sectionOrder: i,
+            clipId: id,
+            x: Math.floor(fragment.x),
+            y: Math.floor(fragment.y),
+            width: Math.floor(fragment.width),
+            height: Math.floor(fragment.height),
+          });
+        }
+      }
+    });
+
+    await ClipProcessor().processClip(id, input);
+  }),
+  finishProcessing: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { id } = input;

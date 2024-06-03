@@ -13,12 +13,17 @@ export default async function Sources({
     return <h1>Source not found</h1>
   }
 
+  const clips = await api.clip.fromSource({ sourceId });
+
   return (
     <div className="px-12">
       <Link href="/sources">
         Go back
       </Link>
-      <Source source={source} />
+      <Source
+        source={source}
+        clips={clips}
+      />
     </div>
   );
 }

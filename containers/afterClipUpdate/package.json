@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development PORT=3004 DIR=../../public/files APP_URL=http://localhost:3000 node index.js"
+    "dev": "NODE_ENV=development PORT=3004 DIR=/home/javi/personal/bluesun/public/files APP_URL=http://localhost:3000 node index.js"
   },
   "keywords": [],
   "author": "Javier Morales de Vera",

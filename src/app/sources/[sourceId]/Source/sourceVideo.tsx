@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { Timer } from '../useTimer';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import Player from 'video.js/dist/types/player';
 
 export default function SourceVideo({
   src,
@@ -21,41 +24,62 @@ export default function SourceVideo({
   width?: number,
   height?: number,
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<Player | null>(null);
+  const videoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    video.src = src;
-    video.controls = false;
-    video.autoplay = false;
-    if (width)
-      video.width = width;
-    if (height)
-      video.height = height;
+    if (!playerRef.current) {
+      const videoElement = document.createElement("video-js");
 
-    if (startTime)
-      video.currentTime = startTime;
-    else
-      video.currentTime = 0;
+      videoElement.classList.add('vjs-big-play-centered');
+      video.appendChild(videoElement);
 
-    video.onloadedmetadata = () => {
-      if (!length) {
-        setLength(video.duration);
-      }
+      const player = playerRef.current = videojs(
+        videoElement,
+        {
+          autoplay: false,
+          controls: false,
+          responsive: true,
+          fluid: true,
+          sources: [{
+            src,
+            type: 'application/x-mpegURL'
+          }],
+          width,
+          height,
+          currentTime: startTime || 0,
+        },
+        () => {
+          player.on('loadedmetadata', () => {
+            setLength(player.duration() || 0);
+          });
+        });
     }
   }, [videoRef]);
 
   useEffect(() => {
-    const movie = videoRef.current;
+    const player = playerRef.current;
+
+    return () => {
+      if (player && !player.isDisposed()) {
+        player.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, [playerRef]);
+
+  useEffect(() => {
+    const movie = playerRef.current;
     if (!movie) return;
 
     const a = 1;
-    if (Math.abs(currentSeconds - movie.currentTime) < a)
+    if (Math.abs(currentSeconds - movie.currentTime()!) < a)
       return;
 
-    movie.currentTime = startTime + currentSeconds;
+    movie.currentTime(startTime + currentSeconds);
   }, [currentTime]);
 
   useEffect(() => {
@@ -66,22 +90,21 @@ export default function SourceVideo({
   }, [playing]);
 
   function pause() {
-    const movie = videoRef.current;
+    const movie = playerRef.current;
     if (movie)
-      movie?.pause();
+      movie.pause();
   }
 
   function play() {
-    const movie = videoRef.current;
+    const movie = playerRef.current;
 
     if (movie)
-      movie?.play().catch(console.error);
+      movie.play()?.catch(console.error);
   }
 
   return (
-    <video 
-      ref={videoRef} 
-      style={{ width, height }}
-    />
+    <div data-vjs-player style={{ width: "600px" }}>
+      <div ref={videoRef} />
+    </div>
   );
 }

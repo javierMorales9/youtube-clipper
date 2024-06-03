@@ -49,17 +49,10 @@ async function dev() {
   if (!dest) {
     throw new Error('DIR is required');
   }
-  app.options('*', (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'POST');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
-    res.send();
-  });
 
-  app.post('/upload/:path', async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'POST');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
+  app.post('/process/:path', express.json(), async (req, res) => {
+    const path = `${dest}/${req.body.sourceId}`;
+    await ffmpeg(req.body, path);
 
     await fetch(`${process.env.APP_URL}/api/finish_clip_processing`, {
       method: 'POST',
@@ -67,13 +60,6 @@ async function dev() {
     });
 
     res.send('ok');
-  });
-
-  app.get('/:path', async (req, res) => {
-    const path = req.params.path;
-    const file = await fs.readFile(`${dest}/${path}`);
-    res.set('Content-Type', 'video/mp4');
-    res.send(file);
   });
 
   app.use((err, req, res, next) => {
@@ -88,5 +74,36 @@ async function dev() {
   });
 }
 
-start();
+async function ffmpeg(data, path) {
+  const { start, end } = data.range;
 
+  const header = `sudo ffmpeg -i ${path}/original.mp4 -ss ${start} -to ${end} `
+
+  let filters = `-filter_complex "[0:v]split=${data.sections.length}${data.sections.map((_, i) => `[s${i}]`).join('')};`;
+  let concat = ``;
+  for (let i = 0; i < data.sections.length; i++) {
+    const section = data.sections[i];
+    filters += `[s${i}]split=${section.fragments.length}${section.fragments.map((_, j) => `[f${i}${j}]`).join('')};`;
+    for (let j = 0; j < section.fragments.length; j++) {
+      const fragment = section.fragments[j];
+      filters += `[f${i}${j}]crop=${~~(fragment.width/854*1920)}:${~~(fragment.height/480*1080)}:${~~(fragment.x/854*1920)}:${~~(fragment.y/480*1080)}[e${i}${j}];`
+    }
+    filters += `${section.fragments.map((_, j) => `[e${i}${j}]`).join('')}vstack=inputs=${section.fragments.length},`;
+    filters += `scale=1080:1920[v${i}];`;
+    concat += `[v${i}]`;
+  }
+  filters += `${concat}concat=n=${data.sections.length}[v]"`;
+
+  const footer = ` -map "[v]" -y ${path}/${data.clipId}.mp4`;
+
+  const command = header + filters + footer;
+
+  console.log(command);
+  const { stdout, stderr } = await exec(command);
+
+  if (stderr) {
+    console.error('stderr:', stderr);
+  }
+}
+
+start();

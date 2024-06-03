@@ -19,7 +19,6 @@ export default function ClipEditor({
   source: Source,
   clip: Clip,
 }) {
-  console.log('clip', clip);
   const { start, end } = clip.range;
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
@@ -38,7 +37,6 @@ export default function ClipEditor({
   const form = useForm<Clip>({
     defaultValues: clip,
   });
-  console.log(form.getValues());
 
   const {
     section,
@@ -95,6 +93,7 @@ export default function ClipEditor({
           {timer.length && (
             <Timeline
               length={timer.length}
+              source={source}
               currentTime={timer.currentTime}
               currentSeconds={timer.currentSeconds}
               setCurrentTime={(time: number) => timer.seek(time)}
@@ -562,7 +561,7 @@ function Preview({
       {section && section.fragments && section.fragments.map((element, i) => (
         <VideoFragment
           key={i}
-          src={source.url!}
+          src={`${source.url!}`}
           timer={timer}
           startTime={startTime}
           dimensions={dimensions}

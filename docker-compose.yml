@@ -19,7 +19,7 @@ services:
       - APP_URL=http://localhost:3000
       - DIR=/public
     volumes:
-      - ../../public/files:/public
+      - /home/javi/personal/bluesun/public/files:/public
     ports:
       - "3003:3003"
   #app:
