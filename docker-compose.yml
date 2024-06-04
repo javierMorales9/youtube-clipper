@@ -16,12 +16,14 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3003
-      - APP_URL=http://localhost:3000
+      - APP_URL=http://internal:3000
       - DIR=/public
     volumes:
       - /home/javi/personal/bluesun/public/files:/public
     ports:
       - "3003:3003"
+    extra_hosts:
+      - "internal:host-gateway"
   #app:
     #image: bluesun_dev
     #build:

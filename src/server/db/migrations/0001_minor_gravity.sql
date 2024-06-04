@@ -1,1 +1,0 @@
-ALTER TABLE "source" ADD COLUMN "processing" boolean;

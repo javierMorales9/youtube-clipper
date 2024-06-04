@@ -5,64 +5,15 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1715585001777,
-      "tag": "0000_dry_supreme_intelligence",
+      "when": 1717491101963,
+      "tag": "0000_young_steve_rogers",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1715609077434,
-      "tag": "0001_minor_gravity",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1716458496358,
-      "tag": "0002_real_pandemic",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1716460934505,
-      "tag": "0003_nervous_newton_destine",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1716476251119,
-      "tag": "0004_spicy_swarm",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1716476854115,
-      "tag": "0005_broken_arachne",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1716478420521,
-      "tag": "0006_slim_mentallo",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "5",
-      "when": 1716490631847,
-      "tag": "0007_many_shinobi_shaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "5",
-      "when": 1716491124298,
-      "tag": "0008_premium_manta",
+      "when": 1717496222998,
+      "tag": "0001_colorful_viper",
       "breakpoints": true
     }
   ]

@@ -1,21 +1,19 @@
 import { env } from "@/env";
 import { Clip } from "./ClipSchema";
-import { DisplayKey, Displays } from "@/app/sources/[sourceId]/clips/Displays";
 
 export const DevClipProcessor = {
-  async processClip(id: string, input: Clip) {
-    const { sourceId, clipId, range, sections } = input;
+  async processClip(id: string, input: Clip, sourceWidth: number, sourceHeight: number) {
+    const { sourceId, clipId, range, sections, width, height } = input;
 
     const body = {
       sourceId,
       clipId,
       range,
-      sections: sections.map((section) => ({
-        start: section.start,
-        end: section.end,
-        display: Displays[section.display as DisplayKey].elements,
-        fragments: section.fragments,
-      })),
+      sections,
+      width,
+      height,
+      sourceWidth,
+      sourceHeight,
     };
 
     console.log('body', body);

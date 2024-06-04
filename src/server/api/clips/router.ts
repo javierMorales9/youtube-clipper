@@ -7,6 +7,7 @@ import {
   clipRange,
   clipSection,
   sectionFragment,
+  source,
 } from "@/server/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import { ClipProcessor } from "./ClipProcessor";
@@ -80,6 +81,8 @@ export const clipRouter = createTRPCRouter({
           sourceId,
           createdAt: new Date(),
           updatedAt: new Date(),
+          width: input.width,
+          height: input.height,
           processing: true,
         })
         .onConflictDoUpdate({
@@ -133,7 +136,14 @@ export const clipRouter = createTRPCRouter({
       }
     });
 
-    await ClipProcessor().processClip(id, input);
+    console.log('id', clip);
+    const thes = await ctx.db.query.source.findFirst({
+      where: eq(source.id, sourceId),
+    });
+
+    if (!thes) throw new Error("Source not found");
+
+    await ClipProcessor().processClip(id, input, thes.width!, thes.height!);
   }),
   finishProcessing: publicProcedure
     .input(z.object({ id: z.string() }))

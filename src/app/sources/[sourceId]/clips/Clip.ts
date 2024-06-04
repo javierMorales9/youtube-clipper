@@ -16,6 +16,8 @@ export type Clip = {
     start: number;
     end: number;
   };
+  width: number;
+  height: number;
   sections: {
     start: number;
     end: number;

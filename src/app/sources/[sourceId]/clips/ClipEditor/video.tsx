@@ -56,7 +56,6 @@ export default function Video({
             if (!length)
               setLength(player.duration()!);
 
-            console.log('tu puta', player.videoWidth(), player.videoHeight());
             setDimensions([player.videoWidth(), player.videoHeight()]);
           });
         }

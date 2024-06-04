@@ -26,6 +26,8 @@ export const source = createTable("source", {
   name: varchar("name", { length: 256 }).notNull(),
   processing: boolean("processing").notNull().default(sql`false`),
   url: varchar("url", { length: 256 }),
+  width: integer("width"),
+  height: integer("height"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updatedAt").notNull(),
 });
@@ -36,6 +38,8 @@ export const clip = createTable("clip", {
   sourceId: uuid("source_id").references(() => source.id),
   url: varchar("url", { length: 256 }),
   processing: boolean("processing").notNull(),
+  width: integer("width"),
+  height: integer("height"),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updatedAt"),
 });
@@ -76,7 +80,7 @@ export type ClipSection = InferModel<typeof clipSection>;
 export const sectionFragment = createTable(
   "section_fragment",
   {
-    sectionOrder: integer("section_order").references(() => clipSection.order),
+    sectionOrder: integer("section_order"),
     clipId: uuid("clip_id").references(() => clip.id),
     x: integer("x").notNull(),
     y: integer("y").notNull(),

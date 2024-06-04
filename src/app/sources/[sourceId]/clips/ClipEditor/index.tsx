@@ -38,6 +38,12 @@ export default function ClipEditor({
     defaultValues: clip,
   });
 
+  useEffect(() => {
+    form.setValue("width", dimensions[0]);
+    form.setValue("height", dimensions[1]);
+  }, [dimensions]);
+
+
   const {
     section,
     selectedSection,
@@ -54,6 +60,8 @@ export default function ClipEditor({
       sourceId: source.id,
       clipId: clip.clipId,
       range: data.range,
+      width: data.width,
+      height: data.height,
       sections: data.sections.map((section) => ({
         start: section.start,
         end: section.end,

@@ -7,6 +7,8 @@ export const ClipSchema = z.object({
     start: z.number(),
     end: z.number(),
   }),
+  width: z.number(),
+  height: z.number(),
   sections: z.array(
     z.object({
       start: z.number(),

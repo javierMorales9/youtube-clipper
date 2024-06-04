@@ -27,6 +27,8 @@ export default async function ClipCreation({
             start: parseFloat(searchParams.start),
             end: parseFloat(searchParams.end),
           },
+          width: 0,
+          height: 0,
           sections: [],
         }}
       />

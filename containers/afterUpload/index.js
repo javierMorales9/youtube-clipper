@@ -52,18 +52,17 @@ async function dev() {
 
     res.send('ok');
 
-    await ffmpeg(req.file.destination);
+    const path = req.file.destination;
+    await ffmpeg(path);
+    const { stdout: resolution } = await exec(`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${path}/original.mp4`);
 
-    /*
-    await axios.post(`${process.env.APP_URL}/api/finished_source_processing`, {
-      id: req.params.path,
-    });
-
-    await fetch(`${process.env.APP_URL}/api/finished_source_processing`, {
+    await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
       method: 'POST',
-      body: JSON.stringify({ id: req.params.path }),
+      body: JSON.stringify({
+        id: req.params.path,
+        resolution: resolution,
+      }),
     });
-    */
   });
 
   app.get('/:path/:file', async (req, res) => {
@@ -128,7 +127,7 @@ async function prod() {
 
 async function ffmpeg(path) {
   console.log('Execute ffmpeg');
-  await exec(`ffmpeg -i ${path}/original.mp4 -filter_complex "[0:v]fps=30,split=3[720_in][480_in][240_in];[720_in]scale=-2:720[720_out];[480_in]scale=-2:480[480_out];[240_in]scale=-2:240[240_out]" -map "[720_out]" -map "[480_out]" -map "[240_out]" -map 0:a -b:v:0 3500k -maxrate:v:0 3500k -bufsize:v:0 3500k -b:v:1 1690k -maxrate:v:1 1690k -bufsize:v:1 1690k -b:v:2 326k -maxrate:v:2 326k -bufsize:v:2 326k -b:a:0 128k -x264-params "keyint=60:min-keyint=60:scenecut=0" -hls_playlist 1 -hls_master_name adaptive.m3u8 -seg_duration 2 adaptive.mpd`);
+  await exec(`ffmpeg -i ${path}/original.mp4 -filter_complex "[0:v]fps=30,split=3[720_in][480_in][240_in];[720_in]scale=-2:720[720_out];[480_in]scale=-2:480[480_out];[240_in]scale=-2:240[240_out]" -map "[720_out]" -map "[480_out]" -map "[240_out]" -map 0:a? -b:v:0 3500k -maxrate:v:0 3500k -bufsize:v:0 3500k -b:v:1 1690k -maxrate:v:1 1690k -bufsize:v:1 1690k -b:v:2 326k -maxrate:v:2 326k -bufsize:v:2 326k -b:a:0 128k -x264-params "keyint=60:min-keyint=60:scenecut=0" -hls_playlist 1 -hls_master_name adaptive.m3u8 -seg_duration 2 adaptive.mpd`);
 
   console.log('Move files to', path);
   await exec(`mv adaptiv* chunk* media* init* ${path}/`);

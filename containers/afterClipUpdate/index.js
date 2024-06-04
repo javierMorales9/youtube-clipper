@@ -75,7 +75,7 @@ async function dev() {
 }
 
 async function ffmpeg(data, path) {
-  const { start, end } = data.range;
+  const { range: { start, end }, width, height, sourceWidth, sourceHeight } = data;
 
   const header = `sudo ffmpeg -i ${path}/original.mp4 -ss ${start} -to ${end} `
 
@@ -86,15 +86,17 @@ async function ffmpeg(data, path) {
     filters += `[s${i}]split=${section.fragments.length}${section.fragments.map((_, j) => `[f${i}${j}]`).join('')};`;
     for (let j = 0; j < section.fragments.length; j++) {
       const fragment = section.fragments[j];
-      filters += `[f${i}${j}]crop=${~~(fragment.width/854*1920)}:${~~(fragment.height/480*1080)}:${~~(fragment.x/854*1920)}:${~~(fragment.y/480*1080)}[e${i}${j}];`
+      filters += `[f${i}${j}]crop=${~~(fragment.width / width * sourceWidth)}:${~~(fragment.height / height * sourceHeight)}:${~~(fragment.x / width * sourceWidth)}:${~~(fragment.y / height * sourceHeight)}[e${i}${j}];`
     }
-    filters += `${section.fragments.map((_, j) => `[e${i}${j}]`).join('')}vstack=inputs=${section.fragments.length},`;
+    filters += section.fragments.length > 1 
+      ? `${section.fragments.map((_, j) => `[e${i}${j}]`).join('')}vstack=inputs=${section.fragments.length},`
+      : `[e${i}0]`;
     filters += `scale=1080:1920[v${i}];`;
     concat += `[v${i}]`;
   }
   filters += `${concat}concat=n=${data.sections.length}[v]"`;
 
-  const footer = ` -map "[v]" -y ${path}/${data.clipId}.mp4`;
+  const footer = ` -map "[v]" -map 0:a? -y ${path}/${data.clipId}.mp4`;
 
   const command = header + filters + footer;
 

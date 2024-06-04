@@ -1,6 +1,6 @@
 {
-  "id": "114bc606-ff7c-42b9-b4f6-2cf3c5174e9f",
-  "prevId": "0103f66a-45d3-4614-9524-86bd1f209911",
+  "id": "a99bbd09-3df9-4f47-9dbb-472601d1e5f2",
+  "prevId": "5ae8df93-fae0-4e34-b6b6-b83a8dd92a0d",
   "version": "5",
   "dialect": "pg",
   "tables": {
@@ -20,15 +20,27 @@
           "primaryKey": false,
           "notNull": false
         },
-        "title": {
-          "name": "title",
+        "url": {
+          "name": "url",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false
         },
-        "url": {
-          "name": "url",
-          "type": "varchar(256)",
+        "processing": {
+          "name": "processing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -64,6 +76,187 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "clip_range": {
+      "name": "clip_range",
+      "schema": "",
+      "columns": {
+        "clip_id": {
+          "name": "clip_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "start": {
+          "name": "start",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end": {
+          "name": "end",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "clip_range_clip_id_clip_id_fk": {
+          "name": "clip_range_clip_id_clip_id_fk",
+          "tableFrom": "clip_range",
+          "tableTo": "clip",
+          "columnsFrom": [
+            "clip_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "clip_range_clip_id_start_end_pk": {
+          "name": "clip_range_clip_id_start_end_pk",
+          "columns": [
+            "clip_id",
+            "start",
+            "end"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "clip_section": {
+      "name": "clip_section",
+      "schema": "",
+      "columns": {
+        "number": {
+          "name": "number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clip_id": {
+          "name": "clip_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "start": {
+          "name": "start",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end": {
+          "name": "end",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display": {
+          "name": "display",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "clip_section_clip_id_clip_id_fk": {
+          "name": "clip_section_clip_id_clip_id_fk",
+          "tableFrom": "clip_section",
+          "tableTo": "clip",
+          "columnsFrom": [
+            "clip_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "clip_section_number_clip_id_pk": {
+          "name": "clip_section_number_clip_id_pk",
+          "columns": [
+            "number",
+            "clip_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "section_fragment": {
+      "name": "section_fragment",
+      "schema": "",
+      "columns": {
+        "section_order": {
+          "name": "section_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clip_id": {
+          "name": "clip_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "x": {
+          "name": "x",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "y": {
+          "name": "y",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "section_fragment_clip_id_clip_id_fk": {
+          "name": "section_fragment_clip_id_clip_id_fk",
+          "tableFrom": "section_fragment",
+          "tableTo": "clip",
+          "columnsFrom": [
+            "clip_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "section_fragment_section_order_clip_id_pk": {
+          "name": "section_fragment_section_order_clip_id_pk",
+          "columns": [
+            "section_order",
+            "clip_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "source": {
       "name": "source",
       "schema": "",
@@ -84,13 +277,14 @@
           "name": "name",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "processing": {
           "name": "processing",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "false"
         },
         "url": {
           "name": "url",
@@ -98,17 +292,29 @@
           "primaryKey": false,
           "notNull": false
         },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
