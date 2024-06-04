@@ -46,6 +46,15 @@ jobs:
           docker push $IMAGE_URL
           echo "::set-output name=image::$IMAGE_URL"
 
+      - name: Build, tag, and push the after clip update image to Amazon ECR with the latest tag
+        id: build-after-clip-update-image
+        env:
+          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/after_clip_update:latest
+          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
+        run: |
+          docker build -t $IMAGE_URL -t $COMMIT_HASH containers/afterClipUpdate
+          docker push $IMAGE_URL
+          echo "::set-output name=image::$IMAGE_URL"
 
       #- name: Deploy stack to cloudformation
       #  uses: aws-actions/aws-cloudformation-github-deploy@v1
