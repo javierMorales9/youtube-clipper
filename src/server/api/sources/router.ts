@@ -27,9 +27,8 @@ export const sourceRouter = createTRPCRouter({
   finishProcessing: publicProcedure
     .input(z.object({ id: z.string(), resolution: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      let { id, resolution } = input;
+      const { id, resolution } = input;
       const res = resolution.slice(0, -1).split("x").map(Number);
-      console.log("finishProcessing", id, res);
 
       await ctx.db
         .update(source)

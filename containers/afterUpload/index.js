@@ -53,7 +53,7 @@ async function dev() {
     res.send('ok');
 
     const path = req.file.destination;
-    await ffmpeg(path);
+    wait ffmpeg(path);
     const { stdout: resolution } = await exec(`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${path}/original.mp4`);
 
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
@@ -103,12 +103,15 @@ async function prod() {
       Key: process.env.INPUT_KEY
     });
 
-    await s3.send(new PutObjectCommand({
-      Bucket: process.env.OUTPUT_BUCKET,
-      Key: process.env.INPUT_KEY,
-      ContentLength: data.ContentLength,
-      Body: data.Body
-    }));
+    const content = await data.Body?.transformToByteArray();
+    if (!content) {
+      throw new Error('No content');
+    }
+
+    const path = '.';
+    await fs.writeFile(`${path}/${process.env.INPUT_KEY}`, content);
+
+    await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
 
     const sns = new SNSClient({
       region: process.env.AWS_REGION,
@@ -133,7 +136,7 @@ async function ffmpeg(path) {
   await exec(`mv adaptiv* chunk* media* init* ${path}/`);
 
   const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
-  console.log('Duration', stdout, parseInt(stdout));
+  console.log('Creating timeline. Duration: ', parseInt(stdout));
   await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
 }
 

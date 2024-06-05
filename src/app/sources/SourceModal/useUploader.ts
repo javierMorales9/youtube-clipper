@@ -3,20 +3,13 @@
 import { useDevUploader } from "./useDevUploader";
 import { useS3Uploader } from "./useS3Uploader";
 
-export function useUploader({
-  file,
-  setFile,
-}: {
-  file: File | null;
-  setFile: (file: File | null) => void;
-}) {
+export function useUploader() {
   //We need to access the environment directly because we are 
   //forwarding the backend NODE_ENV to the frontend ENV
   //in next.config.js
-  console.log(process.env.ENV);
   if (process.env.ENV === "production") {
-    return useS3Uploader({ file, setFile });
+    return useS3Uploader;
   } else {
-    return useDevUploader({ file, setFile });
+    return useDevUploader;
   }
 }

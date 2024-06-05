@@ -16,7 +16,11 @@ async function start() {
 }
 
 async function prod() {
-  const { stdout, stderr } = await exec('ffmpeg -version');
+  if (!process.env.INPUT) {
+    throw new Error('INPUT is required');
+  }
+
+  const input = JSON.parse(process.env.INPUT);
 
   const s3 = new S3({
     region: process.env.AWS_REGION,
@@ -25,7 +29,25 @@ async function prod() {
   try {
     const data = await s3.getObject({
       Bucket: process.env.SOURCE_BUCKET,
-      Key: process.env.SOURCE_KEY
+      Key: `${input.sourceId}/original.mp4`,
+    });
+
+    const content = await data.Body?.transformToByteArray();
+    if (!content) {
+      throw new Error('No content');
+    }
+
+    const path = '.';
+    await fs.writeFile(`${path}/${input.sourceId}/original.mp4`, content);
+
+    await ffmpeg(input, '.');
+
+    console.log('file', `${path}/${input.sourceId}/${input.clipId}.mp4`);
+
+    await s3.putObject({
+      Bucket: process.env.DEST_BUCKET,
+      Key: `${input.sourceId}/${input.clipId}.mp4`,
+      Body: await fs.readFile(`${path}/${input.sourceId}/${input.clipId}.mp4`),
     });
 
     const sns = new SNSClient({
@@ -77,7 +99,7 @@ async function dev() {
 async function ffmpeg(data, path) {
   const { range: { start, end }, width, height, sourceWidth, sourceHeight } = data;
 
-  const header = `sudo ffmpeg -i ${path}/original.mp4 -ss ${start} -to ${end} `
+  const header = `sudo ffmpeg -i ${path}/${data.sourceId}/original.mp4 -ss ${start} -to ${end} `
 
   let filters = `-filter_complex "[0:v]split=${data.sections.length}${data.sections.map((_, i) => `[s${i}]`).join('')};`;
   let concat = ``;
@@ -88,7 +110,7 @@ async function ffmpeg(data, path) {
       const fragment = section.fragments[j];
       filters += `[f${i}${j}]crop=${~~(fragment.width / width * sourceWidth)}:${~~(fragment.height / height * sourceHeight)}:${~~(fragment.x / width * sourceWidth)}:${~~(fragment.y / height * sourceHeight)}[e${i}${j}];`
     }
-    filters += section.fragments.length > 1 
+    filters += section.fragments.length > 1
       ? `${section.fragments.map((_, j) => `[e${i}${j}]`).join('')}vstack=inputs=${section.fragments.length},`
       : `[e${i}0]`;
     filters += `scale=1080:1920[v${i}];`;
@@ -96,7 +118,7 @@ async function ffmpeg(data, path) {
   }
   filters += `${concat}concat=n=${data.sections.length}[v]"`;
 
-  const footer = ` -map "[v]" -map 0:a? -y ${path}/${data.clipId}.mp4`;
+  const footer = ` -map "[v]" -map 0:a? -y ${path}/${data.sourceId}/${data.clipId}.mp4`;
 
   const command = header + filters + footer;
 

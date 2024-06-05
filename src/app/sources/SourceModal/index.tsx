@@ -8,7 +8,7 @@ export default function SourceModal() {
   const [file, setFile] = useState<File | null>(null);
 
   const { percentage, error, upload, onCancel, uploading, }
-    = useUploader({ file, setFile });
+    = useUploader()({ file, setFile });
 
   function toggleModal() {
     if (show) {

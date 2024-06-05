@@ -29,27 +29,28 @@ export const clipRouter = createTRPCRouter({
 
       if (!range) return null;
 
-      const sections = (await ctx.db.query.clipSection.findMany({
-        where: eq(clipSection.clipId, theClip.id),
-        orderBy: [asc(clipSection.order)],
-      })) as any[];
+      const sections = await Promise.all(
+        (
+          await ctx.db.query.clipSection.findMany({
+            where: eq(clipSection.clipId, theClip.id),
+            orderBy: [asc(clipSection.order)],
+          })
+        ).map(async (section, i) => {
+          if (!section) return null;
 
-      for (let i = 0; i < sections.length; i++) {
-        const section = sections[i];
-        if (!section) continue;
+          const fragments = await ctx.db.query.sectionFragment.findMany({
+            where: and(
+              eq(sectionFragment.sectionOrder, section.order),
+              eq(sectionFragment.clipId, theClip.id),
+            ),
+          });
 
-        const fragments = await ctx.db.query.sectionFragment.findMany({
-          where: and(
-            eq(sectionFragment.sectionOrder, section.order),
-            eq(sectionFragment.clipId, theClip.id),
-          ),
-        });
-
-        sections[i] = {
-          ...section,
-          fragments,
-        };
-      }
+          return {
+            ...section,
+            fragments,
+          };
+        }),
+      );
 
       return {
         ...theClip,
@@ -136,7 +137,7 @@ export const clipRouter = createTRPCRouter({
       }
     });
 
-    console.log('id', clip);
+    console.log("id", clip);
     const thes = await ctx.db.query.source.findFirst({
       where: eq(source.id, sourceId),
     });

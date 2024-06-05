@@ -20,7 +20,7 @@ export const S3Store = {
 
     const multipartUpload = await s3.createMultipartUpload({
       Bucket: env.SOURCE_BUCKET,
-      Key: name,
+      Key: `${name}/original.mp4`,
     });
 
     const fileId = multipartUpload.UploadId;

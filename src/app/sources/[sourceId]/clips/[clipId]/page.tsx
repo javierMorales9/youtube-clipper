@@ -20,7 +20,7 @@ export default async function EditClip({
     return <h1>Clip not found</h1>
   }
 
-  const { range, sections } = clip;
+  const { range, sections, width, height } = clip;
 
   return (
     <div className="px-4">
@@ -35,11 +35,13 @@ export default async function EditClip({
             start: range.start,
             end: range.end,
           },
-          sections: sections.map((section: any) => ({
-            start: section.start,
-            end: section.end,
-            display: Displays[section.display as DisplayKey],
-            fragments: section.fragments,
+          width,
+          height,
+          sections: sections.map((section) => ({
+            start: section!.start,
+            end: section!.end,
+            display: Displays[section!.display as DisplayKey],
+            fragments: section!.fragments,
           })),
         }}
       />

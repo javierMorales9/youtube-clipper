@@ -135,6 +135,10 @@ Resources:
                   {
                     name: 'INPUT_KEY',
                     value: decodeURI(event.Records[0].s3.object.key)
+                  },
+                  {
+                    name: 'SOURCE_ID',
+                    value: decodeURI(event.Records[0].s3.object.key).split('/')[1]
                   }
                 ]
               }
