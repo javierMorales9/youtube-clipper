@@ -1,4 +1,4 @@
-const { S3, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3 } = require("@aws-sdk/client-s3");
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const express = require('express');
 const multer = require('multer');
@@ -53,8 +53,8 @@ async function dev() {
     res.send('ok');
 
     const path = req.file.destination;
-    wait ffmpeg(path);
-    const { stdout: resolution } = await exec(`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${path}/original.mp4`);
+    await ffmpeg(path);
+    const resolution = getResolution(path);
 
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
       method: 'POST',
@@ -112,6 +112,17 @@ async function prod() {
     await fs.writeFile(`${path}/${process.env.INPUT_KEY}`, content);
 
     await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
+    const resolution = await getResolution(`${path}/${process.env.SOURCE_ID}`);
+
+    const files = await fs.readdir(`${path}/${process.env.SOURCE_ID}`);
+    for (const file of files) {
+      const content = await fs.readFile(`${path}/${process.env.SOURCE_ID}/${file}`);
+      await s3.putObject({
+        Bucket: process.env.INPUT_BUCKET,
+        Key: `${process.env.SOURCE_ID}/${file}`,
+        Body: content,
+      });
+    }
 
     const sns = new SNSClient({
       region: process.env.AWS_REGION,
@@ -119,13 +130,15 @@ async function prod() {
 
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
-      Message: JSON.stringify({ id: process.env.INPUT_KEY }),
+      Message: JSON.stringify({ 
+        id: process.env.INPUT_KEY,
+        resolution,
+      }),
     }));
   }
   catch (err) {
     console.log('error', err);
   }
-
 }
 
 async function ffmpeg(path) {
@@ -138,6 +151,11 @@ async function ffmpeg(path) {
   const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
   console.log('Creating timeline. Duration: ', parseInt(stdout));
   await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
+}
+
+async function getResolution(path) {
+  const { stdout: resolution } = await exec(`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${path}/original.mp4`);
+  return resolution;
 }
 
 start();
