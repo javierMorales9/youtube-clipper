@@ -6,9 +6,9 @@ Parameters:
   JobQueueArn:
     Type: String
     Description: The ARN of the AWS Batch job queue
-  JobDefinitionArn:
+  AfterUploadJobDefinitionArn:
     Type: String
-    Description: The ARN of the AWS Batch job definition
+    Description: The ARN of the AWS after upload Batch job definition
   S3BucketName:
     Type: String
     Description: The name of the S3 bucket
@@ -16,7 +16,7 @@ Parameters:
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
-    DependsOn: [ProcessingLambdaFunction, ExampleInvokePermission]
+    DependsOn: [AfterUploadLambdaFunction, ExampleInvokePermission]
     Properties:
       BucketName: !Ref S3BucketName
       AccessControl: Private
@@ -37,18 +37,18 @@ Resources:
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:*
-            #Filter:
-            #  S3Key:
-            #    Rules:
-            #      - Name: suffix
-            #        Value: txt
-            Function: !GetAtt ProcessingLambdaFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: original.mp4
+            Function: !GetAtt AfterUploadLambdaFunction.Arn
 
   ExampleInvokePermission:
     Type: AWS::Lambda::Permission
-    DependsOn: [ProcessingLambdaFunction]
+    DependsOn: [AfterUploadLambdaFunction]
     Properties:
-      FunctionName: !GetAtt ProcessingLambdaFunction.Arn
+      FunctionName: !GetAtt AfterUploadLambdaFunction.Arn
       Action: lambda:InvokeFunction
       Principal: s3.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -113,7 +113,7 @@ Resources:
                 - "iam:ListInstanceProfiles"
                 - "iam:ListRoles"
               Resource: '*'
-  ProcessingLambdaFunction:
+  AfterUploadLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -164,7 +164,7 @@ Resources:
       Environment:
         Variables:
           JOB_QUEUE: !Ref JobQueueArn
-          JOB_DEFINITION: !Ref JobDefinitionArn
+          JOB_DEFINITION: !Ref AfterUploadJobDefinitionArn
           JOB_NAME: !Sub "after_upload_${AWS::StackName}"
 Outputs:
   S3BucketName:

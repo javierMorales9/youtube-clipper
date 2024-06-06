@@ -9,36 +9,36 @@ services:
       - POSTGRES_PASSWORD=pass
       - POSTGRES_USER=user
       - POSTGRES_DB=db
-  afterUpload:
-    image: after_upload_dev
-    build:
-      context: containers/afterUpload
-    environment:
-      - NODE_ENV=development
-      - PORT=3003
-      - APP_URL=http://internal:3000
-      - DIR=/public
-    volumes:
-      - /home/javi/personal/bluesun/public/files:/public
-    ports:
-      - "3003:3003"
-    extra_hosts:
-      - "internal:host-gateway"
-  afterClipUpdate:
-    image: after_clip_update_dev
-    build:
-      context: containers/afterUpload
-    environment:
-      - NODE_ENV=development
-      - PORT=3004
-      - APP_URL=http://internal:3000
-      - DIR=/public
-    volumes:
-      - /home/javi/personal/bluesun/public/files:/public
-    ports:
-      - "3004:3004"
-    extra_hosts:
-      - "internal:host-gateway"
+  #afterUpload:
+  #  image: after_upload_dev
+  #  build:
+  #    context: containers/afterUpload
+  #  environment:
+  #    - NODE_ENV=development
+  #    - PORT=3003
+  #    - APP_URL=http://internal:3000
+  #    - DIR=/public
+  #  volumes:
+  #    - /home/javi/personal/bluesun/public/files:/public
+  #  ports:
+  #    - "3003:3003"
+  #  extra_hosts:
+  #    - "internal:host-gateway"
+  #afterClipUpdate:
+  #  image: after_clip_update_dev
+  #  build:
+  #    context: containers/afterUpload
+  #  environment:
+  #    - NODE_ENV=development
+  #    - PORT=3004
+  #    - APP_URL=http://internal:3000
+  #    - DIR=/public
+  #  volumes:
+  #    - /home/javi/personal/bluesun/public/files:/public
+  #  ports:
+  #    - "3004:3004"
+  #  extra_hosts:
+  #    - "internal:host-gateway"
   #app:
     #image: bluesun_dev
     #build:

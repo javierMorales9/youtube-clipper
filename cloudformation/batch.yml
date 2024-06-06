@@ -33,7 +33,7 @@ Resources:
           - !Ref BatchSecurityGroup
       State: ENABLED
 
-  JobDefinition:
+  AfterUploadJobDefinition:
     Type: AWS::Batch::JobDefinition
     Properties:
       Type: container
@@ -50,8 +50,28 @@ Resources:
             - Type: MEMORY
               Value: 512
         Environment:
-          - Name: "OUTPUT_BUCKET"
-            Value: !Ref S3OutputBucket
+          - Name: "TOPIC_ARN"
+            Value: !Ref TopicArn
+      RetryStrategy:
+        Attempts: 1
+
+  AfterClipUpdateJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      Type: container
+      JobDefinitionName: "After_clip_definition"
+      PlatformCapabilities:
+        - FARGATE
+      ContainerProperties:
+        Image: !Sub '${ECRUri}/after_clip_update'
+        ExecutionRoleArn: !GetAtt BatchExecutionRole.Arn
+        JobRoleArn: !GetAtt BatchExecutionRole.Arn
+        ResourceRequirements:
+            - Type: VCPU
+              Value: 0.25
+            - Type: MEMORY
+              Value: 512
+        Environment:
           - Name: "TOPIC_ARN"
             Value: !Ref TopicArn
       RetryStrategy:
@@ -141,16 +161,13 @@ Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
 
-  S3OutputBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: 'sources-out-bucket'
-      AccessControl: Private
-
 Outputs:
   JobQueueArn:
     Description: The ARN of the job queue
     Value: !Ref JobQueue
-  JobDefinitionArn:
-    Description: The ARN of the job definition
-    Value: !Ref JobDefinition
+  AfterUploadJobDefinitionArn:
+    Description: The ARN of the after upload job definition
+    Value: !Ref AfterUploadJobDefinition
+  AfterClipUpdateJobDefinitionArn:
+    Description: The ARN of the after clip update job definition
+    Value: !Ref AfterClipUpdateJobDefinition

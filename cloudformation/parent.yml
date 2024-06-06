@@ -58,6 +58,6 @@ Resources:
       Location: source_s3_and_lambda.yml
       Parameters:
         JobQueueArn: !GetAtt BatchStack.Outputs.JobQueueArn
-        JobDefinitionArn: !GetAtt BatchStack.Outputs.JobDefinitionArn
+        AfterUploadJobDefinitionArn: !GetAtt BatchStack.Outputs.AfterUploadJobDefinitionArn
         S3BucketName: !Ref SourceBucketName
 

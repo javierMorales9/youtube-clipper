@@ -5,21 +5,35 @@ Parameters:
   ServerUrl:
     Type: String
     Description: The url of the server
-  ServerEndpoint:
+  AfterUploadEndpoint:
     Type: String
-    Default: api/sns
+    Default: api/finish_source_processing
+    Description: The endpoint of the server
+  AfterClipUpdateEndpoint:
+    Type: String
+    Default: api/finish_clip_processing
     Description: The endpoint of the server
 
 Resources:
-  SNSTopic:
+  AfterUploadTopic:
     Type: AWS::SNS::Topic
     Properties:
-      DisplayName: "ServerBatchTopic"
-      TopicName: "ServerBatchTopic"
+      DisplayName: "AfterUploadTopic"
+      TopicName: "AfterUploadTopic"
       Subscription:
-        - Endpoint: !Sub 'https://${ServerUrl}/${ServerEndpoint}'
+        - Endpoint: !Sub 'https://${ServerUrl}/${AfterUploadEndpoint}'
+          Protocol: https
+  AfterClipUpdateTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "AfterClipUpdateTopic"
+      TopicName: "AfterClipUpdateTopic"
+      Subscription:
+        - Endpoint: !Sub 'https://${ServerUrl}/${AfterClipUpdateEndpoint}'
           Protocol: https
 
 Outputs:
-  TopicArn:
-    Value: !Ref SNSTopic
+  AfterUploadTopicArn:
+    Value: !Ref AfterUploadTopic
+  AfterClipUpdateTopicArn:
+    Value: !Ref AfterClipUpdateTopic
