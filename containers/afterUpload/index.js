@@ -109,7 +109,9 @@ async function prod() {
     }
 
     const path = '.';
-    await fs.writeFile(`${path}/${process.env.INPUT_KEY}`, content);
+    await fs.mkdir(`${path}/${process.env.SOURCE_ID}`, { recursive: true });
+    await fs.writeFile(`${path}/${process.env.SOURCE_ID}/original.mp4`, content);
+    console.log(`File saved to: ${path}/${process.env.SOURCE_ID}/original.mp4`);
 
     await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
     const resolution = await getResolution(`${path}/${process.env.SOURCE_ID}`);
