@@ -67,9 +67,10 @@ export const S3Store = {
   ) {
     const s3 = new S3({ region: env.AWS_REGION });
 
+    console.log("Completing upload", fileId, fileKey, parts);
     const multipartParams = {
       Bucket: env.SOURCE_BUCKET,
-      Key: fileKey,
+      Key: `${fileKey}/original.mp4`,
       UploadId: fileId,
       MultipartUpload: {
         Parts: _.orderBy(parts, ["PartNumber"], ["asc"]),
