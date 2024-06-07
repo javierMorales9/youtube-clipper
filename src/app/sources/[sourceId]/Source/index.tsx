@@ -44,7 +44,7 @@ export default function SourceEditor({
       </div>
       <div className="flex flex-col w-full items-center">
         <SourceVideo
-          src={`${source.url}/adaptive.m3u8`}
+          src={source.url!}
           timer={timer}
           startTime={0}
           height={500}

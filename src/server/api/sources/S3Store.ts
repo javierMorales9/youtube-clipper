@@ -11,7 +11,7 @@ export const S3Store = {
       s3,
       new GetObjectCommand({
         Bucket: env.SOURCE_BUCKET,
-        Key: key,
+        Key: `${key}/adaptive.m3u8`,
       }),
     );
   },

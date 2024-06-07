@@ -61,7 +61,7 @@ export default function VideoFragment({
         responsive: true,
         fluid: true,
         sources: [{
-          src: `${src}/adaptive.m3u8`,
+          src,
           type: 'application/x-mpegURL'
         }],
       },
