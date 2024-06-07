@@ -10,6 +10,14 @@ Parameters:
     Type: String
     Description: The name of the S3 bucket to use for the source code
     Default: "sources-file-bucket"
+  JobQueueName:
+    Type: String
+    Description: The name of the AWS Batch job queue
+    Default: "job-queue"
+  AfterClipUpdateJobDefinitionName:
+    Type: String
+    Description: The name of the AWS Batch job definition for after clip update
+    Default: "after_clip_update_definition"
 
 Resources:
 
@@ -29,6 +37,8 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
         SourceBucket: !Ref SourceBucketName
+        JobQueue: !Ref JobQueueName
+        AfterClipUpdateJobDefinition: !Ref AfterClipUpdateJobDefinitionName
 
   SNSStack:
     Type: AWS::Serverless::Application
@@ -49,7 +59,8 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PrivateSubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
         PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
-        TopicArn: !GetAtt SNSStack.Outputs.TopicArn
+        TopicArn: !GetAtt SNSStack.Outputs.AfterUploadTopicArn
+        JobQueueName: !Ref JobQueueName
 
   S3Stack:
     Type : AWS::Serverless::Application

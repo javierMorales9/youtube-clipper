@@ -19,6 +19,9 @@ Parameters:
   TopicArn:
     Type: String
     Description: The ARN of the SNS topic to send messages to
+  JobQueueName:
+    Type: String
+    Description: The name of the AWS Batch job queue
 
 Resources:
   ComputeEnvironment:
@@ -37,7 +40,7 @@ Resources:
     Type: AWS::Batch::JobDefinition
     Properties:
       Type: container
-      JobDefinitionName: "After_upload_definition"
+      JobDefinitionName: "after_upload_definition"
       PlatformCapabilities:
         - FARGATE
       ContainerProperties:
@@ -59,7 +62,7 @@ Resources:
     Type: AWS::Batch::JobDefinition
     Properties:
       Type: container
-      JobDefinitionName: "After_clip_definition"
+      JobDefinitionName: "after_clip_definition"
       PlatformCapabilities:
         - FARGATE
       ContainerProperties:
@@ -80,6 +83,7 @@ Resources:
   JobQueue:
     Type: AWS::Batch::JobQueue
     Properties:
+      JobQueueName: !Ref JobQueueName
       ComputeEnvironmentOrder:
         - ComputeEnvironment: !Ref ComputeEnvironment
           Order: 1

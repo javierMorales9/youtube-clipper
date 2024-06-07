@@ -9,12 +9,6 @@ export const ProdClipProcessor = {
     sourceWidth: number,
     sourceHeight: number,
   ) {
-    const arn = env.AFTER_CLIP_SNS_TOPIC_ARN;
-
-    if (!arn) {
-      throw new Error("No SNS topic ARN provided");
-    }
-
     const { sourceId, clipId, range, sections, width, height } = input;
     const body = {
       sourceId,
@@ -32,9 +26,9 @@ export const ProdClipProcessor = {
     });
 
     const command = new SubmitJobCommand({
-      jobName: '',
-      jobQueue: '',
-      jobDefinition: '',
+      jobName: 'after_clip_update',
+      jobQueue: env.JOB_QUEUE,
+      jobDefinition: env.AFTER_CLIP_JOB_DEFINITION,
       containerOverrides: {
         environment: [
           {

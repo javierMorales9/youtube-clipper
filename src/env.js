@@ -11,13 +11,14 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    AWS_REGION: z.string(),
-    SOURCE_BUCKET: z.string(),
+    AWS_REGION: z.string().default('eu-west-1'),
+    SOURCE_BUCKET: z.string().optional(),
     AWS_ACCESS_KEY_ID: z.string().optional(),
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
     AFTER_UPLOAD_URL: z.string().optional(),
     AFTER_CLIP_URL: z.string().optional(),
-    AFTER_CLIP_SNS_TOPIC_ARN: z.string().optional(),
+    JOB_QUEUE: z.string().optional(),
+    AFTER_CLIP_JOB_DEFINITION: z.string().optional(),
   },
 
   /**
@@ -41,7 +42,8 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AFTER_UPLOAD_URL: process.env.AFTER_UPLOAD_URL,
     AFTER_CLIP_URL: process.env.AFTER_CLIP_URL,
-    AFTER_CLIP_SNS_TOPIC_ARN: process.env.AFTER_CLIP_SNS_TOPIC_ARN,
+    JOB_QUEUE: process.env.JOB_QUEUE,
+    AFTER_CLIP_JOB_DEFINITION: process.env.AFTER_CLIP_JOB_DEFINITION,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

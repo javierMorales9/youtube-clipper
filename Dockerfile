@@ -27,6 +27,7 @@ ENV SKIP_ENV_VALIDATION = true
 
 COPY --from=deps /app/node_modules ./node_modules
 
+ENV NODE_ENV=production
 RUN npm run build
 
 # 3. Production image, copy all the files and run next
