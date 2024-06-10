@@ -61,6 +61,7 @@ Resources:
         PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
         TopicArn: !GetAtt SNSStack.Outputs.AfterUploadTopicArn
         JobQueueName: !Ref JobQueueName
+        AfterClipUpdateJobDefinitionName: !Ref AfterClipUpdateJobDefinitionName
 
   S3Stack:
     Type : AWS::Serverless::Application

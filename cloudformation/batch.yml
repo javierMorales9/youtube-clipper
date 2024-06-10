@@ -22,6 +22,13 @@ Parameters:
   JobQueueName:
     Type: String
     Description: The name of the AWS Batch job queue
+  AfterUploadJobDefinitionName:
+    Type: String
+    Description: The name of the AWS Batch job definition for after upload
+    Default: "after_upload_definition"
+  AfterClipUpdateJobDefinitionName:
+    Type: String
+    Description: The name of the AWS Batch job definition for after clip update
 
 Resources:
   ComputeEnvironment:
@@ -40,7 +47,7 @@ Resources:
     Type: AWS::Batch::JobDefinition
     Properties:
       Type: container
-      JobDefinitionName: "after_upload_definition"
+      JobDefinitionName: !Ref AfterUploadJobDefinitionName
       PlatformCapabilities:
         - FARGATE
       ContainerProperties:
@@ -62,7 +69,7 @@ Resources:
     Type: AWS::Batch::JobDefinition
     Properties:
       Type: container
-      JobDefinitionName: "after_clip_definition"
+      JobDefinitionName: !Ref AfterClipUpdateJobDefinitionName
       PlatformCapabilities:
         - FARGATE
       ContainerProperties:

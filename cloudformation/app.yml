@@ -92,6 +92,7 @@ Resources:
                 - s3:GetBucketLocation
                 - s3:ListBucketMultipartUploads # needed?
                 - s3:ListBucketVersions         # needed?
+                - batch:SubmitJob
               Resource: '*'       # TODO reference our S3 BUCKET ARN
             - Effect: Allow
               Action:
