@@ -2,7 +2,9 @@ import { api } from "@/trpc/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 const handler = async (req: NextRequest) => {
-  const { id } = await req.json();
+  const body = await req.json();
+  console.log('after clip processing body', body);
+  const { id } = body;
   await api.clip.finishProcessing({ id });
 
   return NextResponse.json({ success: true });

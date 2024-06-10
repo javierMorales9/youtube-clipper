@@ -9,10 +9,10 @@ export const ProdClipProcessor = {
     sourceWidth: number,
     sourceHeight: number,
   ) {
-    const { sourceId, clipId, range, sections, width, height } = input;
+    const { sourceId, range, sections, width, height } = input;
     const body = {
       sourceId,
-      clipId,
+      clipId: id,
       range,
       sections,
       width,

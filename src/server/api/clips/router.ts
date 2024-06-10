@@ -137,13 +137,18 @@ export const clipRouter = createTRPCRouter({
       }
     });
 
-    const thes = await ctx.db.query.source.findFirst({
+    const theSource = await ctx.db.query.source.findFirst({
       where: eq(source.id, sourceId),
     });
 
-    if (!thes) throw new Error("Source not found");
+    if (!theSource) throw new Error("Source not found");
 
-    await ClipProcessor().processClip(id, input, thes.width!, thes.height!);
+    await ClipProcessor().processClip(
+      id,
+      input,
+      theSource.width!,
+      theSource.height!,
+    );
   }),
   finishProcessing: publicProcedure
     .input(z.object({ id: z.string() }))
