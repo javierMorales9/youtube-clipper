@@ -118,6 +118,7 @@ async function prod() {
 
     const files = await fs.readdir(`${path}/${process.env.SOURCE_ID}`);
     for (const file of files) {
+      if(file === 'original.mp4') continue;
       const content = await fs.readFile(`${path}/${process.env.SOURCE_ID}/${file}`);
       await s3.putObject({
         Bucket: process.env.INPUT_BUCKET,
