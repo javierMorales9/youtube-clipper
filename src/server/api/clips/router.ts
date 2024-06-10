@@ -137,7 +137,6 @@ export const clipRouter = createTRPCRouter({
       }
     });
 
-    console.log("id", clip);
     const thes = await ctx.db.query.source.findFirst({
       where: eq(source.id, sourceId),
     });
