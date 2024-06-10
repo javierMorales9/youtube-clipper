@@ -39,7 +39,11 @@ export const ProdClipProcessor = {
         ],
       },
     });
-    const response = await client.send(command);
-    console.log("After submit job");
+    try { 
+      const response = await client.send(command);
+      console.log("After submit job");
+    } catch(e) {
+      console.error("Error submitting job", e);
+    }
   },
 };
