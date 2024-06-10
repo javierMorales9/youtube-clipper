@@ -98,6 +98,7 @@ async function prod() {
   });
 
   try {
+    console.log('operating on', process.env.INPUT_BUCKET, process.env.INPUT_KEY);
     const data = await s3.getObject({
       Bucket: process.env.INPUT_BUCKET,
       Key: process.env.INPUT_KEY
@@ -156,7 +157,7 @@ async function ffmpeg(path) {
   await exec(`mv adaptiv* chunk* media* init* ${path}/`);
 
   const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
-  console.log('Creating timeline. Duration: ', parseInt(stdout));
+  console.log('Creating timeline. Duration: ', stdout, parseInt(stdout));
   await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
 }
 
