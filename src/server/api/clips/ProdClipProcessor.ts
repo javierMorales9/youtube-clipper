@@ -25,6 +25,7 @@ export const ProdClipProcessor = {
       region: env.AWS_REGION,
     });
 
+    console.log('about to submit a job', body);
     const command = new SubmitJobCommand({
       jobName: 'after_clip_update',
       jobQueue: env.JOB_QUEUE,
@@ -39,6 +40,6 @@ export const ProdClipProcessor = {
       },
     });
     const response = await client.send(command);
-    console.log('response', response);
+    console.log("After submit job");
   },
 };
