@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const handler = async (req: NextRequest) => {
   const body = (await req.json()) as {
-    Message?: { id: string; resolution: string };
+    Message?: string;
     id: string;
     resolution: string;
   };
@@ -11,7 +11,7 @@ const handler = async (req: NextRequest) => {
   //Don't delete we need it to activate the sns topic
   console.log("after source processing body", body);
 
-  const { id, resolution } = body.Message !== undefined ? body.Message : body;
+  const { id, resolution } = body.Message !== undefined ? JSON.parse(body.Message) : body;
   await api.source.finishProcessing({ id, resolution });
 
   return NextResponse.json({ success: true });
