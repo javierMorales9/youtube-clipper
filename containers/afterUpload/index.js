@@ -119,6 +119,8 @@ async function prod() {
     const files = await fs.readdir(`${path}/${process.env.SOURCE_ID}`);
     for (const file of files) {
       if(file === 'original.mp4') continue;
+
+      console.log('Uploading', file);
       const content = await fs.readFile(`${path}/${process.env.SOURCE_ID}/${file}`);
       await s3.putObject({
         Bucket: process.env.INPUT_BUCKET,
@@ -131,6 +133,7 @@ async function prod() {
       region: process.env.AWS_REGION,
     });
 
+    console.log('About to send sns message', resolution);
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
       Message: JSON.stringify({ 

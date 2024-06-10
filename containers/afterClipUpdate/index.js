@@ -42,8 +42,7 @@ async function prod() {
 
     await ffmpeg(input, '.');
 
-    console.log('file', `${path}/${input.sourceId}/${input.clipId}.mp4`);
-
+    console.log('About to upload object', `${path}/${input.sourceId}/${input.clipId}.mp4`);
     await s3.putObject({
       Bucket: process.env.DEST_BUCKET,
       Key: `${input.sourceId}/${input.clipId}.mp4`,
@@ -54,6 +53,7 @@ async function prod() {
       region: process.env.AWS_REGION,
     });
 
+    console.log('About to send sns message');
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
       Message: JSON.stringify({ id: process.env.INPUT_KEY }),
