@@ -6,9 +6,8 @@ import { S3, UploadPartCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 export const S3Store = {
   getSignedUrl: async function (key: string) {
     return `https://d20lwp9ni0p7dk.cloudfront.net/${key}/adaptive.m3u8`;
+    /*
     const s3 = new S3({ region: env.AWS_REGION });
-
-    s3.createSession
 
     return getSignedUrl(
       s3,
@@ -17,6 +16,7 @@ export const S3Store = {
         Key: `${key}/adaptive.m3u8`,
       }),
     );
+    */
   },
   initiateUpload: async function (name: string, parts: number) {
     const s3 = new S3({ region: env.AWS_REGION });
