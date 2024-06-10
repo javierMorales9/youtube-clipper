@@ -7,7 +7,7 @@ const handler = async (req: NextRequest) => {
   //Don't delete we need it to activate the sns topic
   console.log('after source processing body', body);
 
-  const { id, resolution } = body;
+  const { id, resolution } = body.Message !== undefined ? body.Message : body;
   await api.source.finishProcessing({ id, resolution });
 
   return NextResponse.json({ success: true });

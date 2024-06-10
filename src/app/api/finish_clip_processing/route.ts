@@ -7,7 +7,7 @@ const handler = async (req: NextRequest) => {
   //Don't delete we need it to activate the sns topic 
   console.log('after clip processing body', body);
 
-  const { id } = body;
+  const { id } = body.Message !== undefined ? body.Message : body;
   await api.clip.finishProcessing({ id });
 
   return NextResponse.json({ success: true });
