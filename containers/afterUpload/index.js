@@ -139,7 +139,7 @@ async function prod() {
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
       Message: JSON.stringify({ 
-        id: process.env.INPUT_KEY,
+        id: process.env.SOURCE_ID,
         resolution,
       }),
     }));

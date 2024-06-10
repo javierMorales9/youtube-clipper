@@ -56,7 +56,7 @@ async function prod() {
     console.log('About to send sns message');
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
-      Message: JSON.stringify({ id: process.env.INPUT_KEY }),
+      Message: JSON.stringify({ id: input.clipId }),
     }));
   }
   catch (err) {
