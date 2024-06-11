@@ -38,6 +38,9 @@ async function prod() {
     }
 
     const path = '.';
+
+    await fs.mkdir(`${path}/${input.sourceId}`, { recursive: true });
+    console.log('About to write file', `${path}/${input.sourceId}/original.mp4`);
     await fs.writeFile(`${path}/${input.sourceId}/original.mp4`, content);
 
     await ffmpeg(input, '.');

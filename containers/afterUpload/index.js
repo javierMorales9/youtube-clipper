@@ -54,14 +54,14 @@ async function dev() {
 
     const path = req.file.destination;
     await ffmpeg(path);
-    const resolution = getResolution(path);
+    const resolution = await getResolution(path);
 
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
       method: 'POST',
       body: JSON.stringify({
         Message: JSON.stringify({
           id: req.params.path,
-          resolution: resolution,
+          resolution,
         }),
       }),
     });
@@ -165,6 +165,7 @@ async function ffmpeg(path) {
 
 async function getResolution(path) {
   const { stdout: resolution } = await exec(`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${path}/original.mp4`);
+  console.log('Resolution', resolution);
   return resolution;
 }
 
