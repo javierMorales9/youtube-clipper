@@ -7,7 +7,7 @@ export const DevStore = {
       throw new Error("Missing AFTER_UPLOAD_URL");
     }
 
-    return `${dir}/${key}`;
+    return `${dir}/${key}/adaptive.m3u8`;
   },
   initiateUpload: async function (name: string) {
     const dir = env.AFTER_UPLOAD_URL;

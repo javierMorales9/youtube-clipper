@@ -3,11 +3,11 @@ import { Clip } from "./ClipSchema";
 
 export const DevClipProcessor = {
   async processClip(id: string, input: Clip, sourceWidth: number, sourceHeight: number) {
-    const { sourceId, clipId, range, sections, width, height } = input;
+    const { sourceId, range, sections, width, height } = input;
 
     const body = {
       sourceId,
-      clipId,
+      clipId: id,
       range,
       sections,
       width,
@@ -17,6 +17,7 @@ export const DevClipProcessor = {
     };
 
     console.log('body', body);
+    console.log('url', `${env.AFTER_CLIP_URL}/process/${id}`);
     await fetch(`${env.AFTER_CLIP_URL}/process/${id}`, {
       method: "POST",
       headers: {

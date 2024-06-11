@@ -75,9 +75,13 @@ async function dev() {
     throw new Error('DIR is required');
   }
 
+  app.get('/', (req, res) => {
+    res.send('Hello World!');
+  });
+
   app.post('/process/:path', express.json(), async (req, res) => {
     console.log('Processing', req.body.clipId);
-    const path = `${dest}/${req.body.sourceId}`;
+    const path = `${dest}`;
     await ffmpeg(req.body, path);
 
     console.log('Processing done, sending message to finish processing');

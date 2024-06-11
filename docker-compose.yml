@@ -27,7 +27,7 @@ services:
   afterClipUpdate:
     image: after_clip_update_dev
     build:
-      context: containers/afterUpload
+      context: containers/afterClipUpdate
     environment:
       - NODE_ENV=development
       - PORT=3004
