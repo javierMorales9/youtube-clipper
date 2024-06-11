@@ -59,9 +59,11 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PrivateSubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
         PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
-        TopicArn: !GetAtt SNSStack.Outputs.AfterUploadTopicArn
+        AfterUploadTopicArn: !GetAtt SNSStack.Outputs.AfterUploadTopicArn
+        AfterClipUpdateTopicArn: !GetAtt SNSStack.Outputs.AfterClipUpdateTopicArn
         JobQueueName: !Ref JobQueueName
         AfterClipUpdateJobDefinitionName: !Ref AfterClipUpdateJobDefinitionName
+        SourceBucketName: !Ref SourceBucketName
 
   S3Stack:
     Type : AWS::Serverless::Application

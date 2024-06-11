@@ -59,8 +59,10 @@ async function dev() {
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
       method: 'POST',
       body: JSON.stringify({
-        id: req.params.path,
-        resolution: resolution,
+        Message: JSON.stringify({
+          id: req.params.path,
+          resolution: resolution,
+        }),
       }),
     });
   });
@@ -121,7 +123,7 @@ async function prod() {
     console.log('Files', files);
     for (const file of files) {
       console.log('Uploading', file);
-      if(file === 'original.mp4') continue;
+      if (file === 'original.mp4') continue;
 
       const content = await fs.readFile(`${path}/${process.env.SOURCE_ID}/${file}`);
       await s3.putObject({
@@ -138,7 +140,7 @@ async function prod() {
     console.log('About to send sns message', resolution);
     await sns.send(new PublishCommand({
       TopicArn: process.env.TOPIC_ARN,
-      Message: JSON.stringify({ 
+      Message: JSON.stringify({
         id: process.env.SOURCE_ID,
         resolution,
       }),

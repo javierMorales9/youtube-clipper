@@ -28,7 +28,7 @@ async function prod() {
 
   try {
     const data = await s3.getObject({
-      Bucket: process.env.SOURCE_BUCKET,
+      Bucket: process.env.INPUT_BUCKET,
       Key: `${input.sourceId}/original.mp4`,
     });
 
@@ -44,7 +44,7 @@ async function prod() {
 
     console.log('About to upload object', `${path}/${input.sourceId}/${input.clipId}.mp4`);
     await s3.putObject({
-      Bucket: process.env.DEST_BUCKET,
+      Bucket: process.env.INPUT_BUCKET,
       Key: `${input.sourceId}/${input.clipId}.mp4`,
       Body: await fs.readFile(`${path}/${input.sourceId}/${input.clipId}.mp4`),
     });
@@ -78,7 +78,7 @@ async function dev() {
 
     await fetch(`${process.env.APP_URL}/api/finish_clip_processing`, {
       method: 'POST',
-      body: JSON.stringify({ id: req.params.path }),
+      body: JSON.stringify({ Message: JSON.stringify({ id: req.params.path }) }),
     });
 
     res.send('ok');

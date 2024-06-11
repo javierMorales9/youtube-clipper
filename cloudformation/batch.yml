@@ -16,9 +16,12 @@ Parameters:
   PrivateLinkEndpointSecurityGroup:
     Type: String
     Description: The security group on the PrivateLink endpoints. It must accept traffic from the service's SG.
-  TopicArn:
+  AfterUploadTopicArn:
     Type: String
-    Description: The ARN of the SNS topic to send messages to
+    Description: The ARN of the SNS topic to send messages after source processing
+  AfterClipUpdateTopicArn:
+    Type: String
+    Description: The ARN of the SNS topic to send messages after clip generation
   JobQueueName:
     Type: String
     Description: The name of the AWS Batch job queue
@@ -29,6 +32,9 @@ Parameters:
   AfterClipUpdateJobDefinitionName:
     Type: String
     Description: The name of the AWS Batch job definition for after clip update
+  SourceBucketName:
+    Type: String
+    Description: The name of the S3 bucket to use for the source code
 
 Resources:
   ComputeEnvironment:
@@ -61,7 +67,7 @@ Resources:
               Value: 512
         Environment:
           - Name: "TOPIC_ARN"
-            Value: !Ref TopicArn
+            Value: !Ref AfterUploadTopicArn
       RetryStrategy:
         Attempts: 1
 
@@ -83,7 +89,9 @@ Resources:
               Value: 512
         Environment:
           - Name: "TOPIC_ARN"
-            Value: !Ref TopicArn
+            Value: !Ref AfterClipUpdateTopicArn
+          - Name: "INPUT_BUCKET"
+            Value: !Ref SourceBucketName
       RetryStrategy:
         Attempts: 1
 
