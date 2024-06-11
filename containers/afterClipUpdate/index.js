@@ -76,9 +76,11 @@ async function dev() {
   }
 
   app.post('/process/:path', express.json(), async (req, res) => {
+    console.log('Processing', req.body.clipId);
     const path = `${dest}/${req.body.sourceId}`;
     await ffmpeg(req.body, path);
 
+    console.log('Processing done, sending message to finish processing');
     await fetch(`${process.env.APP_URL}/api/finish_clip_processing`, {
       method: 'POST',
       body: JSON.stringify({ Message: JSON.stringify({ id: req.params.path }) }),
@@ -102,7 +104,7 @@ async function dev() {
 async function ffmpeg(data, path) {
   const { range: { start, end }, width, height, sourceWidth, sourceHeight } = data;
 
-  const header = `sudo ffmpeg -i ${path}/${data.sourceId}/original.mp4 -ss ${start} -to ${end} `
+  const header = `ffmpeg -i ${path}/${data.sourceId}/original.mp4 -ss ${start} -to ${end} `
 
   let filters = `-filter_complex "[0:v]split=${data.sections.length}${data.sections.map((_, i) => `[s${i}]`).join('')};`;
   let concat = ``;
