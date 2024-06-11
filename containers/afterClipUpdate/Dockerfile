@@ -1,13 +1,13 @@
-FROM ubuntu:latest
+FROM ubuntu:rolling
 WORKDIR /app
 
-COPY index.js ./
+COPY package.json index.js ./
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get install -y ffmpeg
 
-ENV NODE_VERSION=16.13.0
+ENV NODE_VERSION=20.13.1
 RUN apt install -y curl
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
@@ -20,6 +20,6 @@ RUN npm --version
 RUN npm init -y
 RUN npm install
 
+VOLUME /public
+
 CMD ["node", "index.js"]
-
-
