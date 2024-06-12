@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Timer } from '../useTimer';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
@@ -27,6 +27,9 @@ export default function SourceVideo({
   const playerRef = useRef<Player | null>(null);
   const videoRef = useRef<HTMLDivElement>(null);
 
+  const [videoWidth, setVideoWidth] = useState<number | undefined>(undefined);
+  const [videoHeight, setVideoHeight] = useState<number | undefined>(undefined);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -48,12 +51,12 @@ export default function SourceVideo({
             src,
             type: 'application/x-mpegURL'
           }],
-          width,
-          height,
           currentTime: startTime || 0,
         },
         () => {
           player.on('loadedmetadata', () => {
+            setVideoWidth(width || player.videoWidth());
+            setVideoHeight(player.videoHeight());
             setLength(player.duration() || 0);
           });
         });
@@ -103,7 +106,7 @@ export default function SourceVideo({
   }
 
   return (
-    <div data-vjs-player style={{ width: "600px" }}>
+    <div data-vjs-player style={{ width: videoWidth!*height!/videoHeight! }}>
       <div ref={videoRef} />
     </div>
   );
