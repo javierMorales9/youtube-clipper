@@ -22,6 +22,7 @@ export default async function ClipCreation({
       </Link>
       <ClipEditor
         source={source}
+        timelineUrl={source.timelineUrl}
         clip={{
           range: {
             start: parseFloat(searchParams.start),

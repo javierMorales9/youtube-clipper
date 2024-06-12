@@ -1,13 +1,16 @@
 import { env } from "@/env";
 
 export const DevStore = {
-  getSignedUrl: async function (key: string) {
+  getSignedUrls: async function (key: string) {
     const dir = env.AFTER_UPLOAD_URL;
     if (!dir) {
       throw new Error("Missing AFTER_UPLOAD_URL");
     }
 
-    return `${dir}/${key}/adaptive.m3u8`;
+    return {
+      manifest: `${dir}/${key}/adaptive.m3u8`,
+      timeline: `${dir}/${key}/timeline1.png`,
+    };
   },
   initiateUpload: async function (name: string) {
     const dir = env.AFTER_UPLOAD_URL;

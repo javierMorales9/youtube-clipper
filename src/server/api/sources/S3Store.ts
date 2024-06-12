@@ -4,8 +4,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3, UploadPartCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
 export const S3Store = {
-  getSignedUrl: async function (key: string) {
-    return `https://d20lwp9ni0p7dk.cloudfront.net/${key}/adaptive.m3u8`;
+  getSignedUrls: async function (key: string) {
+    return {
+      manifest: `https://d20lwp9ni0p7dk.cloudfront.net/${key}/adaptive.m3u8`,
+      timeline : `https://d20lwp9ni0p7dk.cloudfront.net/${key}/timeline1.png`,
+    };
     /*
     const s3 = new S3({ region: env.AWS_REGION });
 

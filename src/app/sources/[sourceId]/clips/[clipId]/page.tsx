@@ -29,6 +29,7 @@ export default async function EditClip({
       </Link>
       <ClipEditor
         source={source}
+        timelineUrl={source.timelineUrl}
         clip={{
           clipId,
           range: {

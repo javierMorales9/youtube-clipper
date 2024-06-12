@@ -13,7 +13,7 @@ export const sourceRouter = createTRPCRouter({
   find: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const url = await Store().getSignedUrl(input.id);
+      const { manifest, timeline } = await Store().getSignedUrls(input.id);
 
       const theSource = await ctx.db.query.source.findFirst({
         where: eq(source.id, input.id),
@@ -21,8 +21,7 @@ export const sourceRouter = createTRPCRouter({
 
       if (!theSource) return null;
 
-      theSource.url = url;
-      return theSource;
+      return { ...theSource, url: manifest, timelineUrl: timeline };
     }),
   finishProcessing: publicProcedure
     .input(z.object({ id: z.string(), resolution: z.string() }))

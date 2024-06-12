@@ -14,9 +14,11 @@ import { Displays, DisplayKey } from "../Displays";
 
 export default function ClipEditor({
   source,
+  timelineUrl,
   clip,
 }: {
   source: Source,
+  timelineUrl: string,
   clip: Clip,
 }) {
   const { start, end } = clip.range;
@@ -101,6 +103,7 @@ export default function ClipEditor({
           {timer.length && (
             <Timeline
               length={timer.length}
+              imageUrl={timelineUrl}
               source={source}
               currentTime={timer.currentTime}
               currentSeconds={timer.currentSeconds}

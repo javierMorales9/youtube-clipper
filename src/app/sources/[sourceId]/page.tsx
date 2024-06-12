@@ -23,6 +23,7 @@ export default async function Sources({
       <Source
         source={source}
         clips={clips}
+        timelineUrl={source.timelineUrl}
       />
     </div>
   );

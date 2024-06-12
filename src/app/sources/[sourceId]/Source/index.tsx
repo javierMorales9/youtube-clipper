@@ -11,9 +11,11 @@ import { Clip, Source } from "@/server/db/schema";
 export default function SourceEditor({
   source,
   clips,
+  timelineUrl,
 }: {
   source: Source,
   clips: Clip[],
+  timelineUrl: string,
 }) {
   const timer = useTimer();
 
@@ -62,6 +64,7 @@ export default function SourceEditor({
         {timer.length && (
           <Timeline
             length={timer.length}
+            imageUrl={timelineUrl}
             source={source}
             currentTime={timer.currentTime}
             currentSeconds={timer.currentSeconds}

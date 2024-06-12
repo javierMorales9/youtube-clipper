@@ -4,6 +4,7 @@ import { useState, MouseEvent, useRef, useEffect, useMemo, FC } from 'react';
 
 export default function Timeline({
   length,
+  imageUrl,
   source,
   currentTime,
   currentSeconds,
@@ -11,6 +12,7 @@ export default function Timeline({
   children,
 }: {
   length: number,
+  imageUrl: string,
   source: Source,
   currentTime: [number, number, number, number]
   currentSeconds: number,
@@ -147,7 +149,8 @@ export default function Timeline({
               >
                 <img
                   ref={imageRef}
-                  src={`${source.url}/timeline1.png`} alt="Timeline"
+                  src={imageUrl}
+                  alt="Timeline"
                   style={{
                     position: 'relative',
                     width: '100%',
