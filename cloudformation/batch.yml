@@ -62,7 +62,7 @@ Resources:
         JobRoleArn: !GetAtt BatchExecutionRole.Arn
         ResourceRequirements:
             - Type: VCPU
-              Value: 2
+              Value: 4
             - Type: MEMORY
               Value: 4096
         Environment:
@@ -84,7 +84,7 @@ Resources:
         JobRoleArn: !GetAtt BatchExecutionRole.Arn
         ResourceRequirements:
             - Type: VCPU
-              Value: 2
+              Value: 4
             - Type: MEMORY
               Value: 4096
         Environment:

@@ -1,9 +1,10 @@
 import z from "zod";
 
 export const ClipSchema = z.object({
-  sourceId: z.string(),
-  name: z.string(),
   clipId: z.string().optional(),
+  name: z.string(),
+  processing: z.boolean().optional(),
+  sourceId: z.string(),
   range: z.object({
     start: z.number(),
     end: z.number(),

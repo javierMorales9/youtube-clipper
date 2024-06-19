@@ -40,7 +40,7 @@ export const sourceRouter = createTRPCRouter({
           updatedAt: new Date(),
           width: res[0],
           height: res[1],
-          duration: parseInt(input.duration),
+          duration: input.duration,
         })
         .where(eq(source.id, id));
     }),

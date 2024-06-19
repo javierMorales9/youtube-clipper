@@ -29,7 +29,7 @@ export default function SourceModal({
 
   const nextStep = async () => {
     setStep("uploading");
-    upload();
+    upload().catch(() => {});
   };
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function SourceModal({
                     ) : (
                       <div className="flex flex-col justify-center items-center cursor-pointer">
                         <UploadArrow className="w-16 h-16 fill-gray-500" />
-                        <p>Drag 'n' drop some here, or click to select files</p>
+                        <p>Drag n drop some here, or click to select files</p>
                       </div>
                     )}
                   </div>

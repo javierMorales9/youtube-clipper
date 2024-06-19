@@ -4,15 +4,16 @@ import Link from "next/link";
 import SourceModal from "./SourceModal";
 import PlayButton from "../../../public/images/MaterialSymbolsPlayArrow.svg";
 import { useState } from "react";
+import { Source } from "@/server/db/schema";
 
 export function SourceList({
   sources: initialSources,
 }: {
   sources: any
 }) {
-  const [sources, setSources] = useState(initialSources);
+  const [sources, setSources] = useState<Source[]>(initialSources);
 
-  const addSource = (source: any) => {
+  const addSource = (source: Source) => {
     setSources([...sources, source]);
   };
 
@@ -25,8 +26,8 @@ export function SourceList({
         />
       </div>
       <div className="flex flex-row flex-wrap gap-x-5">
-        {sources.map((source: any) => (
-          <div className="flex flex-col p-4 bg-white border border-gray-300 rounded-lg my-4 w-1/4">
+        {sources.map((source, id) => (
+          <div key={id} className="flex flex-col p-4 bg-white border border-gray-300 rounded-lg my-4 w-1/4">
             {!source.processing && (
               <Link
                 key={source.id}

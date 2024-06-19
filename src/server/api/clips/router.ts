@@ -11,7 +11,7 @@ import {
 } from "@/server/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import { ClipProcessor } from "./ClipProcessor";
-import { ClipSchema } from "./ClipSchema";
+import { Clip, ClipSchema } from "./ClipSchema";
 
 export const clipRouter = createTRPCRouter({
   find: publicProcedure
@@ -68,7 +68,7 @@ export const clipRouter = createTRPCRouter({
         where: eq(clip.sourceId, input.sourceId),
       });
 
-      const realClips: any[] = [];
+      const realClips: Clip[] = [];
 
       for (const theClip of clips) {
         const range = await ctx.db.query.clipRange.findFirst({
@@ -84,8 +84,6 @@ export const clipRouter = createTRPCRouter({
               orderBy: [asc(clipSection.order)],
             })
           ).map(async (section, i) => {
-            if (!section) return null;
-
             const fragments = await ctx.db.query.sectionFragment.findMany({
               where: and(
                 eq(sectionFragment.sectionOrder, section.order),

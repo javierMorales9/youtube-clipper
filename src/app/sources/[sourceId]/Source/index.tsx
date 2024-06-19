@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { toReadableTime } from "@/app/utils";
 import Download from "../../../../../public/images/Download.svg";
 import Loading from "../../../../../public/images/Loading.svg";
+import { Clip } from "@/server/api/clips/ClipSchema";
 
 export default function SourceEditor({
   source,
@@ -21,7 +22,7 @@ export default function SourceEditor({
   timelineUrl,
 }: {
   source: Source,
-  clips: any[],
+  clips: Clip[],
   timelineUrl: string,
 }) {
   const timer = useTimer();
@@ -39,6 +40,7 @@ export default function SourceEditor({
     console.log('Downloading clip', clip);
   }
 
+  console.log('max zoom', timer.length, timer.length! / 7);
   return (
     <div className="flex flex-row">
       <div className="flex flex-col gap-y-2 w-1/4">
@@ -60,8 +62,8 @@ export default function SourceEditor({
           <div className="w-full flex flex-row justify-between flex-wrap">
             {clips.map((clip) => (
               <button
-                key={clip.id}
-                onClick={() => router.push(`/sources/${source.id}/clips/${clip.id}`)}
+                key={clip.clipId}
+                onClick={() => router.push(`/sources/${source.id}/clips/${clip.clipId}`)}
                 className={`
                   flex flex-row justify-between items-center cursor-pointer
                   p-2 w-full rounded-lg bg-gray-100
@@ -87,7 +89,7 @@ export default function SourceEditor({
                       className=""
                       onClick={(e) => {
                         e.stopPropagation();
-                        downloadClip(clip)
+                        downloadClip(clip).catch(() => {});
                       }}
                     >
                       <Download className="w-10 h-10 fill-gray-400" />
@@ -116,15 +118,17 @@ export default function SourceEditor({
               }
             </button>
             <div>{toReadableTime(timer.currentSeconds)}</div>
-            <div className="w-full flex flex-col items-start">
-              <input
-                type="range"
-                min={1}
-                max={10}
-                value={zoom}
-                onChange={(e) => setZoom(parseInt(e.target.value))}
-              />
-            </div>
+            {timer.length && Math.floor(timer.length / 7) > 1 && (
+              <div className="w-full flex flex-col items-start">
+                <input
+                  type="range"
+                  min={1}
+                  max={timer.length ? Math.floor(timer.length / 7) : 1}
+                  value={zoom}
+                  onChange={(e) => setZoom(parseInt(e.target.value))}
+                />
+              </div>
+            )}
           </div>
           <button
             onClick={toClip}

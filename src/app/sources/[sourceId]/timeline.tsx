@@ -1,7 +1,7 @@
 'use client';
 import { toReadableTime } from '@/app/utils';
 import { Source } from '@/server/db/schema';
-import { useState, MouseEvent, useRef, useEffect, useMemo, FC } from 'react';
+import { useState, MouseEvent, useRef, useEffect, useMemo } from 'react';
 
 export default function Timeline({
   length,
@@ -24,6 +24,7 @@ export default function Timeline({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [timelineWidth, setTimelineWidth] = useState(0);
+
   const timeLineRef = useRef<HTMLDivElement | null>(null);
 
   const markSecInc = useMemo(() => length / (7 * zoom), [length, zoom]);
@@ -83,7 +84,7 @@ export default function Timeline({
     <div
       ref={containerRef}
       className="w-full flex flex-col items-center gap-y-4"
-    > 
+    >
       <div
         ref={timeLineRef}
         className="flex items-start overflow-x-auto no-scrollbar"
@@ -95,8 +96,8 @@ export default function Timeline({
           className="flex flex-col justify-end relative"
           onClick={handleTimelineClick}
         >
-          <span className="absolute bottom-0" style={{ left: reference }}>
-            <div className="w-[2px] h-[100px] bg-red-500"></div>
+          <span className="absolute bottom-0 z-10" style={{ left: reference }}>
+            <div className="w-[2px] h-[130px] bg-red-500"></div>
           </span>
           {children && children(timelineWidth, zoom, length)}
           <div className="flex flex-row justify-start">
@@ -111,8 +112,8 @@ export default function Timeline({
               </div>
             ))}
           </div>
-          <div className="h-[3px] bg-gray-300" style={{ width: timelineWidth * zoom + 'px' }}></div>
-          <div className="flex flex-row justify-start">
+          <div className="h-[3px] bg-gray-300 mb-2" style={{ width: timelineWidth * zoom + 'px' }}></div>
+          <div className="flex flex-row justify-start z-[-10]">
             {Array.from({ length: marks }).map((_, i) => (
               <div
                 key={i}

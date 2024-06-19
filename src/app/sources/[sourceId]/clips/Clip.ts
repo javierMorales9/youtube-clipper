@@ -12,6 +12,7 @@ export type Display = {
 
 export type Clip = {
   clipId?: string;
+  processing?: boolean;
   name: string;
   range: {
     start: number;

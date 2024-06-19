@@ -24,6 +24,7 @@ export default function RangeSelection({
 
   function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
+    console.log('mouse down');
 
     if (rangeCreated) return;
 
@@ -85,14 +86,14 @@ export default function RangeSelection({
       onMouseUp={handleMouseUp}
     >
       <div
-        className="absolute h-[40px]"
+        className="absolute h-full z-10"
         style={{
           left: pxRange[0],
           width: pxRange[1] - pxRange[0],
         }}
       >
         <div
-          className="absolute top-0 w-full h-full z-[-1]"
+          className="absolute top-0 w-full h-full"
           style={{ backgroundColor: 'rgba(255, 165, 0, 0.7)' }}
         ></div>
         {rangeCreated && (
