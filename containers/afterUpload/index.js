@@ -53,8 +53,8 @@ async function dev() {
     res.send('ok');
 
     const path = req.file.destination;
-    await ffmpeg(path);
-    const [resolution, duration] = await getResolution(path);
+    const duration = await ffmpeg(path);
+    const resolution = await getResolution(path);
 
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
       method: 'POST',
@@ -117,8 +117,8 @@ async function prod() {
     await fs.writeFile(`${path}/${process.env.SOURCE_ID}/original.mp4`, content);
     console.log(`File saved to: ${path}/${process.env.SOURCE_ID}/original.mp4`);
 
-    await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
-    const [resolution, duration] = await getResolution(`${path}/${process.env.SOURCE_ID}`);
+    const duration = await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
+    const resolution = await getResolution(`${path}/${process.env.SOURCE_ID}`);
 
     const files = await fs.readdir(`${path}/${process.env.SOURCE_ID}`);
     console.log('Files', files);
@@ -161,16 +161,17 @@ async function ffmpeg(path) {
   await exec(`mv adaptiv* chunk* media* init* ${path}/`);
 
   const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
-  console.log('Creating timeline. Duration: ', stdout, parseInt(stdout));
+  const duration = parseInt(stdout);
+  console.log('Creating timeline. Duration: ', parseInt(stdout));
   await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
+
+  return duration;
 }
 
 async function getResolution(path) {
   const { stdout: resolution } = await exec(`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${path}/original.mp4`);
   console.log('Resolution', resolution);
-
-  const { stdout: duration } = await exec(`ffmpeg -i ${path}/original.mp4 2>&1 | grep "Duration"`);
-  return [resolution, duration];
+  return resolution;
 }
 
 start();

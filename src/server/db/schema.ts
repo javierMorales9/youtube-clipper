@@ -7,6 +7,7 @@ import {
   integer,
   pgTableCreator,
   primaryKey,
+  text,
   timestamp,
   uuid,
   varchar,
@@ -28,10 +29,20 @@ export const source = createTable("source", {
   url: varchar("url", { length: 256 }),
   width: integer("width"),
   height: integer("height"),
+  duration: integer("duration"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updatedAt").notNull(),
 });
 export type Source = InferModel<typeof source>;
+
+export const suggestion = createTable("suggestion", {
+  id: uuid("id").primaryKey(),
+  sourceId: uuid("source_id").references(() => source.id).notNull(),
+  name: varchar("name", { length: 256 }).notNull().default(sql`''`),
+  description: text("description"),
+  start: integer("start").notNull(),
+  end: integer("end").notNull(),
+});
 
 export const clip = createTable("clip", {
   id: uuid("id").primaryKey(),

@@ -36,6 +36,20 @@
       "when": 1718700406934,
       "tag": "0004_sleepy_captain_universe",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1718787486367,
+      "tag": "0005_chemical_gorgon",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1718789257548,
+      "tag": "0006_dear_steel_serpent",
+      "breakpoints": true
     }
   ]
 }

@@ -24,7 +24,11 @@ export const sourceRouter = createTRPCRouter({
       return { ...theSource, url: manifest, timelineUrl: timeline };
     }),
   finishProcessing: publicProcedure
-    .input(z.object({ id: z.string(), resolution: z.string() }))
+    .input(z.object({ 
+      id: z.string(),
+      resolution: z.string(),
+      duration: z.number(),
+    }))
     .mutation(async ({ ctx, input }) => {
       const { id, resolution } = input;
       const res = resolution.slice(0, -1).split("x").map(Number);
@@ -36,6 +40,7 @@ export const sourceRouter = createTRPCRouter({
           updatedAt: new Date(),
           width: res[0],
           height: res[1],
+          duration: parseInt(input.duration),
         })
         .where(eq(source.id, id));
     }),
