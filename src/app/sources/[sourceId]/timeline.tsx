@@ -1,4 +1,5 @@
 'use client';
+import { toReadableTime } from '@/app/utils';
 import { Source } from '@/server/db/schema';
 import { useState, MouseEvent, useRef, useEffect, useMemo, FC } from 'react';
 
@@ -10,6 +11,7 @@ export default function Timeline({
   currentSeconds,
   setCurrentTime,
   children,
+  zoom,
 }: {
   length: number,
   imageUrl: string,
@@ -18,11 +20,11 @@ export default function Timeline({
   currentSeconds: number,
   setCurrentTime: (time: number) => void,
   children?: (timelineWidth: number, zoom: number, length: number) => JSX.Element,
+  zoom: number,
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [timelineWidth, setTimelineWidth] = useState(0);
   const timeLineRef = useRef<HTMLDivElement | null>(null);
-  const [zoom, setZoom] = useState(1);
 
   const markSecInc = useMemo(() => length / (7 * zoom), [length, zoom]);
   const marks = useMemo(() => 8 * zoom, [zoom]);
@@ -64,10 +66,6 @@ export default function Timeline({
     timeline.scrollTo(timelineScroll, 0);
   }
 
-  function modifyZoom(newZoom: number) {
-    setZoom(newZoom);
-  }
-
   function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
     const second = percent(e) * length;
     setCurrentTime(second);
@@ -81,33 +79,11 @@ export default function Timeline({
     return clientX / bcr.width;
   }
 
-  function toReadableTime(time: number | undefined) {
-    if (!time) return '00:00';
-
-    const hours = Math.floor(time / 3600);
-    const minutes = Math.floor((time % 3600) / 60);
-    const seconds = Math.floor(time % 3600 % 60);
-
-    const hoursStr = hours === 0 ? '' : hours < 10 ? `0${hours}:` : `${hours}:`;
-    const minutesStr = minutes < 10 ? `0${minutes}:` : `${minutes}:`;
-    const secondsStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
-
-    return `${hoursStr}${minutesStr}${secondsStr}`;
-  }
-
   return (
     <div
       ref={containerRef}
       className="w-full flex flex-col items-center gap-y-4"
-    >
-      <input
-        type="range"
-        min={1}
-        max={10}
-        value={zoom}
-        onChange={(e) => modifyZoom(parseInt(e.target.value))}
-      />
-      <div>{currentTime[0]} : {currentTime[1]} : {currentTime[2]}</div>
+    > 
       <div
         ref={timeLineRef}
         className="flex items-start overflow-x-auto no-scrollbar"

@@ -36,6 +36,7 @@ export type Source = InferModel<typeof source>;
 export const clip = createTable("clip", {
   id: uuid("id").primaryKey(),
   sourceId: uuid("source_id").references(() => source.id).notNull(),
+  name: varchar("name", { length: 256 }).notNull().default(sql`''`),
   url: varchar("url", { length: 256 }),
   processing: boolean("processing").notNull(),
   width: integer("width").notNull(),

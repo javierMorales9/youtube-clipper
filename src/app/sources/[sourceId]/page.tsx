@@ -1,5 +1,4 @@
 import { api } from "@/trpc/server";
-import Link from "next/link";
 import Source from "./Source";
 
 export default async function Sources({
@@ -16,10 +15,7 @@ export default async function Sources({
   const clips = await api.clip.fromSource({ sourceId });
 
   return (
-    <div className="px-12">
-      <Link href="/sources">
-        Go back
-      </Link>
+    <div className="px-12 py-2"> 
       <Source
         source={source}
         clips={clips}

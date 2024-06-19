@@ -68,10 +68,52 @@ export const clipRouter = createTRPCRouter({
         where: eq(clip.sourceId, input.sourceId),
       });
 
-      return clips;
+      const realClips: any[] = [];
+
+      for (const theClip of clips) {
+        const range = await ctx.db.query.clipRange.findFirst({
+          where: eq(clipRange.clipId, theClip.id),
+        });
+
+        if (!range) continue;
+
+        const sections = await Promise.all(
+          (
+            await ctx.db.query.clipSection.findMany({
+              where: eq(clipSection.clipId, theClip.id),
+              orderBy: [asc(clipSection.order)],
+            })
+          ).map(async (section, i) => {
+            if (!section) return null;
+
+            const fragments = await ctx.db.query.sectionFragment.findMany({
+              where: and(
+                eq(sectionFragment.sectionOrder, section.order),
+                eq(sectionFragment.clipId, theClip.id),
+              ),
+            });
+
+            return {
+              ...section,
+              fragments,
+            };
+          }),
+        );
+
+        realClips.push({
+          ...theClip,
+          range: {
+            start: range.start,
+            end: range.end,
+          },
+          sections,
+        });
+      }
+
+      return realClips;
     }),
   create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
-    const { clipId, range, sourceId, sections } = input;
+    const { name, clipId, range, sourceId, sections } = input;
     const id = clipId || uuidv4();
 
     await ctx.db.transaction(async (trans) => {
@@ -79,6 +121,7 @@ export const clipRouter = createTRPCRouter({
         .insert(clip)
         .values({
           id,
+          name,
           sourceId,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -89,6 +132,7 @@ export const clipRouter = createTRPCRouter({
         .onConflictDoUpdate({
           target: [clip.id],
           set: {
+            name,
             updatedAt: new Date(),
             processing: true,
           },

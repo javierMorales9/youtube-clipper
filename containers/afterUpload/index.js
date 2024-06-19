@@ -54,7 +54,7 @@ async function dev() {
 
     const path = req.file.destination;
     await ffmpeg(path);
-    const resolution = await getResolution(path);
+    const [resolution, duration] = await getResolution(path);
 
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
       method: 'POST',
@@ -62,6 +62,7 @@ async function dev() {
         Message: JSON.stringify({
           id: req.params.path,
           resolution,
+          duration,
         }),
       }),
     });
@@ -117,7 +118,7 @@ async function prod() {
     console.log(`File saved to: ${path}/${process.env.SOURCE_ID}/original.mp4`);
 
     await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
-    const resolution = await getResolution(`${path}/${process.env.SOURCE_ID}`);
+    const [resolution, duration] = await getResolution(`${path}/${process.env.SOURCE_ID}`);
 
     const files = await fs.readdir(`${path}/${process.env.SOURCE_ID}`);
     console.log('Files', files);
@@ -143,6 +144,7 @@ async function prod() {
       Message: JSON.stringify({
         id: process.env.SOURCE_ID,
         resolution,
+        duration,
       }),
     }));
   }
@@ -166,7 +168,9 @@ async function ffmpeg(path) {
 async function getResolution(path) {
   const { stdout: resolution } = await exec(`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${path}/original.mp4`);
   console.log('Resolution', resolution);
-  return resolution;
+
+  const { stdout: duration } = await exec(`ffmpeg -i ${path}/original.mp4 2>&1 | grep "Duration"`);
+  return [resolution, duration];
 }
 
 start();

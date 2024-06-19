@@ -1,5 +1,4 @@
 import { api } from "@/trpc/server";
-import Link from "next/link";
 import ClipEditor from "../ClipEditor";
 
 export default async function ClipCreation({
@@ -16,14 +15,12 @@ export default async function ClipCreation({
   }
 
   return (
-    <div className="px-4">
-      <Link href={`/sources/${sourceId}`}>
-        Go back
-      </Link>
+    <div className="px-4"> 
       <ClipEditor
         source={source}
         timelineUrl={source.timelineUrl}
         clip={{
+          name: "",
           range: {
             start: parseFloat(searchParams.start),
             end: parseFloat(searchParams.end),

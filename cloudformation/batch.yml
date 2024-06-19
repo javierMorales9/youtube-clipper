@@ -62,9 +62,9 @@ Resources:
         JobRoleArn: !GetAtt BatchExecutionRole.Arn
         ResourceRequirements:
             - Type: VCPU
-              Value: 0.25
+              Value: 2
             - Type: MEMORY
-              Value: 512
+              Value: 4096
         Environment:
           - Name: "TOPIC_ARN"
             Value: !Ref AfterUploadTopicArn
@@ -84,9 +84,9 @@ Resources:
         JobRoleArn: !GetAtt BatchExecutionRole.Arn
         ResourceRequirements:
             - Type: VCPU
-              Value: 0.25
+              Value: 2
             - Type: MEMORY
-              Value: 512
+              Value: 4096
         Environment:
           - Name: "TOPIC_ARN"
             Value: !Ref AfterClipUpdateTopicArn

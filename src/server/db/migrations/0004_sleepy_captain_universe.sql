@@ -1,0 +1,1 @@
+ALTER TABLE "clip" ADD COLUMN "name" varchar(256) DEFAULT '' NOT NULL;

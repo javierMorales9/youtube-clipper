@@ -13,7 +13,7 @@ export const DisplaySchema = z.object({
 export const Displays = {
   One: {
     name: 'One',
-    //image: '/public/images/displays/one.png',
+    image: '/images/One.png',
     elements: [
       {
         x: 0,
@@ -25,7 +25,7 @@ export const Displays = {
   },
   TwoColumn: {
     name: 'TwoColumn',
-    //image: '/public/images/displays/two-column.png',
+    image: '/images/TwoColumns.png',
     elements: [
       {
         x: 0,
@@ -43,7 +43,7 @@ export const Displays = {
   },
   TwoRow: {
     name: 'TwoRow',
-    //image: '/public/images/displays/two-row.png',
+    image: '/images/TwoRows.png',
     elements: [
       {
         x: 0,

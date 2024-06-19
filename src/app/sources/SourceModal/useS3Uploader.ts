@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Uploader } from "./Upload";
 
 export function useS3Uploader({
+  videoName,
   file,
   setFile,
 }: {
+  videoName: string;
   file: File | null;
   setFile: (file: File | null) => void;
 }) {
@@ -23,7 +25,7 @@ export function useS3Uploader({
     setError(null);
 
     const uploader = new Uploader({
-      fileName: file.name,
+      fileName: videoName || file.name,
       file: file,
       initiate,
       complete,

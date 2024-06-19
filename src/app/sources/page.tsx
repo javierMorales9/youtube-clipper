@@ -1,25 +1,10 @@
 import { api } from "@/trpc/server";
-import SourceModal from "./SourceModal";
-import Link from "next/link";
+import { SourceList } from "./SourceList";
 
 export default async function Page() {
   const sources = await api.source.all({});
 
   return (
-    <div className="flex flex-col p-8">
-      <div className="flex flex-row justify-start gap-x-3">
-        <h1 className="text-3xl font-bold">Sources</h1>
-        <SourceModal />
-      </div>
-      {sources.map((source) => (
-        <Link
-          key={source.id}
-          href={`/sources/${source.id}`}
-          className="flex flex-col p-4 border border-gray-200 rounded-lg my-4"
-        >
-          <h2 className="text-xl font-bold">{source.name}</h2>
-        </Link>
-      ))}
-    </div>
+    <SourceList sources={sources} />
   );
 }

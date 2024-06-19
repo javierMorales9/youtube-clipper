@@ -1,4 +1,6 @@
 {
+  "id": "925e36a3-2a85-4332-93ed-d029f1d9fe54",
+  "prevId": "42b483cc-1f2e-4bc7-8e04-465fc900596f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -16,7 +18,14 @@
           "name": "source_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
         },
         "url": {
           "name": "url",
@@ -34,13 +43,13 @@
           "name": "width",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "height": {
           "name": "height",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -60,15 +69,15 @@
         "clip_source_id_source_id_fk": {
           "name": "clip_source_id_source_id_fk",
           "tableFrom": "clip",
+          "tableTo": "source",
           "columnsFrom": [
             "source_id"
           ],
-          "tableTo": "source",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -82,7 +91,7 @@
           "name": "clip_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "start": {
           "name": "start",
@@ -102,15 +111,15 @@
         "clip_range_clip_id_clip_id_fk": {
           "name": "clip_range_clip_id_clip_id_fk",
           "tableFrom": "clip_range",
+          "tableTo": "clip",
           "columnsFrom": [
             "clip_id"
           ],
-          "tableTo": "clip",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -133,13 +142,13 @@
           "name": "number",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "clip_id": {
           "name": "clip_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "start": {
           "name": "start",
@@ -157,7 +166,7 @@
           "name": "display",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
@@ -165,15 +174,15 @@
         "clip_section_clip_id_clip_id_fk": {
           "name": "clip_section_clip_id_clip_id_fk",
           "tableFrom": "clip_section",
+          "tableTo": "clip",
           "columnsFrom": [
             "clip_id"
           ],
-          "tableTo": "clip",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -195,13 +204,13 @@
           "name": "section_order",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "clip_id": {
           "name": "clip_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "x": {
           "name": "x",
@@ -233,15 +242,15 @@
         "section_fragment_clip_id_clip_id_fk": {
           "name": "section_fragment_clip_id_clip_id_fk",
           "tableFrom": "section_fragment",
+          "tableTo": "clip",
           "columnsFrom": [
             "clip_id"
           ],
-          "tableTo": "clip",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -269,7 +278,7 @@
           "name": "external_id",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -324,10 +333,8 @@
   "enums": {},
   "schemas": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "a99bbd09-3df9-4f47-9dbb-472601d1e5f2",
-  "prevId": "5ae8df93-fae0-4e34-b6b6-b83a8dd92a0d"
+    "tables": {}
+  }
 }

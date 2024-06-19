@@ -1,10 +1,8 @@
 {
-  "id": "5ae8df93-fae0-4e34-b6b6-b83a8dd92a0d",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "clip": {
+    "public.clip": {
       "name": "clip",
       "schema": "",
       "columns": {
@@ -50,21 +48,21 @@
         "clip_source_id_source_id_fk": {
           "name": "clip_source_id_source_id_fk",
           "tableFrom": "clip",
-          "tableTo": "source",
           "columnsFrom": [
             "source_id"
           ],
+          "tableTo": "source",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "clip_range": {
+    "public.clip_range": {
       "name": "clip_range",
       "schema": "",
       "columns": {
@@ -92,15 +90,15 @@
         "clip_range_clip_id_clip_id_fk": {
           "name": "clip_range_clip_id_clip_id_fk",
           "tableFrom": "clip_range",
-          "tableTo": "clip",
           "columnsFrom": [
             "clip_id"
           ],
+          "tableTo": "clip",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -115,7 +113,7 @@
       },
       "uniqueConstraints": {}
     },
-    "clip_section": {
+    "public.clip_section": {
       "name": "clip_section",
       "schema": "",
       "columns": {
@@ -155,15 +153,15 @@
         "clip_section_clip_id_clip_id_fk": {
           "name": "clip_section_clip_id_clip_id_fk",
           "tableFrom": "clip_section",
-          "tableTo": "clip",
           "columnsFrom": [
             "clip_id"
           ],
+          "tableTo": "clip",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -177,7 +175,7 @@
       },
       "uniqueConstraints": {}
     },
-    "section_fragment": {
+    "public.section_fragment": {
       "name": "section_fragment",
       "schema": "",
       "columns": {
@@ -223,15 +221,15 @@
         "section_fragment_clip_id_clip_id_fk": {
           "name": "section_fragment_clip_id_clip_id_fk",
           "tableFrom": "section_fragment",
-          "tableTo": "clip",
           "columnsFrom": [
             "clip_id"
           ],
+          "tableTo": "clip",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -245,7 +243,7 @@
       },
       "uniqueConstraints": {}
     },
-    "source": {
+    "public.source": {
       "name": "source",
       "schema": "",
       "columns": {
@@ -314,8 +312,10 @@
   "enums": {},
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "5ae8df93-fae0-4e34-b6b6-b83a8dd92a0d",
+  "prevId": "00000000-0000-0000-0000-000000000000"
 }

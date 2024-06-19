@@ -20,18 +20,16 @@ export default async function EditClip({
     return <h1>Clip not found</h1>
   }
 
-  const { range, sections, width, height } = clip;
+  const { name, range, sections, width, height } = clip;
 
   return (
     <div className="px-4">
-      <Link href={`/sources/${sourceId}`}>
-        Go back
-      </Link>
       <ClipEditor
         source={source}
         timelineUrl={source.timelineUrl}
         clip={{
           clipId,
+          name,
           range: {
             start: range.start,
             end: range.end,

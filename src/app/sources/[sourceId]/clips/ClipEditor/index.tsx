@@ -11,6 +11,13 @@ import Konva from "konva";
 import { api } from "@/trpc/react";
 import { Clip, Display, Section } from "../Clip";
 import { Displays, DisplayKey } from "../Displays";
+import Link from "next/link";
+import Back from "../../../../../../public/images/Back.svg";
+import Play from "../../../../../../public/images/MaterialSymbolsPlayArrow.svg";
+import Split from "../../../../../../public/images/Split.svg";
+import Trash from "../../../../../../public/images/Trash.svg";
+import Pause from "../../../../../../public/images/Pause.svg";
+import { toReadableTime } from "@/app/utils";
 
 export default function ClipEditor({
   source,
@@ -24,6 +31,8 @@ export default function ClipEditor({
   const { start, end } = clip.range;
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
+  const [zoom, setZoom] = useState(1);
+
   const { mutateAsync: createClip } = api.clip.create.useMutation();
 
   const [dimensions, setDimensions] = useState<[number, number]>([0, 0]);
@@ -59,6 +68,7 @@ export default function ClipEditor({
     const data = form.getValues();
 
     await createClip({
+      name: data.name,
       sourceId: source.id,
       clipId: clip.clipId,
       range: data.range,
@@ -76,7 +86,26 @@ export default function ClipEditor({
   return (
     <FormProvider {...form}>
       <form className="flex flex-row" onSubmit={(e) => { e.preventDefault(); }}>
-        <div className="w-1/4 border border-1 border-black">
+        <div className="w-1/4 flex flex-col gap-y-2">
+          <Link
+            href={`/sources/${source.id}`}
+            className="flex flex-row items-center gap-x-2 text-gray-600"
+          >
+            <Back className="fill-gray-600 w-6 h-6 " />
+            <span
+              className="text-lg font-semibold"
+            >
+              Go back
+            </span>
+          </Link>
+          <div className="flex flex-col">
+            <label htmlFor="file">Video name</label>
+            <input
+              type="text"
+              className="border border-gray-200 rounded-lg p-2"
+              {...form.register('name')}
+            />
+          </div>
           <DisplaysSelector
             section={section}
             handleSelectDisplay={handleSelectDisplay}
@@ -92,12 +121,14 @@ export default function ClipEditor({
             dimensions={dimensions}
           />
 
-          <div className="flex flex-row gap-x-10 justify-center">
+          <div className="w-full flex flex-row gap-x-10 justify-center">
             <Controls
               timer={timer}
               divideSection={divideSection}
               deleteSection={deleteSection}
               createClip={onSubmit}
+              zoom={zoom}
+              setZoom={setZoom}
             />
           </div>
           {timer.length && (
@@ -108,6 +139,7 @@ export default function ClipEditor({
               currentTime={timer.currentTime}
               currentSeconds={timer.currentSeconds}
               setCurrentTime={(time: number) => timer.seek(time)}
+              zoom={zoom}
             >
               {(timelineWidth: number, zoom: number, length: number) => (
                 <SectionSelector
@@ -159,26 +191,36 @@ function DisplaysSelector({
 }) {
 
   return (
-    <>
-      <div className="p-4 border border-b-black">
+    <div className="bg-white rounded border border-gray-100">
+      <div className="p-4 text-xl font-bold">
         Displays
       </div>
-      <div className="p-3 w-full flex flex-row justify-between flex-wrap">
+      <div className="p-3 w-full flex flex-wrap flex-row justify-between">
         {(Object.keys(Displays) as DisplayKey[]).map((key) => (
           <div
             key={key}
             onClick={() => handleSelectDisplay(Displays[key])}
             className={`
-              flex flex-col justify-center items-center
-              border border-black cursor-pointer
-              ${section?.display?.name === Displays[key].name && 'bg-gray-200'}
+              flex flex-col justify-center items-center cursor-pointer
            `}
           >
-            <span>{Displays[key].name}</span>
+            <span
+              className={
+                `w-full flex justify-center
+                ${section?.display?.name === Displays[key].name && 'bg-gray-200'}
+              `}
+            >
+              {Displays[key].name}
+            </span>
+
+            <img
+              className="w-32"
+              src={Displays[key].image} alt={Displays[key].name}
+            />
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -535,21 +577,55 @@ function Controls({
   divideSection,
   deleteSection,
   createClip,
+  zoom,
+  setZoom,
 }: {
   timer: Timer,
   divideSection: () => void,
   deleteSection: () => void
-  createClip: () => void
+  createClip: () => void,
+  zoom: number,
+  setZoom: (zoom: number) => void,
 }) {
 
   return (
     <>
-      <div className="flex flex-row gap-x-4">
-        <button onClick={divideSection}>Divide Section</button>
-        <button onClick={deleteSection}>Delete Section</button>
-        <button onClick={createClip}>Save</button>
+      <div className="relative p-4 flex flex-row justify-between w-full gap-x-4">
+        <div className="flex flex-row justify-center gap-x-4">
+          <button onClick={divideSection}>
+            <Split className="w-7 h-7 " />
+          </button>
+          <button onClick={deleteSection}>
+            <Trash className="w-7 h-7" />
+          </button>
+        </div>
+        <button
+          className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg"
+          onClick={createClip}
+        >
+          Save
+        </button>
+        <div className="flex flex-row items-center gap-x-4">
+          <div className="flex flex-row gap-x-2">
+            <button onClick={() => timer.togglePlay()}>
+              {timer.playing ?
+                <Pause className="w-7 h-7 fill-none stroke-gray-700" /> :
+                <Play className="w-7 h-7 fill-none stroke-gray-700" />
+              }
+            </button>
+            <div>{toReadableTime(timer.currentSeconds)}</div>
+          </div>
+          <div className="w-full flex flex-col items-start">
+            <input
+              type="range"
+              min={1}
+              max={10}
+              value={zoom}
+              onChange={(e) => setZoom(parseInt(e.target.value))}
+            />
+          </div>
+        </div>
       </div>
-      <button onClick={timer.togglePlay}>{timer.playing ? 'Stop' : 'Play'}</button>
     </>
   );
 }

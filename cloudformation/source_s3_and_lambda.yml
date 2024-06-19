@@ -230,7 +230,7 @@ Resources:
         Variables:
           JOB_QUEUE: !Ref JobQueueArn
           JOB_DEFINITION: !Ref AfterUploadJobDefinitionArn
-          JOB_NAME: !Sub "after_upload_${AWS::StackName}"
+          JOB_NAME: !Sub "after_upload_new_${AWS::StackName}"
 Outputs:
   S3BucketName:
     Description: The name of the S3 bucket
