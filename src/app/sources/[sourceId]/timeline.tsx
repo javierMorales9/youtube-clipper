@@ -9,6 +9,8 @@ export default function Timeline({
   source,
   currentSeconds,
   setCurrentTime,
+  offset = 0,
+  sourceLength = length,
   children,
 }: {
   length: number,
@@ -16,6 +18,8 @@ export default function Timeline({
   source: Source,
   currentSeconds: number,
   setCurrentTime: (time: number) => void,
+  offset?: number,
+  sourceLength?: number,
   children?: (visibleTimelineWidth: number, timelineSeconds: number, initialPosition: number, initialSeconds: number) => JSX.Element,
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -52,7 +56,7 @@ export default function Timeline({
     if (!image) return 0;
 
     const calculated = visibleTimelineWidth / 8 * source.height! / source.width!;
-    const extracted = image.height / length;
+    const extracted = image.height / sourceLength;
 
     //Formula caculated empirically
     const real = (calculated + 29 * extracted) / 30;
@@ -144,6 +148,7 @@ export default function Timeline({
 
   }, [initialPosition, timelineWidth, visibleTimelineWidth]);
 
+  console.log('offset', offset);
   return (
     <>
       {length && Math.floor(length / 7) > 1 && (
@@ -223,7 +228,7 @@ export default function Timeline({
                           style={{
                             position: 'relative',
                             width: visibleTimelineWidth / 8 + 'px',
-                            top: `-${imageHeight * section.second}px`,
+                            top: `-${imageHeight * (Math.floor(offset) + section.second)}px`,
                             left: section.first
                               ? `-${visibleTimelineWidth / 8 - section.width}px`
                               : section.last

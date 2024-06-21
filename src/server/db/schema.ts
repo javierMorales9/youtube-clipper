@@ -5,6 +5,7 @@ import { sql, InferModel } from "drizzle-orm";
 import {
   boolean,
   integer,
+  numeric,
   pgTableCreator,
   primaryKey,
   text,
@@ -29,7 +30,7 @@ export const source = createTable("source", {
   url: varchar("url", { length: 256 }),
   width: integer("width"),
   height: integer("height"),
-  duration: integer("duration"),
+  duration: numeric("duration").$type<number>(),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updatedAt").notNull(),
 });

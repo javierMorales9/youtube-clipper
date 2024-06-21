@@ -27,6 +27,7 @@ export default function RangeSelection({
   function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
 
+    console.log('mouse down', rangeCreated, creatingRange);
     if (rangeCreated) return;
 
     const startSec = initialSeconds + percent(e) * timelineSeconds;
