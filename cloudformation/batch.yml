@@ -64,7 +64,7 @@ Resources:
             - Type: VCPU
               Value: 4
             - Type: MEMORY
-              Value: 4096
+              Value: 8192
         Environment:
           - Name: "TOPIC_ARN"
             Value: !Ref AfterUploadTopicArn
@@ -86,7 +86,7 @@ Resources:
             - Type: VCPU
               Value: 4
             - Type: MEMORY
-              Value: 4096
+              Value: 8192
         Environment:
           - Name: "TOPIC_ARN"
             Value: !Ref AfterClipUpdateTopicArn

@@ -3,17 +3,19 @@
 import { useState } from "react";
 
 export default function RangeSelection({
-  timelineWidth,
-  zoom,
-  length,
+  visibleTimelineWidth,
+  timelineSeconds,
+  initialSeconds,
+  initialPosition,
   range,
   setRange,
   rangeCreated,
   setRangeCreated,
 }: {
-  timelineWidth: number,
-  zoom: number,
-  length: number
+  visibleTimelineWidth: number,
+  timelineSeconds: number,
+  initialPosition: number,
+  initialSeconds: number,
   range: [number, number],
   setRange: (range: [number, number]) => void,
   rangeCreated: boolean,
@@ -24,14 +26,13 @@ export default function RangeSelection({
 
   function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    console.log('mouse down');
 
     if (rangeCreated) return;
 
-    const startSec = percent(e) * length;
+    const startSec = initialSeconds + percent(e) * timelineSeconds;
     setRange([startSec, startSec]);
 
-    const pxStart = timelineWidth * zoom * percent(e);
+    const pxStart = initialPosition + visibleTimelineWidth * percent(e);
     setPxRange([pxStart, pxStart]);
 
     setCreatingRage(true);
@@ -42,10 +43,10 @@ export default function RangeSelection({
     if (rangeCreated) return;
     if (!creatingRange) return;
 
-    const endSec = percent(e) * length;
+    const endSec = initialSeconds + percent(e) * timelineSeconds;
     setRange([range[0], endSec]);
 
-    const pxEnd = timelineWidth * zoom * percent(e);
+    const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
     setPxRange([pxRange[0], pxEnd]);
   }
 
@@ -54,10 +55,10 @@ export default function RangeSelection({
 
     if (rangeCreated) return;
 
-    const endSec = percent(e) * length;
+    const endSec = initialSeconds + percent(e) * timelineSeconds;
     setRange([range[0], endSec]);
 
-    const pxEnd = timelineWidth * zoom * percent(e);
+    const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
     setPxRange([pxRange[0], pxEnd]);
 
     setCreatingRage(false);
@@ -88,8 +89,8 @@ export default function RangeSelection({
       <div
         className="absolute h-full z-10"
         style={{
-          left: pxRange[0],
-          width: pxRange[1] - pxRange[0],
+          left: pxRange[0] - initialPosition,
+          width: pxRange[1] - pxRange[0] - initialPosition,
         }}
       >
         <div

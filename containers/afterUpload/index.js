@@ -181,6 +181,9 @@ async function ffmpeg(path) {
   console.log('Creating timeline. Duration: ', parseInt(stdout));
   await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
 
+  console.log('Creating snapshot');
+  await exec(`ffmpeg -i ${path}/original.mp4 -vf "select=eq(n\\,0),scale=100:-2" -q:v 3 ${path}/snapshot.jpg -y`);
+
   return duration;
 }
 

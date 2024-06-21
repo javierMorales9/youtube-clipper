@@ -1,145 +1,246 @@
 'use client';
 import { toReadableTime } from '@/app/utils';
 import { Source } from '@/server/db/schema';
-import { useState, MouseEvent, useRef, useEffect, useMemo } from 'react';
+import { useState, MouseEvent, WheelEvent, useRef, useEffect, useMemo } from 'react';
 
 export default function Timeline({
   length,
   imageUrl,
   source,
-  currentTime,
   currentSeconds,
   setCurrentTime,
   children,
-  zoom,
 }: {
   length: number,
   imageUrl: string,
   source: Source,
-  currentTime: [number, number, number, number]
   currentSeconds: number,
   setCurrentTime: (time: number) => void,
-  children?: (timelineWidth: number, zoom: number, length: number) => JSX.Element,
-  zoom: number,
+  children?: (visibleTimelineWidth: number, timelineSeconds: number, initialPosition: number, initialSeconds: number) => JSX.Element,
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [timelineWidth, setTimelineWidth] = useState(0);
-
   const timeLineRef = useRef<HTMLDivElement | null>(null);
-
-  const markSecInc = useMemo(() => length / (7 * zoom), [length, zoom]);
-  const marks = useMemo(() => 8 * zoom, [zoom]);
-  const leftPxInc = useMemo(() => timelineWidth * zoom / marks, [timelineWidth, zoom, marks]);
-  const reference = useMemo(
-    () => timelineWidth * zoom * currentSeconds / length,
-    [zoom, currentSeconds, length]
-  );
-
-  const [imageHeight, setImageHeight] = useState(0);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+  const [initialPosition, setInitialPosition] = useState(0);
+  const [zoom, setZoom] = useState(1);
 
-    setTimelineWidth(container.clientWidth);
+  const visibleTimelineWidth = useMemo(() => {
+    const container = containerRef.current;
+    if (!container) return 0;
+
+    return container.clientWidth;
   }, [containerRef.current]);
 
-  useEffect(() => {
+  const maxZoom = useMemo(() => {
+    const gap = 1;
+    return -(gap + 1 - length / 8) / gap;
+  }, [length]);
+
+  const marks = useMemo(() =>
+    length * (maxZoom! - 1) / (zoom * (1 - length / 8) + maxZoom! / 8 * length - 1)
+    , [zoom, length]);
+  const markSecInc = useMemo(() => length / marks, [length, marks]);
+
+  const timelineWidth = useMemo(() => visibleTimelineWidth * marks / 8, [visibleTimelineWidth, zoom]);
+  const reference = useMemo(() => {
+    return timelineWidth * currentSeconds / length - initialPosition;
+  }, [timelineWidth, currentSeconds, length, initialPosition]);
+
+  const imageHeight = useMemo(() => {
     const image = imageRef.current;
-    if (!image) return;
+    if (!image) return 0;
 
-    image.onload = () => {
-      setImageHeight(image.height);
-    };
-  }, [imageRef.current]);
+    const calculated = visibleTimelineWidth / 8 * source.height! / source.width!;
+    const extracted = image.height / length;
+
+    //Formula caculated empirically
+    const real = (calculated + 29 * extracted) / 30;
+
+    return real;
+  }, [imageRef.current, visibleTimelineWidth, source]);
 
   useEffect(() => {
-    updateScroll(zoom);
-  }, [zoom]);
-
-  function updateScroll(zoom: number) {
-    const timelineScroll = (currentSeconds / length) * timelineWidth * zoom - timelineWidth / 2;
+    const timelineScroll = (currentSeconds / length) * timelineWidth - visibleTimelineWidth / 2;
 
     const timeline = timeLineRef.current;
     if (!timeline) return;
 
     timeline.scrollTo(timelineScroll, 0);
-  }
+  }, [timelineWidth]);
 
   function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
-    const second = percent(e) * length;
-    setCurrentTime(second);
-  }
-
-
-  function percent(e: MouseEvent<HTMLDivElement>) {
     const target = e.currentTarget as HTMLDivElement;
     const bcr = target.getBoundingClientRect();
     const clientX = (e.clientX - bcr.left);
-    return clientX / bcr.width;
+
+    const percent = (initialPosition + clientX) / timelineWidth;
+
+    const second = percent * length;
+    setCurrentTime(second);
   }
 
+  function scroll(e: WheelEvent<HTMLDivElement>) {
+    let value = Math.abs(e.deltaY) !== 0 ? e.deltaY : e.deltaX;
+    const direction = value > 0 ? 1 : -1;
+    value = Math.abs(value);
+
+    setInitialPosition(prev => {
+      const newPosition = prev + value * direction;
+
+      if (newPosition < 0) return 0;
+      if (newPosition > timelineWidth - visibleTimelineWidth)
+        return prev + (timelineWidth - visibleTimelineWidth - prev) / 2;
+
+      return newPosition;
+    });
+  }
+
+  const sections = useMemo(() => {
+    const markWidth = visibleTimelineWidth / 8;
+    const leftMark = initialPosition / timelineWidth * marks;
+
+    const offset = leftMark % 1;
+    const complete = Math.floor(offset * 100) === 0;
+
+    const result: {
+      width: number,
+      time?: string,
+      second: number,
+      first?: boolean,
+      last?: boolean,
+    }[] = [];
+    if (!complete) {
+      result.push({
+        width: markWidth * (1 - offset),
+        second: Math.floor(Math.floor(leftMark) * markSecInc),
+        first: true,
+      });
+    } else {
+      result.push({
+        width: markWidth,
+        time: toReadableTime(Math.floor(leftMark) * markSecInc),
+        second: Math.floor(Math.floor(leftMark) * markSecInc),
+        first: true,
+      });
+    }
+    for (let i = 1; i < 8; i++) {
+      result.push({
+        width: markWidth,
+        time: toReadableTime((i + Math.floor(leftMark)) * markSecInc),
+        second: Math.floor((i + Math.floor(leftMark)) * markSecInc),
+      });
+    }
+
+    if (leftMark + 8 < marks)
+      result.push({
+        width: markWidth * (offset),
+        time: toReadableTime((Math.floor(leftMark) + 8) * markSecInc),
+        second: Math.floor((Math.floor(leftMark) + 8) * markSecInc),
+        last: true,
+      });
+
+    return result;
+
+  }, [initialPosition, timelineWidth, visibleTimelineWidth]);
+
   return (
-    <div
-      ref={containerRef}
-      className="w-full flex flex-col items-center gap-y-4"
-    >
-      <div
-        ref={timeLineRef}
-        className="flex items-start overflow-x-auto no-scrollbar"
-        style={{
-          width: timelineWidth + 'px',
-        }}
+    <>
+      {length && Math.floor(length / 7) > 1 && (
+        <div className="w-full flex flex-col items-start">
+          <input
+            type="range"
+            min={1}
+            value={zoom}
+            max={maxZoom}
+            onChange={(e) => setZoom(parseInt(e.target.value))}
+          />
+        </div>
+      )}
+      < div
+        ref={containerRef}
+        className="w-full flex flex-col items-center gap-y-4"
       >
         <div
-          className="flex flex-col justify-end relative"
-          onClick={handleTimelineClick}
+          ref={timeLineRef}
+          className="flex items-start overflow-x-hidden no-scrollbar"
+          style={{
+            width: visibleTimelineWidth + 'px',
+          }}
         >
-          <span className="absolute bottom-0 z-10" style={{ left: reference }}>
-            <div className="w-[2px] h-[130px] bg-red-500"></div>
-          </span>
-          {children && children(timelineWidth, zoom, length)}
-          <div className="flex flex-row justify-start">
-            {Array.from({ length: marks }).map((_, i) => (
-              <div
-                key={i}
-                className="flex flex-col items-start"
-                style={{ width: leftPxInc + 'px' }}
-              >
-                <span className="text-[7px]">{toReadableTime(i * markSecInc)}</span>
-                <div className="w-[2px] h-[10px] bg-gray-300"></div>
-              </div>
-            ))}
-          </div>
-          <div className="h-[3px] bg-gray-300 mb-2" style={{ width: timelineWidth * zoom + 'px' }}></div>
-          <div className="flex flex-row justify-start z-[-10]">
-            {Array.from({ length: marks }).map((_, i) => (
-              <div
-                key={i}
-                className="overflow-y-hidden"
-                style={{
-                  width: leftPxInc + 'px',
-                  height: '90px',
-                  overflowY: 'hidden',
-                }}
-              >
-                <img
-                  ref={imageRef}
-                  src={imageUrl}
-                  alt="Timeline"
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    top: `-${imageHeight * i * markSecInc / length}px`,
-                  }}
-                />
-              </div>
-            ))}
+          <div
+            className="flex flex-col justify-end relative"
+            onClick={handleTimelineClick}
+            onWheel={scroll}
+          >
+            <span className="absolute bottom-0 z-10" style={{ left: reference }}>
+              <div className="w-[2px] h-[130px] bg-red-500"></div>
+            </span>
+            {visibleTimelineWidth && (
+              <>
+                {children && children(
+                  visibleTimelineWidth,
+                  visibleTimelineWidth / timelineWidth * length,
+                  initialPosition,
+                  initialPosition / timelineWidth * length,
+                )}
+                <div className="flex flex-row justify-start z-[-1]">
+                  {sections.map((section, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col items-start gap-y-2"
+                      style={{ width: section.width + 'px' }}
+                    >
+                      <div className="w-full">
+                        {section.time ? (
+                          <>
+                            <span className="text-[7px]">{section.time}</span>
+                            <div className="w-[2px] h-[10px] bg-gray-300"></div>
+                            <div className="w-full h-[2px] bg-gray-300"></div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-[7px] text-white">h</span>
+                            <div className="w-[2px] h-[10px]"></div>
+                            <div className="w-full h-[2px] bg-gray-300"></div>
+                          </>
+                        )}
+                      </div>
+                      <div
+                        key={i}
+                        className=""
+                        style={{
+                          width: visibleTimelineWidth / 8 + 'px',
+                          height: imageHeight + 'px',
+                          overflowY: 'hidden',
+                          overflowX: 'clip',
+                        }}
+                      >
+                        <img
+                          ref={imageRef}
+                          src={imageUrl}
+                          alt="Timeline"
+                          style={{
+                            position: 'relative',
+                            width: visibleTimelineWidth / 8 + 'px',
+                            top: `-${imageHeight * section.second}px`,
+                            left: section.first
+                              ? `-${visibleTimelineWidth / 8 - section.width}px`
+                              : section.last
+                                ? 0
+                                : undefined,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </>
   );
 }
 
