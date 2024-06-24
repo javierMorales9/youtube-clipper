@@ -1,0 +1,1 @@
+ALTER TABLE "source" ALTER COLUMN "duration" SET DATA TYPE numeric;

@@ -148,7 +148,6 @@ export default function Timeline({
 
   }, [initialPosition, timelineWidth, visibleTimelineWidth]);
 
-  console.log('offset', offset);
   return (
     <>
       {length && Math.floor(length / 7) > 1 && (

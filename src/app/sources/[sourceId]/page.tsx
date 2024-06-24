@@ -1,5 +1,6 @@
 import { api } from "@/trpc/server";
 import Source from "./Source";
+import { Suggestion } from "@/server/api/clips/SuggestionSchema";
 
 export default async function Sources({
   params: { sourceId },
@@ -13,12 +14,23 @@ export default async function Sources({
   }
 
   const clips = await api.clip.fromSource({ sourceId });
+  const suggestions: Suggestion[] = [
+    {
+      name: "Suggestion test",
+      description: "La descripcion pertinente asociada a la sugerencia de recorte",
+      range: {
+        start: 1000,
+        end: 1100,
+      },
+    },
+  ];
 
   return (
     <div className="px-12 py-2"> 
       <Source
         source={source}
         clips={clips}
+        suggestions={suggestions}
         timelineUrl={source.timelineUrl}
       />
     </div>

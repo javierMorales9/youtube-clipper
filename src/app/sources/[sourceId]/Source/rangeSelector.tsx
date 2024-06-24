@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Cross from "../../../../../public/images/Cross.svg";
 
 export default function RangeSelection({
   visibleTimelineWidth,
@@ -27,7 +28,6 @@ export default function RangeSelection({
   function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
 
-    console.log('mouse down', rangeCreated, creatingRange);
     if (rangeCreated) return;
 
     const startSec = initialSeconds + percent(e) * timelineSeconds;
@@ -41,26 +41,28 @@ export default function RangeSelection({
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    if (rangeCreated) return;
-    if (!creatingRange) return;
+    if (rangeCreated || !creatingRange) return;
 
     const endSec = initialSeconds + percent(e) * timelineSeconds;
-    setRange([range[0], endSec]);
 
-    const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
-    setPxRange([pxRange[0], pxEnd]);
+    if (endSec < range[1]) {
+      setRange([endSec, range[1]]);
+
+      const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
+      setPxRange([pxEnd, pxRange[1]]);
+    }
+    else {
+      setRange([range[0], endSec]);
+
+      const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
+      setPxRange([pxRange[0], pxEnd]);
+    }
   }
 
   function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
 
     if (rangeCreated) return;
-
-    const endSec = initialSeconds + percent(e) * timelineSeconds;
-    setRange([range[0], endSec]);
-
-    const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
-    setPxRange([pxRange[0], pxEnd]);
 
     setCreatingRage(false);
     setRangeCreated(true);
@@ -80,6 +82,15 @@ export default function RangeSelection({
     return clientX / bcr.width;
   }
 
+  useEffect(() => {
+    if (rangeCreated) {
+      setPxRange([
+        initialPosition + visibleTimelineWidth * (range[0] - initialSeconds) / timelineSeconds,
+        initialPosition + visibleTimelineWidth * (range[1] - initialSeconds) / timelineSeconds,
+      ]);
+    }
+  }, [range]);
+
   return (
     <div
       className="absolute w-full h-full bottom-0"
@@ -91,7 +102,7 @@ export default function RangeSelection({
         className="absolute h-full z-10"
         style={{
           left: pxRange[0] - initialPosition,
-          width: pxRange[1] - pxRange[0] - initialPosition,
+          width: pxRange[1] - pxRange[0],
         }}
       >
         <div
@@ -103,7 +114,7 @@ export default function RangeSelection({
             className="absolute right-0 top-0 text-black cursor-pointer"
             onClick={deleteRange}
           >
-            X
+            <Cross className="w-6 h-6 fill-black" />
           </span>
         )}
       </div>

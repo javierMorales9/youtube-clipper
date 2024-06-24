@@ -15,18 +15,23 @@ import { toReadableTime } from "@/app/utils";
 import Download from "../../../../../public/images/Download.svg";
 import Loading from "../../../../../public/images/Loading.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
+import { Suggestion } from "@/server/api/clips/SuggestionSchema";
 
 export default function SourceEditor({
   source,
   clips,
+  suggestions,
   timelineUrl,
 }: {
   source: Source,
   clips: Clip[],
+  suggestions: Suggestion[],
   timelineUrl: string,
 }) {
   const timer = useTimer();
   const router = useRouter();
+
+  const [pannel, setPannel] = useState<"clips" | "suggestions">("clips");
 
   const [range, setRange] = useState<[number, number]>([0, 0]);
   const [rangeCreated, setRangeCreated] = useState<boolean>(false);
@@ -55,49 +60,91 @@ export default function SourceEditor({
             </span>
           </Link>
           <div className="p-4 border bg-gray-50 rounded flex flex-col gap-y-3">
-            <h1 className="text-xl font-semibold">
-              Clips
-            </h1>
-            <div className="w-full flex flex-row justify-between flex-wrap">
-              {clips.map((clip) => (
-                <button
-                  key={clip.clipId}
-                  onClick={() => router.push(`/sources/${source.id}/clips/${clip.clipId}`)}
-                  className={`
+            <div className="flex flex-row gap-x-4">
+              <button
+                className={`text-xl font-semibold ${pannel === 'clips' ? "text-blue-500" : "text-gray-400"}`}
+                onClick={() => setPannel("clips")}
+              >
+                Clips
+              </button>
+              <button
+                className={`text-xl font-semibold ${pannel === 'suggestions' ? "text-blue-500" : "text-gray-400"}`}
+                onClick={() => setPannel("suggestions")}
+              >
+                Suggestions
+              </button>
+            </div>
+            {pannel === 'clips' && (
+              <div className="w-full flex flex-row justify-between flex-wrap">
+                {clips.map((clip) => (
+                  <button
+                    key={clip.clipId}
+                    onClick={() => router.push(`/sources/${source.id}/clips/${clip.clipId}`)}
+                    className={`
                   flex flex-row justify-between items-center cursor-pointer
                   p-2 w-full rounded-lg bg-gray-100
                `}
-                  disabled={clip.processing}
-                >
-                  <div className="flex flex-col">
-                    <span className="flex justify-start">
-                      {clip.name}
-                    </span>
-                    <span className="flex justify-start">
-                      {toReadableTime(clip.range.start)} - {toReadableTime(clip.range.end)}
-                    </span>
-                  </div>
-                  <div className="">
-                    {clip.processing && (
-                      <div className="">
-                        <Loading className="w-10 h-10 fill-gray-400" />
-                      </div>
-                    )}
-                    {!clip.processing && (
-                      <div
-                        className=""
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          downloadClip(clip).catch(() => { });
-                        }}
-                      >
-                        <Download className="w-10 h-10 fill-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
+                    disabled={clip.processing}
+                  >
+                    <div className="flex flex-col">
+                      <span className="flex justify-start">
+                        {clip.name}
+                      </span>
+                      <span className="flex justify-start">
+                        {toReadableTime(clip.range.start)} - {toReadableTime(clip.range.end)}
+                      </span>
+                    </div>
+                    <div className="">
+                      {clip.processing && (
+                        <div className="">
+                          <Loading className="w-10 h-10 fill-gray-400" />
+                        </div>
+                      )}
+                      {!clip.processing && (
+                        <div
+                          className=""
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadClip(clip).catch(() => { });
+                          }}
+                        >
+                          <Download className="w-10 h-10 fill-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {pannel === 'suggestions' && (
+              <div className="w-full flex flex-row justify-between flex-wrap">
+                {suggestions.map((suggestion, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setRange([suggestion.range.start, suggestion.range.end]);
+                      setRangeCreated(true);
+                    }}
+                    className={`
+                  flex flex-row justify-between items-center cursor-pointer
+                  p-2 w-full rounded-lg bg-gray-100
+               `}
+                  >
+                    <div className="flex flex-col gap-y-1">
+                      <span className="flex justify-start text-start font-semibold">
+                        {suggestion.name}
+                      </span>
+                      <span className="flex justify-start text-start text-gray-400">
+                        {suggestion.description}
+                      </span>
+                      <span className="flex justify-start">
+                        {toReadableTime(suggestion.range.start)} - {toReadableTime(suggestion.range.end)}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-col items-center w-full bg-white rounded p-2">

@@ -16,7 +16,7 @@ Parameters:
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
-    DependsOn: [AfterUploadLambdaFunction, AfterUploadInvokePermission, TranscibeInvokePermission]
+    DependsOn: [AfterUploadLambdaFunction, TranscribeVideoLambdaFunction, AfterUploadInvokePermission, TranscibeInvokePermission]
     Properties:
       BucketName: !Ref S3BucketName
       AccessControl: Private
@@ -42,15 +42,14 @@ Resources:
                 Rules:
                   - Name: suffix
                     Value: original.mp4
+            Function: !GetAtt TranscribeVideoLambdaFunction.Arn
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .srt
             Function: !GetAtt AfterUploadLambdaFunction.Arn
-            #Function: !GetAtt TranscibeInvokePermission.Arn
-        #- Event: s3:ObjectCreated:*
-        #    Filter:
-        #      S3Key:
-        #        Rules:
-        #          - Name: suffix
-        #            Value: file.srt
-        #    Function: !GetAtt AfterUploadLambdaFunction.Arn
 
   CloudfrontOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -201,6 +200,7 @@ Resources:
               Resource: '*'
   TranscribeVideoLambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn: [ProcessingLambdaExecutionRole]
     Properties:
       Code:
         ZipFile: >
@@ -213,14 +213,14 @@ Resources:
             const id = decodeURI(event.Records[0].s3.object.key).split('/')[0];
             
             const params = {
-            TranscriptionJobName: `${id}-transcribe`,
-            LanguageCode: "es-ES", // For example, 'en-US'
-            MediaFormat: "mp4", // For example, 'wav'
-            Media: {
-              MediaFileUri: `https://${sourceBucket}.s3-${process.env.AWS_REGION}.amazonaws.com/${original}`,
-            },
-            OutputBucketName: "OUTPUT_BUCKET_NAME"
-          };
+             TranscriptionJobName: `${id}-transcribe`,
+             LanguageCode: "es-ES", // For example, 'en-US'
+             MediaFormat: "mp4", // For example, 'wav'
+             Media: {
+               MediaFileUri: `https://${sourceBucket}.s3-${process.env.AWS_REGION}.amazonaws.com/${original}`,
+             },
+             OutputBucketName: process.env.OUTPUT_BUCKET_NAME,
+           };
             
             try {
               const data = await transcribeClient.send(
@@ -242,11 +242,10 @@ Resources:
       Timeout: 120
       Environment:
         Variables:
-          JOB_QUEUE: !Ref JobQueueArn
-          JOB_DEFINITION: !Ref AfterUploadJobDefinitionArn
-          JOB_NAME: !Sub "after_upload_new_${AWS::StackName}"
+          OUTPUT_BUCKET_NAME: !Ref S3BucketName
   AfterUploadLambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn: [ProcessingLambdaExecutionRole]
     Properties:
       Code:
         ZipFile: >
