@@ -42,7 +42,7 @@ export default function Timeline({
   }, [length]);
 
   const marks = useMemo(() =>
-    length * (maxZoom - 1) / (zoom * (1 - length / 8) + maxZoom / 8 * length - 1)
+    length * (maxZoom - 1) / (zoom * (1 - length / 8) + maxZoom  / 8 * length - 1)
     , [zoom, length]);
   const markSecInc = useMemo(() => length / marks, [length, marks]);
 
