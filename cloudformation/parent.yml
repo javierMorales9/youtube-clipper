@@ -57,7 +57,7 @@ Resources:
       Parameters:
         ECRUri: !Ref ECRUri
         VpcId: !GetAtt VpcStack.Outputs.VpcId
-        PrivateSubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
+        SubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
         PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
         AfterUploadTopicArn: !GetAtt SNSStack.Outputs.AfterUploadTopicArn
         AfterClipUpdateTopicArn: !GetAtt SNSStack.Outputs.AfterClipUpdateTopicArn

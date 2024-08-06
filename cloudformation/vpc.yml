@@ -3,31 +3,14 @@ Description: This stack deploys an isolated VPC that has no internet access
              at all. It has additional PrivateLink endpoints designed to allow
              launching an Amazon ECS orchestrated container using ECS and it's
              supporting AWS services.
-Parameters:
-  DeployingToEC2:
-    Type: String
-    Default: false
-    AllowedValues:
-      - true
-      - false
-    Description: Set value to "true" in order to create additional ECS endpoints
-                 to enable ECS on EC2 usage.
-
-Conditions:
-  CreateEcsOnEc2Resources: !Equals [ !Ref "DeployingToEC2", true ]
-
 Mappings:
   SubnetConfig:
     VPC:
       CIDR: '10.0.0.0/16'
-    PublicOne:
+    Public:
       CIDR: '10.0.0.0/18'
-    PublicTwo:
-      CIDR: '10.0.64.0/18'
-    PrivateOne:
+    Private:
       CIDR: '10.0.128.0/18'
-    PrivateTwo:
-      CIDR: '10.0.192.0/18'
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -36,7 +19,7 @@ Resources:
       EnableDnsHostnames: true
       CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
 
-  PublicSubnetOne:
+  PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone:
@@ -45,62 +28,75 @@ Resources:
          - Fn::GetAZs: {Ref: 'AWS::Region'}
       MapPublicIpOnLaunch: true
       VpcId: !Ref VPC
-      CidrBlock: !FindInMap ['SubnetConfig', 'PublicOne', 'CIDR']
-  PublicSubnetTwo:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-         Fn::Select:
-         - 1
-         - Fn::GetAZs: {Ref: 'AWS::Region'}
-      MapPublicIpOnLaunch: true
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap ['SubnetConfig', 'PublicTwo', 'CIDR']
-  PrivateSubnetOne:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-         Fn::Select:
-         - 0
-         - Fn::GetAZs: {Ref: 'AWS::Region'}
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap ['SubnetConfig', 'PrivateOne', 'CIDR']
-  PrivateSubnetTwo:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone:
-         Fn::Select:
-         - 1
-         - Fn::GetAZs: {Ref: 'AWS::Region'}
-      VpcId: !Ref VPC
-      CidrBlock: !FindInMap ['SubnetConfig', 'PrivateTwo', 'CIDR']
+      CidrBlock: !FindInMap ['SubnetConfig', 'Public', 'CIDR']
 
-  # The route table describes how resources in the VPC will be able to reach
-  # various internet endpoints or address ranges.
-  RouteTable:
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 0
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap ['SubnetConfig', 'Private', 'CIDR']
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  NatGatewayElasticIp:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayElasticIp.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+  PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
-  PublicSubnetOneRouteTableAssociation:
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref RouteTable
-      SubnetId: !Ref PublicSubnetOne
-  PublicSubnetTwoRouteTableAssociation:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  DefaultPrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref RouteTable
-      SubnetId: !Ref PublicSubnetTwo
-  PrivateSubnetOneRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref RouteTable
-      SubnetId: !Ref PrivateSubnetOne
-  PrivateSubnetTwoRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref RouteTable
-      SubnetId: !Ref PrivateSubnetTwo
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
 
   # PrivateLink security group. Note that we share one security group
   # for all of the PrivateLink endpoints. This is in order to more easily
@@ -122,150 +118,11 @@ Resources:
       SourceSecurityGroupId: !Ref SecurityGroup
       GroupId: !Ref SecurityGroup
 
-  # The PrivateLink endpoints that provide access to required AWS services
-  S3Endpoint:
-    Type: AWS::EC2::VPCEndpoint
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcEndpointType: Gateway
-      RouteTableIds:
-        - !Ref RouteTable
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
-      VpcId: !Ref VPC
-
-  SnsEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.sns
-      VpcId: !Ref VPC
-
-  CloudWatchLogsEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.logs
-      VpcId: !Ref VPC
-
-  SsmEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssm
-      VpcId: !Ref VPC
-
-  SsmMessagesEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.ssmmessages
-      VpcId: !Ref VPC
-
-  EcrApiEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecr.api
-      VpcId: !Ref VPC
-
-  EcrDkrEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecr.dkr
-      VpcId: !Ref VPC
-
-  SecretsManagerEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.secretsmanager
-      VpcId: !Ref VPC
-
-  # The following endpoints with the Condition: CreateEcsOnEc2Resources
-  # are not necessary for ECS on AWS Fargate, but are needed for
-  # ECS on EC2
-  EcsAgentEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Condition: CreateEcsOnEc2Resources
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecs-agent
-      VpcId: !Ref VPC
-
-  EcsTelemetryEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Condition: CreateEcsOnEc2Resources
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecs-telemetry
-      VpcId: !Ref VPC
-
-  EcsEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Condition: CreateEcsOnEc2Resources
-    Properties:
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      SubnetIds:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-      SecurityGroupIds:
-        - !Ref SecurityGroup
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecs
+      GroupName: "no-ingress-sg"
+      GroupDescription: "Security group with no ingress rule"
       VpcId: !Ref VPC
 
 Outputs:
@@ -274,10 +131,10 @@ Outputs:
     Value: !Ref VPC
   PublicSubnetIds:
     Description: Comma seperated list of public subnets with internet access
-    Value: !Sub '${PublicSubnetOne},${PublicSubnetTwo}'
+    Value: !Sub '${PublicSubnet}'
   PrivateSubnetIds:
     Description: Comma seperated list of private subnets with no internet access
-    Value: !Sub '${PrivateSubnetOne},${PrivateSubnetTwo}'
+    Value: !Sub '${PrivateSubnet}'
   PrivateLinkEndpointSecurityGroup:
     Description: The shared security group for all of the PrivateLink
                  endpoints. The ECS services and/or EC2 instances that host
