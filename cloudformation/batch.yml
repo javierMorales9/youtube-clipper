@@ -10,7 +10,7 @@ Parameters:
   VpcId:
     Type: String
     Description: The VPC that the service is running inside of
-  PrivateSubnetIds:
+  SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
     Description: List of private subnet ID's to put the tasks in
   PrivateLinkEndpointSecurityGroup:
@@ -37,18 +37,6 @@ Parameters:
     Description: The name of the S3 bucket to use for the source code
 
 Resources:
-  ComputeEnvironment:
-    Type: AWS::Batch::ComputeEnvironment
-    Properties:
-      Type: MANAGED
-      ComputeResources:
-        Type: FARGATE
-        MaxvCpus: 256
-        Subnets: !Ref PrivateSubnetIds
-        SecurityGroupIds:
-          - !Ref BatchSecurityGroup
-      State: ENABLED
-
   AfterUploadJobDefinition:
     Type: AWS::Batch::JobDefinition
     Properties:
@@ -68,6 +56,8 @@ Resources:
         Environment:
           - Name: "TOPIC_ARN"
             Value: !Ref AfterUploadTopicArn
+          #- Name: "HLS"
+          #  Value: "true"
       RetryStrategy:
         Attempts: 1
 
@@ -103,6 +93,18 @@ Resources:
         - ComputeEnvironment: !Ref ComputeEnvironment
           Order: 1
       Priority: 1
+      State: ENABLED
+
+  ComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      Type: MANAGED
+      ComputeResources:
+        Type: FARGATE
+        MaxvCpus: 256
+        Subnets: !Ref SubnetIds
+        SecurityGroupIds:
+          - !Ref BatchSecurityGroup
       State: ENABLED
 
   # Security group that limits network access
@@ -165,16 +167,6 @@ Resources:
                   - "logs:PutLogEvents"
                   - "sns:*"
                 Resource: "*"
-
-  # Open up the PrivateLink endpoints to accepting inbound traffic
-  # from the service deploying in AWS Fargate.
-  PrivateLinkIngressFromService:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      Description: Ingress from the batch container
-      GroupId: !Ref PrivateLinkEndpointSecurityGroup
-      IpProtocol: -1
-      SourceSecurityGroupId: !Ref BatchSecurityGroup
 
   # This log group stores the stdout logs from this service's containers
   LogGroup:

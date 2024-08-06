@@ -16,8 +16,9 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3003
-      - APP_URL=http://internal:3000
       - DIR=/public
+      #- HLS=true
+      - APP_URL=http://internal:3000
     volumes:
       - /home/javi/personal/bluesun/public/files:/public
     ports:

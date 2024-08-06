@@ -154,9 +154,10 @@ async function prod() {
 }
 
 async function ffmpeg(path) {
-  console.log('Execute ffmpeg');
+  console.log('Execute ffmpeg', process.env.HLS);
   try {
-    await exec(`ffmpeg \
+    if (process.env.HLS) {
+      await exec(`ffmpeg \
       -hide_banner -loglevel error \
       -i ${path}/original.mp4 \
       -filter_complex "[0:v]fps=30,split=3[720_in][480_in][240_in];[720_in]scale=-2:720[720_out];[480_in]scale=-2:480[480_out];[240_in]scale=-2:240[240_out]" \
@@ -169,22 +170,23 @@ async function ffmpeg(path) {
       -hls_playlist 1 -hls_master_name adaptive.m3u8 \
       -seg_duration 2 \
       adaptive.mpd`);
+
+      console.log('Move files to', path);
+      await exec(`mv adaptiv* chunk* media* init* ${path}/`);
+    }
+
+    const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
+    const duration = parseFloat(stdout);
+    console.log('Creating timeline. Duration: ', parseInt(stdout));
+    await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
+
+    console.log('Creating snapshot');
+    await exec(`ffmpeg -i ${path}/original.mp4 -vf "select=eq(n\\,0),scale=100:-2" -q:v 3 ${path}/snapshot.jpg -y`);
+
+    return duration;
   } catch (err) {
     console.log('Error', err);
   }
-
-  console.log('Move files to', path);
-  await exec(`mv adaptiv* chunk* media* init* ${path}/`);
-
-  const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
-  const duration = parseFloat(stdout);
-  console.log('Creating timeline. Duration: ', parseInt(stdout));
-  await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=100:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline%01d.png -y`);
-
-  console.log('Creating snapshot');
-  await exec(`ffmpeg -i ${path}/original.mp4 -vf "select=eq(n\\,0),scale=100:-2" -q:v 3 ${path}/snapshot.jpg -y`);
-
-  return duration;
 }
 
 async function getResolution(path) {
