@@ -1,6 +1,7 @@
 import { api } from "@/trpc/server";
 import Source from "./Source";
 import { Suggestion } from "@/server/api/clips/SuggestionSchema";
+import { env } from "@/env";
 
 export default async function Sources({
   params: { sourceId },
@@ -32,6 +33,7 @@ export default async function Sources({
         clips={clips}
         suggestions={suggestions}
         timelineUrl={source.timelineUrl}
+        hls={env.HLS}
       />
     </div>
   );

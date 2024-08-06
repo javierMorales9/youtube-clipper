@@ -5,7 +5,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';
 
-export default function SourceVideo({
+export default function HLSReproducer({
   src,
   startTime = 0,
   timer: {

@@ -3,12 +3,12 @@
 import Timeline from "@/app/sources/[sourceId]/timeline";
 import { useTimer } from "../useTimer";
 import RangeSelection from "./rangeSelector";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Back from "../../../../../public/images/Back.svg";
 import Play from "../../../../../public/images/MaterialSymbolsPlayArrow.svg";
 import Pause from "../../../../../public/images/Pause.svg";
-import SourceVideo from "./sourceVideo";
+import HLSReproducer from "./HLSReproducer";
 import { Source } from "@/server/db/schema";
 import { useRouter } from "next/navigation";
 import { toReadableTime } from "@/app/utils";
@@ -16,17 +16,20 @@ import Download from "../../../../../public/images/Download.svg";
 import Loading from "../../../../../public/images/Loading.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
 import { Suggestion } from "@/server/api/clips/SuggestionSchema";
+import MP4Reproducer from "./MP4Reproducer";
 
 export default function SourceEditor({
   source,
   clips,
   suggestions,
   timelineUrl,
+  hls,
 }: {
   source: Source,
   clips: Clip[],
   suggestions: Suggestion[],
   timelineUrl: string,
+  hls: boolean,
 }) {
   const timer = useTimer();
   const router = useRouter();
@@ -148,12 +151,21 @@ export default function SourceEditor({
           </div>
         </div>
         <div className="flex flex-col items-center w-full bg-white rounded p-2">
-          <SourceVideo
-            src={source.url!}
-            timer={timer}
-            startTime={0}
-            height={500}
-          />
+          {hls ? (
+            <HLSReproducer
+              src={source.url!}
+              timer={timer}
+              startTime={0}
+              height={500}
+            />
+          ) : (
+            <MP4Reproducer
+              src={source.url!}
+              timer={timer}
+              startTime={0}
+              height={500}
+            />
+          )}
 
           <div className="relative w-full flex flex-row justify-center py-4">
             <div className="flex flex-row gap-x-4">

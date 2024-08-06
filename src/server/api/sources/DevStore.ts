@@ -8,7 +8,7 @@ export const DevStore = {
     }
 
     return {
-      manifest: `${dir}/${key}/adaptive.m3u8`,
+      manifest: process.env.HLS ? `${dir}/${key}/adaptive.m3u8` : `${dir}/${key}/original.mp4`,
       timeline: `${dir}/${key}/timeline1.png`,
     };
   },
