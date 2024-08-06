@@ -169,6 +169,7 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:DeleteObject
+                - s3:PutObject
                 - transcribe:*
               Resource: '*'
         - PolicyName: allowBatch
@@ -205,33 +206,35 @@ Resources:
       Code:
         ZipFile: >
           const { StartTranscriptionJobCommand, TranscribeClient } = require("@aws-sdk/client-transcribe");
-
           async function handler(event, context, callback) {
-            const transcribeClient = new TranscribeClient();
+            console.log("Vuelta al sexo quimicamente puro");
+
             const sourceBucket = event.Records[0].s3.bucket.name;
             const original = decodeURI(event.Records[0].s3.object.key);
             const id = decodeURI(event.Records[0].s3.object.key).split('/')[0];
             
-            const params = {
+             const params = {
              TranscriptionJobName: `${id}-transcribe`,
              LanguageCode: "es-ES", // For example, 'en-US'
              MediaFormat: "mp4", // For example, 'wav'
              Media: {
                MediaFileUri: `https://${sourceBucket}.s3-${process.env.AWS_REGION}.amazonaws.com/${original}`,
              },
-             OutputBucketName: process.env.OUTPUT_BUCKET_NAME,
+             OutputBucketName: sourceBucket,
+             OutputKey: `${id}/transcription.srt`,
            };
             
             try {
+              const transcribeClient = new TranscribeClient();
               const data = await transcribeClient.send(
                 new StartTranscriptionJobCommand(params)
               );
+              
               console.log("Success - put", data);
               return data; // For unit tests.
             } catch (err) {
-              console.log("Error", err);
+              console.log("Error::", err);
             }
-            
            }
 
            module.exports.handler = handler;
@@ -250,8 +253,11 @@ Resources:
       Code:
         ZipFile: >
           const { BatchClient, SubmitJobCommand } = require("@aws-sdk/client-batch");
-
           async function handler(event, context, callback) {
+            
+            const inputBucket = event.Records[0].s3.bucket.name;
+            const sourceId = decodeURI(event.Records[0].s3.object.key).split('/')[0];
+            
             const client = new BatchClient();
             const command = new SubmitJobCommand({
               jobDefinition: process.env.JOB_DEFINITION,
@@ -261,15 +267,15 @@ Resources:
                 environment: [
                   {
                     name: 'INPUT_BUCKET',
-                    value: event.Records[0].s3.bucket.name
+                    value: inputBucket,
                   },
                   {
                     name: 'INPUT_KEY',
-                    value: decodeURI(event.Records[0].s3.object.key)
+                    value: `${sourceId}/original.mp4`,
                   },
                   {
                     name: 'SOURCE_ID',
-                    value: decodeURI(event.Records[0].s3.object.key).split('/')[0]
+                    value: sourceId,
                   }
                 ]
               }
