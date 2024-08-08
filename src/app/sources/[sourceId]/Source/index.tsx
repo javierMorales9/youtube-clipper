@@ -1,6 +1,6 @@
 'use client';
 
-import Timeline from "@/app/sources/[sourceId]/timeline";
+import Timeline from "@/app/sources/[sourceId]/Timeline";
 import { useTimer } from "../useTimer";
 import RangeSelection from "./RangeSelector";
 import { useState } from "react";

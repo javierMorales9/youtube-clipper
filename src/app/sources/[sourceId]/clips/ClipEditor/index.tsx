@@ -1,5 +1,5 @@
 'use client';
-import Timeline from "../../timeline";
+import Timeline from "../../Timeline";
 import Video from "./video";
 import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
