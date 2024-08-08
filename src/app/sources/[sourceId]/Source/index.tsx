@@ -203,14 +203,6 @@ export default function SourceEditor({
           >
             {(visibleTimelineWidth: number, timelineSeconds: number, initialPosition: number, initialSeconds: number) => (
               <>
-                <ClipsAndSuggestions
-                  visibleTimelineWidth={visibleTimelineWidth}
-                  timelineSeconds={timelineSeconds}
-                  initialPosition={initialPosition}
-                  initialSeconds={initialSeconds}
-                  clips={clips}
-                  suggestions={suggestions}
-                />
                 <RangeSelection
                   visibleTimelineWidth={visibleTimelineWidth}
                   timelineSeconds={timelineSeconds}
@@ -220,6 +212,8 @@ export default function SourceEditor({
                   setRange={setRange}
                   rangeCreated={rangeCreated}
                   setRangeCreated={setRangeCreated}
+                  clips={clips}
+                  suggestions={suggestions}
                 />
               </>
             )}
