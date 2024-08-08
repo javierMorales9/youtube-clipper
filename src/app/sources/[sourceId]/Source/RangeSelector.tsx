@@ -64,6 +64,20 @@ export default function RangeSelection({
 
     const endSec = initialSeconds + percent(e) * timelineSeconds;
 
+    for(const clip of clips) {
+      if (endSec > clip.range.start && endSec < clip.range.end) {
+        handleMouseUp(e);
+        return;
+      }
+    }
+
+    for(const suggestion of suggestions) {
+      if (endSec > suggestion.range.start && endSec < suggestion.range.end) {
+        handleMouseUp(e);
+        return;
+      }
+    }
+
     if (endSec < range[1]) {
       setRange([endSec, range[1]]);
 
@@ -80,7 +94,6 @@ export default function RangeSelection({
 
   function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    e.stopPropagation();
 
     if (rangeCreated) return;
 
