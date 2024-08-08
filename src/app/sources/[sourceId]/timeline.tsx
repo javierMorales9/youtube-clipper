@@ -190,9 +190,12 @@ export default function Timeline({
             </span>
             {visibleTimelineWidth && (
               <div className="flex flex-col justify-start items-start">
-                <div className="flex flex-row items-start w-full">
+                <div className="flex flex-row items-start w-full z-[-1]">
                   {sections.map((section, i) => (
-                    <div style={{ width: section.width + 'px' }}>
+                    <div
+                      key={i}
+                      style={{ width: section.width + 'px' }}
+                    >
                       {
                         section.time ? (
                           <>
@@ -219,9 +222,11 @@ export default function Timeline({
                     initialPosition / timelineWidth * length,
                   )}
                   {sections.map((section, i) => (
-                    <div style={{ width: section.width + 'px' }}>
+                    <div
+                      key={i}
+                      style={{ width: section.width + 'px', zIndex: -1 }}
+                    >
                       <div
-                        key={i}
                         className=""
                         style={{
                           width: (visibleTimelineWidth / NUMBER_OF_MARKS) + 'px',

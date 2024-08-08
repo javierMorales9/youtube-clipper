@@ -8,7 +8,6 @@ export default function ClipsAndSuggestions({
   visibleTimelineWidth,
   timelineSeconds,
   initialSeconds,
-  initialPosition,
   clips,
   suggestions,
 }: {
@@ -24,18 +23,19 @@ export default function ClipsAndSuggestions({
     name: clip.name,
     left: visibleTimelineWidth * (clip.range.start - initialSeconds) / timelineSeconds,
     width: visibleTimelineWidth * (clip.range.end - clip.range.start) / timelineSeconds,
-  })), [clips]);
+  })), [clips, visibleTimelineWidth, timelineSeconds, initialSeconds]);
 
   const suggestionPanels = useMemo(() => suggestions.map((s, index) => ({
     name: s.name,
     left: visibleTimelineWidth * (s.range.start - initialSeconds) / timelineSeconds,
     width: visibleTimelineWidth * (s.range.end - s.range.start) / timelineSeconds,
-  })), [suggestions]);
+  })), [suggestions, visibleTimelineWidth, timelineSeconds, initialSeconds]);
 
   return (
     <div className="absolute w-full h-full bottom-0">
       {clipPanels.map((clip, index) => (
         <div
+          key={index}
           className="absolute h-full z-10"
           style={{
             left: clip.left,
@@ -56,6 +56,7 @@ export default function ClipsAndSuggestions({
       ))}
       {suggestionPanels.map((suggestion, index) => (
         <div
+          key={index}
           className="absolute h-full z-10"
           style={{
             left: suggestion.left,
