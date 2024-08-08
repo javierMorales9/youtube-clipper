@@ -3,6 +3,8 @@ import { toReadableTime } from '@/app/utils';
 import { Source } from '@/server/db/schema';
 import { useState, MouseEvent, WheelEvent, useRef, useEffect, useMemo } from 'react';
 
+const NUMBER_OF_MARKS = 6;
+
 export default function Timeline({
   length,
   imageUrl,
@@ -38,15 +40,15 @@ export default function Timeline({
 
   const maxZoom = useMemo(() => {
     const gap = 1;
-    return -(gap + 1 - length / 8) / gap;
+    return -(gap + 1 - length / NUMBER_OF_MARKS) / gap;
   }, [length]);
 
   const marks = useMemo(() =>
-    length * (maxZoom - 1) / (zoom * (1 - length / 8) + maxZoom  / 8 * length - 1)
+    length * (maxZoom - 1) / (zoom * (1 - length / NUMBER_OF_MARKS) + maxZoom / NUMBER_OF_MARKS * length - 1)
     , [zoom, length]);
   const markSecInc = useMemo(() => length / marks, [length, marks]);
 
-  const timelineWidth = useMemo(() => visibleTimelineWidth * marks / 8, [visibleTimelineWidth, zoom]);
+  const timelineWidth = useMemo(() => visibleTimelineWidth * marks / NUMBER_OF_MARKS, [visibleTimelineWidth, zoom]);
   const reference = useMemo(() => {
     return timelineWidth * currentSeconds / length - initialPosition;
   }, [timelineWidth, currentSeconds, length, initialPosition]);
@@ -55,7 +57,7 @@ export default function Timeline({
     const image = imageRef.current;
     if (!image) return 0;
 
-    const calculated = visibleTimelineWidth / 8 * source.height! / source.width!;
+    const calculated = visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!;
     const extracted = image.height / sourceLength;
 
     //Formula caculated empirically
@@ -106,7 +108,7 @@ export default function Timeline({
   }
 
   const sections = useMemo(() => {
-    const markWidth = visibleTimelineWidth / 8;
+    const markWidth = visibleTimelineWidth / NUMBER_OF_MARKS;
     const leftMark = initialPosition / timelineWidth * marks;
 
     const offset = leftMark % 1;
@@ -119,6 +121,7 @@ export default function Timeline({
       first?: boolean,
       last?: boolean,
     }[] = [];
+
     if (!complete) {
       result.push({
         width: markWidth * (1 - offset),
@@ -133,7 +136,7 @@ export default function Timeline({
         first: true,
       });
     }
-    for (let i = 1; i < 8; i++) {
+    for (let i = 1; i < NUMBER_OF_MARKS; i++) {
       result.push({
         width: markWidth,
         time: toReadableTime((i + Math.floor(leftMark)) * markSecInc),
@@ -141,11 +144,11 @@ export default function Timeline({
       });
     }
 
-    if (leftMark + 8 < marks)
+    if (leftMark + NUMBER_OF_MARKS < marks)
       result.push({
         width: markWidth * (offset),
-        time: toReadableTime((Math.floor(leftMark) + 8) * markSecInc),
-        second: Math.floor((Math.floor(leftMark) + 8) * markSecInc),
+        time: toReadableTime((Math.floor(leftMark) + NUMBER_OF_MARKS) * markSecInc),
+        second: Math.floor((Math.floor(leftMark) + NUMBER_OF_MARKS) * markSecInc),
         last: true,
       });
 
@@ -155,7 +158,7 @@ export default function Timeline({
 
   return (
     <>
-      {length && Math.floor(length / 7) > 1 && (
+      {length && Math.floor(length / NUMBER_OF_MARKS - 1) > 1 && (
         <div className="w-full flex flex-col items-start">
           <input
             type="range"
@@ -186,22 +189,12 @@ export default function Timeline({
               <div className="w-[2px] h-[130px] bg-red-500"></div>
             </span>
             {visibleTimelineWidth && (
-              <>
-                {children && children(
-                  visibleTimelineWidth,
-                  visibleTimelineWidth / timelineWidth * length,
-                  initialPosition,
-                  initialPosition / timelineWidth * length,
-                )}
-                <div className="flex flex-row justify-start z-[-1]">
+              <div className="flex flex-col justify-start items-start">
+                <div className="flex flex-row items-start w-full">
                   {sections.map((section, i) => (
-                    <div
-                      key={i}
-                      className="flex flex-col items-start gap-y-2"
-                      style={{ width: section.width + 'px' }}
-                    >
-                      <div className="w-full">
-                        {section.time ? (
+                    <div style={{ width: section.width + 'px' }}>
+                      {
+                        section.time ? (
                           <>
                             <span className="text-[7px]">{section.time}</span>
                             <div className="w-[2px] h-[10px] bg-gray-300"></div>
@@ -213,13 +206,25 @@ export default function Timeline({
                             <div className="w-[2px] h-[10px]"></div>
                             <div className="w-full h-[2px] bg-gray-300"></div>
                           </>
-                        )}
-                      </div>
+                        )
+                      }
+                    </div>
+                  ))}
+                </div>
+                <div className="relative flex flex-row items-start">
+                  {children && children(
+                    visibleTimelineWidth,
+                    visibleTimelineWidth / timelineWidth * length,
+                    initialPosition,
+                    initialPosition / timelineWidth * length,
+                  )}
+                  {sections.map((section, i) => (
+                    <div style={{ width: section.width + 'px' }}>
                       <div
                         key={i}
                         className=""
                         style={{
-                          width: (visibleTimelineWidth / 8) + 'px',
+                          width: (visibleTimelineWidth / NUMBER_OF_MARKS) + 'px',
                           height: imageHeight + 'px',
                           overflowY: 'hidden',
                           overflowX: 'clip',
@@ -231,10 +236,10 @@ export default function Timeline({
                           alt="Timeline"
                           style={{
                             position: 'relative',
-                            width: visibleTimelineWidth / 8 + 'px',
+                            width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
                             top: `-${imageHeight * (Math.floor(offset) + section.second)}px`,
                             left: section.first
-                              ? `-${visibleTimelineWidth / 8 - section.width}px`
+                              ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
                               : section.last
                                 ? 0
                                 : undefined,
@@ -244,11 +249,11 @@ export default function Timeline({
                     </div>
                   ))}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
-      </div >
+      </div>
     </>
   );
 }
