@@ -20,14 +20,22 @@ export default async function Sources({
       name: "Suggestion test",
       description: "La descripcion pertinente asociada a la sugerencia de recorte",
       range: {
-        start: 1000,
-        end: 1100,
+        start: 24,
+        end: 42,
+      },
+    },
+    {
+      name: "This clip is the best",
+      description: "La descripcion pertinente asociada a la sugerencia de recorte",
+      range: {
+        start: 58,
+        end: 112,
       },
     },
   ];
 
   return (
-    <div className="px-12 py-2"> 
+    <div className="px-6"> 
       <Source
         source={source}
         clips={clips}

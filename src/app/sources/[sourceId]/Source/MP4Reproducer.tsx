@@ -52,8 +52,7 @@ export default function MP4Reproducer({
     const video = videoRef.current;
     if (!video) return;
 
-    const a = 1;
-    if (Math.abs(currentSeconds - video.currentTime!) < a)
+    if (Math.abs(currentSeconds - video.currentTime!) < 1)
       return;
 
     video.currentTime = startTime + currentSeconds;
@@ -81,7 +80,7 @@ export default function MP4Reproducer({
   }
 
   return (
-    <div style={{ width: `${videoWidth! * height! / videoHeight!}px` }}>
+    <div style={{ width: `${width || (videoWidth! * height! / videoHeight!)}px` }}>
       <div ref={containerRef} />
     </div>
   );

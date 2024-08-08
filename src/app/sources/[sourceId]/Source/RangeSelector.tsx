@@ -61,8 +61,17 @@ export default function RangeSelection({
 
   function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
+    e.stopPropagation();
 
     if (rangeCreated) return;
+
+    if(range[0] === range[1]) {
+      setRange([0, 0]);
+      setPxRange([0, 0]);
+      setCreatingRage(false);
+      setRangeCreated(false);
+      return;
+    }
 
     setCreatingRage(false);
     setRangeCreated(true);

@@ -65,6 +65,10 @@ export default function Timeline({
   }, [imageRef.current, visibleTimelineWidth, source]);
 
   useEffect(() => {
+    //Update the timeline scroll, basically, how much space we need to move the timeline
+    //to the left so that the current time mark is in the middle of the visible timeline
+    //Take into account that the timeline width expands as we zoom in and that the visible
+    //timeline width is fixed and doesn't depend on the zoom level.
     const timelineScroll = (currentSeconds / length) * timelineWidth - visibleTimelineWidth / 2;
 
     const timeline = timeLineRef.current;
@@ -74,6 +78,7 @@ export default function Timeline({
   }, [timelineWidth]);
 
   function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
+    console.log("timeline click");
     const target = e.currentTarget as HTMLDivElement;
     const bcr = target.getBoundingClientRect();
     const clientX = (e.clientX - bcr.left);
@@ -214,7 +219,7 @@ export default function Timeline({
                         key={i}
                         className=""
                         style={{
-                          width: visibleTimelineWidth / 8 + 'px',
+                          width: (visibleTimelineWidth / 8) + 'px',
                           height: imageHeight + 'px',
                           overflowY: 'hidden',
                           overflowX: 'clip',

@@ -2,7 +2,7 @@
 
 import Timeline from "@/app/sources/[sourceId]/timeline";
 import { useTimer } from "../useTimer";
-import RangeSelection from "./rangeSelector";
+import RangeSelection from "./RangeSelector";
 import { useState } from "react";
 import Link from "next/link";
 import Back from "../../../../../public/images/Back.svg";
@@ -17,6 +17,7 @@ import Loading from "../../../../../public/images/Loading.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
 import { Suggestion } from "@/server/api/clips/SuggestionSchema";
 import MP4Reproducer from "./MP4Reproducer";
+import ClipsAndSuggestions from "./ClipsAndSuggestions";
 
 export default function SourceEditor({
   source,
@@ -48,9 +49,9 @@ export default function SourceEditor({
   }
 
   return (
-    <div>
+    <div className="h-screen py-2 flex flex-col justify-between">
       <div className="flex flex-row justify-between gap-x-4">
-        <div className="flex flex-col gap-y-2 w-full">
+        <div className="flex flex-col gap-y-2 w-full h-full">
           <Link
             href="/sources"
             className="flex flex-row items-center gap-x-2 text-gray-600"
@@ -62,7 +63,7 @@ export default function SourceEditor({
               Go back
             </span>
           </Link>
-          <div className="p-4 border bg-gray-50 rounded flex flex-col gap-y-3">
+          <div className="h-full p-4 border bg-gray-50 rounded flex flex-col gap-y-3">
             <div className="flex flex-row gap-x-4">
               <button
                 className={`text-xl font-semibold ${pannel === 'clips' ? "text-blue-500" : "text-gray-400"}`}
@@ -120,7 +121,7 @@ export default function SourceEditor({
               </div>
             )}
             {pannel === 'suggestions' && (
-              <div className="w-full flex flex-row justify-between flex-wrap">
+              <div className="w-full flex flex-row justify-between flex-wrap gap-y-5">
                 {suggestions.map((suggestion, i) => (
                   <button
                     key={i}
@@ -130,7 +131,7 @@ export default function SourceEditor({
                     }}
                     className={`
                   flex flex-row justify-between items-center cursor-pointer
-                  p-2 w-full rounded-lg bg-gray-100
+                  p-2 w-full rounded bg-gray-100 border border-gray-300
                `}
                   >
                     <div className="flex flex-col gap-y-1">
@@ -163,6 +164,7 @@ export default function SourceEditor({
               src={source.url!}
               timer={timer}
               startTime={0}
+              width={1000}
               height={500}
             />
           )}
@@ -201,11 +203,19 @@ export default function SourceEditor({
           >
             {(visibleTimelineWidth: number, timelineSeconds: number, initialPosition: number, initialSeconds: number) => (
               <>
-                <RangeSelection
+                <ClipsAndSuggestions
                   visibleTimelineWidth={visibleTimelineWidth}
+                  timelineSeconds={timelineSeconds}
                   initialPosition={initialPosition}
                   initialSeconds={initialSeconds}
+                  clips={clips}
+                  suggestions={suggestions}
+                />
+                <RangeSelection
+                  visibleTimelineWidth={visibleTimelineWidth}
                   timelineSeconds={timelineSeconds}
+                  initialPosition={initialPosition}
+                  initialSeconds={initialSeconds}
                   range={range}
                   setRange={setRange}
                   rangeCreated={rangeCreated}
