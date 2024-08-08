@@ -18,11 +18,150 @@ import { Clip } from "@/server/api/clips/ClipSchema";
 import { Suggestion } from "@/server/api/clips/SuggestionSchema";
 import MP4Reproducer from "./MP4Reproducer";
 
-function useClipAndSuggestions(inputClips: Clip[], inputSuggestions: Suggestion[]) {
+function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
+  const [selection, setSelection] = useState<
+    { range: [number, number] | null, created: boolean }
+  >({ range: null, created: false });
+
   const [clips, setClips] = useState<Clip[]>(inputClips);
   const [suggestions, setSuggestions] = useState<Suggestion[]>(inputSuggestions);
 
-  return { clips, suggestions };
+  const [selectedPanel, setSelectedPanel] = useState<{
+    type: "clip" | "suggestion" | "selection" | null,
+    id: string | null
+    handleSide?: "left" | "right",
+  }>(
+    { type: null, id: null, handleSide: "left" }
+  );
+
+  function startSelection(second: number) {
+    if (selection.range !== null || selection.created || selectedPanel.type !== null) return;
+
+    setSelection({ range: [second, second], created: false });
+    setSelectedPanel({ type: "selection", id: null });
+  }
+
+  function finishSelection() {
+    if (selection.created || !selection.range) return;
+
+    if (selection.range[0] === selection.range[1]) {
+      deleteSelection();
+      return;
+    }
+
+    setSelection({ ...selection, created: true });
+  }
+
+  function deleteSelection() {
+    setSelection({ range: null, created: false });
+  }
+
+  function changePanelDuration(second: number) {
+    if (selectedPanel.type === "selection") {
+      if (!selection.range) return;
+
+      if (detectCollision(second)) {
+        finishSelection();
+        return;
+      }
+
+      if (selectedPanel.handleSide) {
+        if (selectedPanel.handleSide === "left") {
+          setSelection({ range: [second, selection.range[1]], created: false });
+        }
+        else {
+          setSelection({ range: [selection.range[0], second], created: false });
+        }
+      }
+      else {
+        if (second < selection.range[1]) {
+          setSelection({ range: [second, selection.range[1]], created: false });
+        }
+        else {
+          setSelection({ range: [selection.range[0], second], created: false });
+        }
+      }
+    }
+
+    else if (selectedPanel.type === "clip") {
+      if (selectedPanel.id == null) return;
+
+      const clipIndex = clips.findIndex((clip) => clip.clipId === selectedPanel.id);
+      if (clipIndex === -1) return;
+
+      const newClips = [...clips];
+      const clip = newClips[clipIndex]!;
+
+      if (selectedPanel.handleSide === "left") {
+        clip.range.start = second;
+      } else {
+        clip.range.end = second;
+      }
+
+      setClips(newClips);
+    } else if (selectedPanel.type === "suggestion") {
+      if (selectedPanel.id == null) return;
+
+      const suggestionIndex = suggestions.findIndex((suggestion) => suggestion.id === selectedPanel.id);
+      if (suggestionIndex === -1) return;
+
+      const newSuggestions = [...suggestions];
+      const suggestion = newSuggestions[suggestionIndex]!;
+
+      if (selectedPanel.handleSide === "left") {
+        suggestion.range.start = second;
+      } else {
+        suggestion.range.end = second;
+      }
+
+      setSuggestions(newSuggestions);
+    }
+  }
+
+  function detectCollision(endSec: number) {
+    if (endSec <= 0) {
+      return true;
+    }
+
+    if (selection.range && endSec < selection.range[0] && endSec > selection.range[1]) {
+      return true;
+    }
+
+    for (const clip of clips) {
+      if (endSec > clip.range.start && endSec < clip.range.end) {
+        return true;
+      }
+    }
+
+    for (const suggestion of suggestions) {
+      if (endSec > suggestion.range.start && endSec < suggestion.range.end) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function finishPanelDurationChange() {
+    if (selectedPanel.type === "selection") {
+      finishSelection();
+    }
+
+    setSelectedPanel({ type: null, id: null });
+  }
+
+  return {
+    clips,
+    suggestions,
+    selection,
+    setSelection,
+    selectedPanel,
+    setSelectedPanel,
+    startSelection,
+    deleteSelection,
+    changePanelDuration,
+    finishPanelDurationChange,
+  };
 }
 
 export default function SourceEditor({
@@ -40,16 +179,24 @@ export default function SourceEditor({
 }) {
   const timer = useTimer();
   const router = useRouter();
+  const [view, setView] = useState<"clips" | "suggestions">("clips");
 
-  const { clips, suggestions } = useClipAndSuggestions(inputClips, inputSuggestions);
-
-  const [pannel, setPannel] = useState<"clips" | "suggestions">("clips");
-
-  const [range, setRange] = useState<[number, number]>([0, 0]);
-  const [rangeCreated, setRangeCreated] = useState<boolean>(false);
+  const {
+    clips,
+    suggestions,
+    selection,
+    selectedPanel,
+    setSelectedPanel,
+    startSelection,
+    deleteSelection,
+    changePanelDuration,
+    finishPanelDurationChange,
+  } = usePanels(inputClips, inputSuggestions);
 
   const toClip = () => {
-    router.push(`/sources/${source.id}/clips/new?start=${range[0]}&end=${range[1]}`);
+    if (!selection.range) return;
+
+    router.push(`/sources/${source.id}/clips/new?start=${selection.range[0]}&end=${selection.range[1]}`);
   }
 
   const downloadClip = async (clip: any) => {
@@ -74,28 +221,28 @@ export default function SourceEditor({
           <div className="h-full p-4 border bg-gray-50 rounded flex flex-col gap-y-3">
             <div className="flex flex-row gap-x-4">
               <button
-                className={`text-xl font-semibold ${pannel === 'clips' ? "text-blue-500" : "text-gray-400"}`}
-                onClick={() => setPannel("clips")}
+                className={`text-xl font-semibold ${view === 'clips' ? "text-blue-500" : "text-gray-400"}`}
+                onClick={() => setView("clips")}
               >
                 Clips
               </button>
               <button
-                className={`text-xl font-semibold ${pannel === 'suggestions' ? "text-blue-500" : "text-gray-400"}`}
-                onClick={() => setPannel("suggestions")}
+                className={`text-xl font-semibold ${view === 'suggestions' ? "text-blue-500" : "text-gray-400"}`}
+                onClick={() => setView("suggestions")}
               >
                 Suggestions
               </button>
             </div>
-            {pannel === 'clips' && (
+            {view === 'clips' && (
               <div className="w-full flex flex-row justify-between flex-wrap">
                 {clips.map((clip) => (
                   <button
                     key={clip.clipId}
                     onClick={() => router.push(`/sources/${source.id}/clips/${clip.clipId}`)}
                     className={`
-                  flex flex-row justify-between items-center cursor-pointer
-                  p-2 w-full rounded-lg bg-gray-100
-               `}
+                      flex flex-row justify-between items-center cursor-pointer
+                      p-2 w-full rounded-lg bg-gray-100
+                   `}
                     disabled={clip.processing}
                   >
                     <div className="flex flex-col">
@@ -128,18 +275,15 @@ export default function SourceEditor({
                 ))}
               </div>
             )}
-            {pannel === 'suggestions' && (
+            {view === 'suggestions' && (
               <div className="w-full flex flex-row justify-between flex-wrap gap-y-5">
                 {suggestions.map((suggestion, i) => (
                   <button
                     key={i}
-                    onClick={() => {
-                      setRange([suggestion.range.start, suggestion.range.end]);
-                    }}
                     className={`
-                  flex flex-row justify-between items-center cursor-pointer
-                  p-2 w-full rounded bg-gray-100 border border-gray-300
-               `}
+                      flex flex-row justify-between items-center cursor-pointer
+                      p-2 w-full rounded bg-gray-100 border border-gray-300
+                   `}
                   >
                     <div className="flex flex-col gap-y-1">
                       <span className="flex justify-start text-start font-semibold">
@@ -190,9 +334,9 @@ export default function SourceEditor({
               onClick={toClip}
               className={`
                 absolute right-0 text-white px-4 py-2 rounded-lg
-                ${rangeCreated ? 'bg-blue-500' : 'bg-blue-200'}
+                ${false ? 'bg-blue-500' : 'bg-blue-200'}
               `}
-              disabled={!rangeCreated}
+              disabled={true}
             >
               Create Clip
             </button>
@@ -208,19 +352,27 @@ export default function SourceEditor({
             currentSeconds={timer.currentSeconds}
             setCurrentTime={(time: number) => timer.seek(time)}
           >
-            {(visibleTimelineWidth: number, timelineSeconds: number, initialPosition: number, initialSeconds: number) => (
+            {(
+              visibleTimelineWidth: number,
+              timelineSeconds: number,
+              initialPosition: number,
+              initialSeconds: number
+            ) => (
               <>
                 <RangeSelection
+                  suggestions={suggestions}
+                  selectedPanel={selectedPanel}
+                  selection={selection}
+                  startSelection={startSelection}
+                  deleteSelection={deleteSelection}
+                  clips={clips}
+                  setSelectedPanel={setSelectedPanel}
+                  changePanelDuration={changePanelDuration}
+                  finishPanelDurationChange={finishPanelDurationChange}
                   visibleTimelineWidth={visibleTimelineWidth}
                   timelineSeconds={timelineSeconds}
                   initialPosition={initialPosition}
                   initialSeconds={initialSeconds}
-                  range={range}
-                  setRange={setRange}
-                  rangeCreated={rangeCreated}
-                  setRangeCreated={setRangeCreated}
-                  clips={clips}
-                  suggestions={suggestions}
                 />
               </>
             )}
