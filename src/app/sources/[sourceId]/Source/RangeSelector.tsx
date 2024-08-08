@@ -28,7 +28,6 @@ export default function RangeSelection({
   clips: Clip[],
   suggestions: Suggestion[],
 }) {
-
   const clipPanels = useMemo(() => clips.map((clip, index) => ({
     name: clip.name,
     left: visibleTimelineWidth * (clip.range.start - initialSeconds) / timelineSeconds,
@@ -41,39 +40,40 @@ export default function RangeSelection({
     width: visibleTimelineWidth * (s.range.end - s.range.start) / timelineSeconds,
   })), [suggestions, visibleTimelineWidth, timelineSeconds, initialSeconds]);
 
+  const [selectedElement, setSelectedElement] = useState<{ type: "clip" | "suggestion", id: string | null }>(
+    { type: "clip", id: null }
+  );
+
   const [creatingRange, setCreatingRage] = useState(false);
   const [pxRange, setPxRange] = useState<[number, number]>([0, 0]);
 
-  function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
-    e.preventDefault();
-
+  function handleMouseDown(percent: number) {
     if (rangeCreated) return;
 
-    const startSec = initialSeconds + percent(e) * timelineSeconds;
+    const startSec = initialSeconds + percent * timelineSeconds;
     setRange([startSec, startSec]);
 
-    const pxStart = initialPosition + visibleTimelineWidth * percent(e);
+    const pxStart = initialPosition + visibleTimelineWidth * percent;
     setPxRange([pxStart, pxStart]);
 
     setCreatingRage(true);
   }
 
-  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    e.preventDefault();
+  function handleMouseMove(percent: number) {
     if (rangeCreated || !creatingRange) return;
 
-    const endSec = initialSeconds + percent(e) * timelineSeconds;
+    const endSec = initialSeconds + percent * timelineSeconds;
 
-    for(const clip of clips) {
+    for (const clip of clips) {
       if (endSec > clip.range.start && endSec < clip.range.end) {
-        handleMouseUp(e);
+        handleMouseUp();
         return;
       }
     }
 
-    for(const suggestion of suggestions) {
+    for (const suggestion of suggestions) {
       if (endSec > suggestion.range.start && endSec < suggestion.range.end) {
-        handleMouseUp(e);
+        handleMouseUp();
         return;
       }
     }
@@ -81,20 +81,18 @@ export default function RangeSelection({
     if (endSec < range[1]) {
       setRange([endSec, range[1]]);
 
-      const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
+      const pxEnd = initialPosition + visibleTimelineWidth * percent;
       setPxRange([pxEnd, pxRange[1]]);
     }
     else {
       setRange([range[0], endSec]);
 
-      const pxEnd = initialPosition + visibleTimelineWidth * percent(e);
+      const pxEnd = initialPosition + visibleTimelineWidth * percent;
       setPxRange([pxRange[0], pxEnd]);
     }
   }
 
-  function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
-    e.preventDefault();
-
+  function handleMouseUp() {
     if (rangeCreated) return;
 
     if (range[0] === range[1]) {
@@ -135,50 +133,83 @@ export default function RangeSelection({
   return (
     <div
       className="absolute w-full h-full bottom-0"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        handleMouseDown(percent(e));
+      }}
+      onMouseMove={(e) => {
+        e.preventDefault();
+        handleMouseMove(percent(e));
+      }}
+      onMouseUp={(e) => {
+        e.preventDefault();
+        handleMouseUp();
+      }}
     >
-      {clipPanels.map((clip, index) => (
-        <div
-          key={index}
-          className="absolute h-full z-10"
-          style={{
-            left: clip.left,
-            width: clip.width,
-          }}
-        >
+      <div
+        className="absolute w-full h-full"
+        onMouseMove={(e) => {
+          if (selectedElement.id == null) return;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          console.log("moving");
+        }}
+        onMouseUp={(e) => {
+          if (selectedElement.id == null) return;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          setSelectedElement({ type: selectedElement.type, id: null });
+          console.log("releasing");
+        }}
+      >
+        {clipPanels.map((clip, index) => (
           <div
-            className="absolute top-0 w-full h-full"
-            style={{ backgroundColor: 'rgba(185, 232, 151, 0.7)' }}
+            key={index}
+            className="absolute h-full z-10"
+            style={{
+              left: clip.left,
+              width: clip.width,
+            }}
           >
-            {clip.width > 100 && (
-              <span>
-                {clip.name}
-              </span>
-            )}
+            <div
+              className="absolute top-0 w-full h-full"
+              style={{ backgroundColor: 'rgba(185, 232, 151, 0.7)' }}
+            >
+              {clip.width > 100 && (
+                <span>
+                  {clip.name}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
-      {suggestionPanels.map((suggestion, index) => (
-        <div
-          key={index}
-          className="absolute h-full z-10"
-          style={{
-            left: suggestion.left,
-            width: suggestion.width,
-          }}
-        >
+        ))}
+        {suggestionPanels.map((suggestion, index) => (
           <div
-            className="absolute top-0 w-full h-full overflow-hidden whitespace-nowrap text-ellipsis"
-            style={{ backgroundColor: 'rgba(151, 202, 232, 0.7)' }}
+            key={index}
+            className="absolute h-full z-10 overflow-hidden whitespace-nowrap text-ellipsis"
+            style={{
+              left: suggestion.left,
+              width: suggestion.width,
+              backgroundColor: 'rgba(151, 202, 232, 0.7)',
+            }}
           >
+            <div
+              className="w-3 h-1/2 rounded bg-black cursor-pointer"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setSelectedElement({ type: "suggestion", id: suggestions[index]!.id });
+              }}
+            ></div>
             <span className="">
               {suggestion.name}
             </span>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
       <div
         className="absolute h-full z-10"
         style={{

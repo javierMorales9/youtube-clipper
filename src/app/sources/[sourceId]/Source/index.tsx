@@ -17,12 +17,18 @@ import Loading from "../../../../../public/images/Loading.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
 import { Suggestion } from "@/server/api/clips/SuggestionSchema";
 import MP4Reproducer from "./MP4Reproducer";
-import ClipsAndSuggestions from "./ClipsAndSuggestions";
+
+function useClipAndSuggestions(inputClips: Clip[], inputSuggestions: Suggestion[]) {
+  const [clips, setClips] = useState<Clip[]>(inputClips);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>(inputSuggestions);
+
+  return { clips, suggestions };
+}
 
 export default function SourceEditor({
   source,
-  clips,
-  suggestions,
+  clips: inputClips,
+  suggestions: inputSuggestions,
   timelineUrl,
   hls,
 }: {
@@ -34,6 +40,8 @@ export default function SourceEditor({
 }) {
   const timer = useTimer();
   const router = useRouter();
+
+  const { clips, suggestions } = useClipAndSuggestions(inputClips, inputSuggestions);
 
   const [pannel, setPannel] = useState<"clips" | "suggestions">("clips");
 
@@ -127,7 +135,6 @@ export default function SourceEditor({
                     key={i}
                     onClick={() => {
                       setRange([suggestion.range.start, suggestion.range.end]);
-                      setRangeCreated(true);
                     }}
                     className={`
                   flex flex-row justify-between items-center cursor-pointer
