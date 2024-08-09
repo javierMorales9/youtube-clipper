@@ -118,7 +118,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
         }
       }
       else {
-        if (second < selection.range.start) {
+        if (second <= selection.range.start) {
           setSelection({ range: { start: second, end: selection.range.end }, created: false });
         }
         else {
@@ -289,11 +289,15 @@ export default function SourceEditor({
                 {clips.map((clip) => (
                   <button
                     key={clip.clipId}
-                    onClick={() => router.push(`/sources/${source.id}/clips/${clip.clipId}`)}
                     className={`
                       flex flex-row justify-between items-center cursor-pointer
-                      p-2 w-full rounded-lg bg-gray-100
-                   `}
+                      p-2 w-full rounded border 
+                      ${(selectedPanel.id !== null && selectedPanel.id === clip.clipId) ?
+                        'bg-blue-100 border-blue-300'
+                        : 'bg-gray-100 border-gray-300'
+                      }
+                    `}
+                    onClick={() => setPanel("clip", clip.clipId)}
                     disabled={clip.processing}
                   >
                     <div className="flex flex-col">
@@ -333,8 +337,13 @@ export default function SourceEditor({
                     key={i}
                     className={`
                       flex flex-row justify-between items-center cursor-pointer
-                      p-2 w-full rounded bg-gray-100 border border-gray-300
-                   `}
+                      p-2 w-full rounded border 
+                      ${(selectedPanel.id !== null && selectedPanel.id === suggestion.id) ?
+                        'bg-blue-100 border-blue-300'
+                        : 'bg-gray-100 border-gray-300'
+                      }
+                    `}
+                    onClick={() => setPanel("suggestion", suggestion.id)}
                   >
                     <div className="flex flex-col gap-y-1">
                       <span className="flex justify-start text-start font-semibold">
