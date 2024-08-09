@@ -31,11 +31,19 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
     id: string | null
     handleSide?: "left" | "right",
   }>(
-    { type: null, id: null, handleSide: "left" }
+    { type: null, id: null, handleSide: undefined }
   );
 
   function startSelection(second: number) {
-    if (selection.range !== null || selection.created || selectedPanel.type !== null) return;
+    if (selectedPanel.type !== null && selectedPanel.type !== "selection") {
+      setSelectedPanel({ type: null, id: null });
+      return;
+    }
+
+    if (selection.range !== null || selection.created) {
+      setSelectedPanel({ type: null, id: null });
+      return;
+    }
 
     setSelection({ range: [second, second], created: false });
     setSelectedPanel({ type: "selection", id: null });
@@ -58,7 +66,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
 
   function changePanelDuration(second: number) {
     if (selectedPanel.type === "selection") {
-      if (!selection.range) return;
+      if (!selection.range || (selection.created && !selectedPanel.handleSide)) return;
 
       if (detectCollision(second)) {
         finishSelection();
@@ -84,7 +92,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
     }
 
     else if (selectedPanel.type === "clip") {
-      if (selectedPanel.id == null) return;
+      if (!selectedPanel.handleSide || !selectedPanel.id) return;
 
       const clipIndex = clips.findIndex((clip) => clip.clipId === selectedPanel.id);
       if (clipIndex === -1) return;
@@ -100,7 +108,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
 
       setClips(newClips);
     } else if (selectedPanel.type === "suggestion") {
-      if (selectedPanel.id == null) return;
+      if (!selectedPanel.handleSide || !selectedPanel.id) return;
 
       const suggestionIndex = suggestions.findIndex((suggestion) => suggestion.id === selectedPanel.id);
       if (suggestionIndex === -1) return;
@@ -147,7 +155,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
       finishSelection();
     }
 
-    setSelectedPanel({ type: null, id: null });
+    setSelectedPanel({ ...selectedPanel, handleSide: undefined });
   }
 
   return {

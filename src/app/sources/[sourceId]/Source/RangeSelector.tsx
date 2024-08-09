@@ -34,7 +34,7 @@ export default function RangeSelection({
     handleSide?: "left" | "right"
   },
   setSelectedPanel: (panel: {
-    type: "clip" | "suggestion" | "selection",
+    type: "clip" | "suggestion" | "selection" | null,
     id: string | null,
     handleSide?: "left" | "right"
   }) => void,
@@ -53,7 +53,7 @@ export default function RangeSelection({
     width: (s.range.end - s.range.start) * visibleTimelineWidth / timelineSeconds,
   })), [suggestions, visibleTimelineWidth, timelineSeconds, initialSeconds]);
 
-  const pxRange = useMemo(() => {
+  const selectionPanel = useMemo(() => {
     const range = selection.range
     if (range === null) {
       return { left: 0, width: 0 };
@@ -73,6 +73,28 @@ export default function RangeSelection({
     return initialSeconds + percent * timelineSeconds;
   }
 
+  function Handles() {
+    return (
+      <>
+        <div
+          className="absolute top-1/4 left-[-4px] w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            setSelectedPanel({ ...selectedPanel, handleSide: "left" });
+          }}
+        ></div>
+        <div
+          className="absolute top-1/4 right-[-4px] w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            setSelectedPanel({ ...selectedPanel, handleSide: "right" });
+          }}
+        ></div>
+      </>
+
+    );
+  }
+
   return (
     <div
       className="absolute w-full h-full bottom-0"
@@ -82,7 +104,7 @@ export default function RangeSelection({
     >
       <div
         className="absolute w-full h-full"
-        style={{ cursor: selectedPanel.id !== null ? "w-resize" : "default" }}
+        style={{ cursor: selectedPanel.handleSide ? "w-resize" : "default" }}
       >
         {clipPanels.map((clip, index) => (
           <div
@@ -90,116 +112,73 @@ export default function RangeSelection({
             className={`
               absolute h-full z-10 overflow-hidden whitespace-nowrap text-ellipsis
               flex flex-row items-center
-              px-1
+              px-1 cursor-pointer
             `}
             style={{
               left: clip.left,
               width: clip.width,
               backgroundColor: 'rgba(151, 202, 232, 0.7)',
             }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedPanel({
+                type: "clip",
+                id: suggestions[index]!.id,
+              })
+            }}
           >
-            <div
-              className="w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setSelectedPanel({
-                  type: "clip",
-                  id: clips[index]!.clipId!,
-                  handleSide: "left"
-                });
-              }}
-            ></div>
+            {selectedPanel.id === clips[index]!.clipId && <Handles />}
             <div className="w-full p-1 h-full">
               {clip.name}
             </div>
-            <div
-              className="w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setSelectedPanel({
-                  type: "clip",
-                  id: clips[index]!.clipId!,
-                  handleSide: "right"
-                });
-              }}
-            ></div>
           </div>
         ))}
         {suggestionPanels.map((suggestion, index) => (
           <div
             key={index}
             className={`
-              absolute h-full z-10 overflow-hidden whitespace-nowrap text-ellipsis
+              absolute h-full z-10
               flex flex-row items-center
-              px-1
+              px-1 cursor-pointer
             `}
             style={{
               left: suggestion.left,
               width: suggestion.width,
               backgroundColor: 'rgba(151, 202, 232, 0.7)',
             }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedPanel({
+                type: "suggestion",
+                id: suggestions[index]!.id,
+              })
+            }}
           >
-            <div
-              className="w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setSelectedPanel({
-                  type: "suggestion",
-                  id: suggestions[index]!.id,
-                  handleSide: "left"
-                });
-              }}
-            ></div>
-            <div className="w-full p-1 h-full">
+            {selectedPanel.id === suggestions[index]!.id && <Handles />}
+            <div className="w-full p-1 h-full overflow-hidden whitespace-nowrap text-ellipsis">
               {suggestion.name}
             </div>
-            <div
-              className="w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setSelectedPanel({
-                  type: "suggestion",
-                  id: suggestions[index]!.id,
-                  handleSide: "right"
-                });
-              }}
-            ></div>
           </div>
         ))}
       </div>
       <div
-        className="absolute h-full z-10 flex flex-row items-center justify-between"
+        className="absolute h-full z-10 "
         style={{
-          left: pxRange.left,
-          width: pxRange.width,
-          padding: pxRange.width > 0 ? '0 0.5rem' : '0',
+          left: selectionPanel.left,
+          width: selectionPanel.width,
+          padding: selectionPanel.width > 0 ? '0 0.5rem' : '0',
           backgroundColor: 'rgba(255, 165, 0, 0.7)'
         }}
       >
         {selection.created && (
-          <>
-            <div
-              className="w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setSelectedPanel({
-                  type: "selection",
-                  id: null,
-                  handleSide: "left",
-                });
-              }}
-            ></div>
-            <div
-              className="w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setSelectedPanel({
-                  type: "selection",
-                  id: null,
-                  handleSide: "right",
-                });
-              }}
-            ></div>
+          <div
+            className="w-full h-full flex flex-row items-center justify-between cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedPanel({ type: "selection", id: null });
+            }}
+          >
+            {selectedPanel.type === "selection" && <Handles />}
 
             <span
               className="absolute right-0 top-0 text-black cursor-pointer"
@@ -207,7 +186,7 @@ export default function RangeSelection({
             >
               <Cross className="w-6 h-6 fill-black" />
             </span>
-          </>
+          </div>
         )}
       </div>
     </div>);
