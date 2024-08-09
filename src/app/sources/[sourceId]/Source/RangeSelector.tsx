@@ -15,7 +15,8 @@ export default function RangeSelection({
   startSelection,
   deleteSelection,
   selectedPanel,
-  setSelectedPanel,
+  setPanel,
+  addHandle,
   changePanelDuration,
   finishPanelDurationChange,
 }: {
@@ -23,7 +24,7 @@ export default function RangeSelection({
   timelineSeconds: number,
   initialPosition: number,
   initialSeconds: number,
-  selection: { range: [number, number] | null, created: boolean },
+  selection: { range: { start: number, end: number } | null, created: boolean },
   startSelection: (second: number) => void,
   deleteSelection: () => void,
   clips: Clip[],
@@ -33,36 +34,35 @@ export default function RangeSelection({
     id: string | null,
     handleSide?: "left" | "right"
   },
-  setSelectedPanel: (panel: {
-    type: "clip" | "suggestion" | "selection" | null,
-    id: string | null,
-    handleSide?: "left" | "right"
-  }) => void,
+  setPanel: (type: "clip" | "suggestion" | "selection", id?: string) => void,
+  addHandle: (side: "left" | "right") => void,
   changePanelDuration: (second: number) => void,
   finishPanelDurationChange: () => void,
 }) {
-  const clipPanels = useMemo(() => clips.map((clip) => ({
-    name: clip.name,
-    left: (clip.range.start - initialSeconds) * visibleTimelineWidth / timelineSeconds,
-    width: (clip.range.end - clip.range.start) * visibleTimelineWidth / timelineSeconds,
-  })), [clips, visibleTimelineWidth, timelineSeconds, initialSeconds]);
+  const clipPanels = useMemo(
+    () => clips.map((clip) => ({ name: clip.name, ...panelDimensions(clip.range), })),
+    [clips, visibleTimelineWidth, timelineSeconds, initialSeconds]
+  );
 
-  const suggestionPanels = useMemo(() => suggestions.map((s) => ({
-    name: s.name,
-    left: (s.range.start - initialSeconds) * visibleTimelineWidth / timelineSeconds,
-    width: (s.range.end - s.range.start) * visibleTimelineWidth / timelineSeconds,
-  })), [suggestions, visibleTimelineWidth, timelineSeconds, initialSeconds]);
+  const suggestionPanels = useMemo(
+    () => suggestions.map((s) => ({ name: s.name, ...panelDimensions(s.range), })),
+    [suggestions, visibleTimelineWidth, timelineSeconds, initialSeconds]
+  );
 
   const selectionPanel = useMemo(() => {
-    const range = selection.range
-    if (range === null) {
+    return panelDimensions(selection.range);
+  }, [selection, initialSeconds, visibleTimelineWidth, timelineSeconds]);
+
+  function panelDimensions(range?: { start: number, end: number } | null) {
+    if (!range) {
       return { left: 0, width: 0 };
     }
+
     return {
-      left: (range[0] - initialSeconds) * visibleTimelineWidth / timelineSeconds,
-      width: (range[1] - range[0]) * visibleTimelineWidth / timelineSeconds,
-    };
-  }, [selection, initialSeconds, visibleTimelineWidth, timelineSeconds]);
+      left: (range.start - initialSeconds) * visibleTimelineWidth / timelineSeconds,
+      width: (range.end - range.start) * visibleTimelineWidth / timelineSeconds,
+    }
+  }
 
   function secondsOfPosition(e: React.MouseEvent<HTMLDivElement>) {
     const target = e.currentTarget as HTMLDivElement;
@@ -80,14 +80,14 @@ export default function RangeSelection({
           className="absolute top-1/4 left-[-4px] w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
           onMouseDown={(e) => {
             e.stopPropagation();
-            setSelectedPanel({ ...selectedPanel, handleSide: "left" });
+            addHandle("left");
           }}
         ></div>
         <div
           className="absolute top-1/4 right-[-4px] w-2 h-1/2 rounded bg-gray-500 cursor-w-resize"
           onMouseDown={(e) => {
             e.stopPropagation();
-            setSelectedPanel({ ...selectedPanel, handleSide: "right" });
+            addHandle("right");
           }}
         ></div>
       </>
@@ -121,10 +121,7 @@ export default function RangeSelection({
             }}
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedPanel({
-                type: "clip",
-                id: suggestions[index]!.id,
-              })
+              setPanel("clip", suggestions[index]!.id)
             }}
           >
             {selectedPanel.id === clips[index]!.clipId && <Handles />}
@@ -148,10 +145,7 @@ export default function RangeSelection({
             }}
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedPanel({
-                type: "suggestion",
-                id: suggestions[index]!.id,
-              })
+              setPanel("suggestion", suggestions[index]!.id);
             }}
           >
             {selectedPanel.id === suggestions[index]!.id && <Handles />}
@@ -175,7 +169,7 @@ export default function RangeSelection({
             className="w-full h-full flex flex-row items-center justify-between cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedPanel({ type: "selection", id: null });
+              setPanel("selection");
             }}
           >
             {selectedPanel.type === "selection" && <Handles />}

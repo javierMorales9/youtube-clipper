@@ -3,7 +3,7 @@
 import Timeline from "@/app/sources/[sourceId]/Timeline";
 import { useTimer } from "../useTimer";
 import RangeSelection from "./RangeSelector";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Back from "../../../../../public/images/Back.svg";
 import Play from "../../../../../public/images/MaterialSymbolsPlayArrow.svg";
@@ -20,44 +20,80 @@ import MP4Reproducer from "./MP4Reproducer";
 
 function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
   const [selection, setSelection] = useState<
-    { range: [number, number] | null, created: boolean }
+    { range: { start: number, end: number } | null, created: boolean }
   >({ range: null, created: false });
 
   const [clips, setClips] = useState<Clip[]>(inputClips);
   const [suggestions, setSuggestions] = useState<Suggestion[]>(inputSuggestions);
 
-  const [selectedPanel, setSelectedPanel] = useState<{
+  type SelectedPanel = {
     type: "clip" | "suggestion" | "selection" | null,
     id: string | null
     handleSide?: "left" | "right",
-  }>(
-    { type: null, id: null, handleSide: undefined }
+    range?: { start: number, end: number },
+  };
+
+  const [selectedPanel, setSelectedPanel] = useState<SelectedPanel>(
+    { type: null, id: null, handleSide: undefined, range: undefined }
   );
 
+  function setPanel(type: "clip" | "suggestion" | "selection", id?: string) {
+    let panel: SelectedPanel = {
+      type,
+      id: null,
+    };
+
+    if (type === "selection") {
+      panel.range = selection.range || undefined;
+    }
+
+    if (id) {
+      panel.id = id;
+
+      if (type === "clip") {
+        const clip = clips.find((clip) => clip.clipId === id);
+        if (clip) {
+          panel.range = clip.range;
+        }
+      }
+      else if (type === "suggestion") {
+        const suggestion = suggestions.find((suggestion) => suggestion.id === id);
+        if (suggestion) {
+          panel.range = suggestion.range;
+        }
+      }
+    }
+
+    setSelectedPanel(panel);
+  }
+
+  function addHandle(side: "left" | "right") {
+    setSelectedPanel({ ...selectedPanel, handleSide: side });
+  }
+
   function startSelection(second: number) {
-    if (selectedPanel.type !== null && selectedPanel.type !== "selection") {
+    const panelIsClipOrSugg = selectedPanel.type !== null && selectedPanel.type !== "selection";
+    const selectionExist = selection.range !== null || selection.created;
+
+    if (panelIsClipOrSugg || selectionExist) {
       setSelectedPanel({ type: null, id: null });
       return;
     }
 
-    if (selection.range !== null || selection.created) {
-      setSelectedPanel({ type: null, id: null });
-      return;
-    }
-
-    setSelection({ range: [second, second], created: false });
+    setSelection({ range: { start: second, end: second }, created: false });
     setSelectedPanel({ type: "selection", id: null });
   }
 
   function finishSelection() {
     if (selection.created || !selection.range) return;
 
-    if (selection.range[0] === selection.range[1]) {
+    if (selection.range.start === selection.range.end) {
       deleteSelection();
       return;
     }
 
     setSelection({ ...selection, created: true });
+    setSelectedPanel({ type: "selection", id: null, range: selection.range });
   }
 
   function deleteSelection() {
@@ -75,18 +111,18 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
 
       if (selectedPanel.handleSide) {
         if (selectedPanel.handleSide === "left") {
-          setSelection({ range: [second, selection.range[1]], created: false });
+          setSelection({ range: { start: second, end: selection.range.end }, created: false });
         }
         else {
-          setSelection({ range: [selection.range[0], second], created: false });
+          setSelection({ range: { start: selection.range.start, end: second }, created: false });
         }
       }
       else {
-        if (second < selection.range[1]) {
-          setSelection({ range: [second, selection.range[1]], created: false });
+        if (second < selection.range.start) {
+          setSelection({ range: { start: second, end: selection.range.end }, created: false });
         }
         else {
-          setSelection({ range: [selection.range[0], second], created: false });
+          setSelection({ range: { start: selection.range.start, end: second }, created: false });
         }
       }
     }
@@ -131,7 +167,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
       return true;
     }
 
-    if (selection.range && endSec < selection.range[0] && endSec > selection.range[1]) {
+    if (selection.range && endSec < selection.range.start && endSec > selection.range.end) {
       return true;
     }
 
@@ -154,8 +190,9 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
     if (selectedPanel.type === "selection") {
       finishSelection();
     }
-
-    setSelectedPanel({ ...selectedPanel, handleSide: undefined });
+    else {
+      setSelectedPanel({ ...selectedPanel, handleSide: undefined });
+    }
   }
 
   return {
@@ -164,7 +201,8 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
     selection,
     setSelection,
     selectedPanel,
-    setSelectedPanel,
+    setPanel,
+    addHandle,
     startSelection,
     deleteSelection,
     changePanelDuration,
@@ -194,17 +232,22 @@ export default function SourceEditor({
     suggestions,
     selection,
     selectedPanel,
-    setSelectedPanel,
+    setPanel,
+    addHandle,
     startSelection,
     deleteSelection,
     changePanelDuration,
     finishPanelDurationChange,
   } = usePanels(inputClips, inputSuggestions);
 
+  useEffect(() => {
+    timer.restrict(selectedPanel.range);
+  }, [selectedPanel]);
+
   const toClip = () => {
     if (!selection.range) return;
 
-    router.push(`/sources/${source.id}/clips/new?start=${selection.range[0]}&end=${selection.range[1]}`);
+    router.push(`/sources/${source.id}/clips/new?start=${selection.range.start}&end=${selection.range.end}`);
   }
 
   const downloadClip = async (clip: any) => {
@@ -336,7 +379,10 @@ export default function SourceEditor({
                   <Play className="w-7 h-7 fill-none stroke-gray-700" />
                 }
               </button>
-              <div>{toReadableTime(timer.currentSeconds)}</div>
+              <div>
+                {toReadableTime(timer.currentSeconds)}
+                {timer.length && " / " + toReadableTime(timer.length)}
+              </div>
             </div>
             <button
               onClick={toClip}
@@ -374,7 +420,8 @@ export default function SourceEditor({
                   startSelection={startSelection}
                   deleteSelection={deleteSelection}
                   clips={clips}
-                  setSelectedPanel={setSelectedPanel}
+                  setPanel={setPanel}
+                  addHandle={addHandle}
                   changePanelDuration={changePanelDuration}
                   finishPanelDurationChange={finishPanelDurationChange}
                   visibleTimelineWidth={visibleTimelineWidth}

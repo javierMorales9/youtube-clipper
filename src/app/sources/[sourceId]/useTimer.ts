@@ -1,24 +1,52 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useTimer(duration?: number) {
   const increaseIncrement = 1000 / 5;
   const [length, setLength] = useState<number | null>(duration || null);
-  const [currentTime, setCurrentTime] = useState<[number, number, number, number]>([0, 0, 0, 0]);
+  const [currentTime, setCurrentTime] = useState<
+    [number, number, number, number]
+  >([0, 0, 0, 0]);
   const [playing, setPlaying] = useState(false);
+
+  const [restrictionRange, setRestrictionRange] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
 
   const [timelineTimer, setTimelineTimer] = useState<ReturnType<
     typeof setInterval
   > | null>(null);
 
+  useEffect(() => {
+    if (!restrictionRange) return;
+
+    const currentSeconds = toSeconds(currentTime);
+
+    if (
+      currentSeconds < restrictionRange.start ||
+      currentSeconds >= restrictionRange.end
+    ) {
+      setCurrentTime(formatTime(restrictionRange.start));
+    }
+  }, [restrictionRange]);
+
   function seek(time: number) {
     setCurrentTime(formatTime(time));
   }
 
+  function restrict(range?: { start: number; end: number }) {
+    if (range) {
+      setRestrictionRange(range);
+    } else {
+      setRestrictionRange(null);
+    }
+  }
+
   function formatTime(time: number): [number, number, number, number] {
     const hours = Math.floor(time / 3600);
-    const minutes = Math.floor(time % 3600 / 60);
-    const seconds = Math.floor(time % 3600 % 60);
-    const milliseconds = Math.floor((time % 3600 % 60 - seconds) * 1000);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = Math.floor((time % 3600) % 60);
+    const milliseconds = Math.floor((((time % 3600) % 60) - seconds) * 1000);
 
     return [hours, minutes, seconds, milliseconds];
   }
@@ -43,8 +71,14 @@ export function useTimer(duration?: number) {
       setCurrentTime((ct) => {
         const result = increaseTime(ct);
 
-        if (toSeconds(result) >= length!) {
-          return [0, 0, 0, 0];
+        if (restrictionRange) {
+          if (toSeconds(result) >= restrictionRange.end) {
+            return formatTime(restrictionRange.start);
+          }
+        } else {
+          if (toSeconds(result) >= length!) {
+            return [0, 0, 0, 0];
+          }
         }
 
         return result;
@@ -59,7 +93,9 @@ export function useTimer(duration?: number) {
     return time[0] * 3600 + time[1] * 60 + time[2] + time[3] / 1000;
   }
 
-  function increaseTime(time: [number, number, number, number]): [number, number, number, number] {
+  function increaseTime(
+    time: [number, number, number, number],
+  ): [number, number, number, number] {
     const [hours, minutes, seconds, milliseconds] = time;
 
     let newMilliseconds = milliseconds + increaseIncrement;
@@ -93,6 +129,7 @@ export function useTimer(duration?: number) {
     seek,
     playing,
     togglePlay,
+    restrict,
     currentSeconds: toSeconds(currentTime),
   };
 }
