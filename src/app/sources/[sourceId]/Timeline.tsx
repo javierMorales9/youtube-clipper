@@ -54,10 +54,11 @@ export default function Timeline({
   }, [timelineWidth, currentSeconds, length, initialPosition]);
 
   const imageHeight = useMemo(() => {
-    const image = imageRef.current;
-    if (!image) return 0;
-
     const calculated = visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!;
+
+    const image = imageRef.current;
+    if (!image) return calculated;
+
     const extracted = image.height / sourceLength;
 
     //Formula caculated empirically
@@ -80,7 +81,6 @@ export default function Timeline({
   }, [timelineWidth]);
 
   function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
-    console.log("timeline click");
     const target = e.currentTarget as HTMLDivElement;
     const bcr = target.getBoundingClientRect();
     const clientX = (e.clientX - bcr.left);

@@ -185,9 +185,9 @@ export default function SourceEditor({
   timelineUrl: string,
   hls: boolean,
 }) {
-  const timer = useTimer();
+  const timer = useTimer(source.duration || undefined);
   const router = useRouter();
-  const [view, setView] = useState<"clips" | "suggestions">("clips");
+  const [view, setView] = useState<"clips" | "suggestions">("suggestions");
 
   const {
     clips,
