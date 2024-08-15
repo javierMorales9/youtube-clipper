@@ -4,7 +4,6 @@ const express = require('express');
 const multer = require('multer');
 const util = require('util');
 const fs = require('fs/promises');
-const axios = require('axios');
 const exec = util.promisify(require('child_process').exec);
 
 async function start() {
@@ -56,6 +55,9 @@ async function dev() {
     const duration = await ffmpeg(path);
     const resolution = await getResolution(path);
 
+    const { stdout } = await exec(`python3 file.py`);
+    const suggestions = JSON.parse(stdout);
+
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
       method: 'POST',
       body: JSON.stringify({
@@ -63,6 +65,7 @@ async function dev() {
           id: req.params.path,
           resolution,
           duration,
+          suggestions,
         }),
       }),
     });
@@ -120,6 +123,9 @@ async function prod() {
     const duration = await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
     const resolution = await getResolution(`${path}/${process.env.SOURCE_ID}`);
 
+    const { stdout } = await exec(`python3 file.py`);
+    const suggestions = JSON.parse(stdout);
+
     const files = await fs.readdir(`${path}/${process.env.SOURCE_ID}`);
     console.log('Files', files);
     for (const file of files) {
@@ -145,6 +151,7 @@ async function prod() {
         id: process.env.SOURCE_ID,
         resolution,
         duration,
+        suggestions,
       }),
     }));
   }

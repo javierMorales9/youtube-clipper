@@ -2,7 +2,7 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { source } from "@/server/db/schema";
+import { source, suggestion } from "@/server/db/schema";
 import { Store } from "./Store";
 import { eq } from "drizzle-orm";
 
@@ -24,11 +24,21 @@ export const sourceRouter = createTRPCRouter({
       return { ...theSource, url: manifest, timelineUrl: timeline };
     }),
   finishProcessing: publicProcedure
-    .input(z.object({ 
-      id: z.string(),
-      resolution: z.string(),
-      duration: z.number(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        resolution: z.string(),
+        duration: z.number(),
+        suggestions: z.array(
+          z.object({
+            name: z.string(),
+            description: z.string(),
+            start: z.number(),
+            end: z.number(),
+          }),
+        ),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { id, resolution } = input;
       const res = resolution.slice(0, -1).split("x").map(Number);
@@ -43,6 +53,13 @@ export const sourceRouter = createTRPCRouter({
           duration: input.duration,
         })
         .where(eq(source.id, id));
+
+      const suggestionObjs = input.suggestions.map((suggestion) => ({
+        id: uuidv4(),
+        ...suggestion,
+        sourceId: id,
+      }));
+      await ctx.db.insert(suggestion).values(suggestionObjs);
     }),
   initiateUpload: publicProcedure
     .input(z.object({ name: z.string().min(1), parts: z.number() }))
