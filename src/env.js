@@ -19,7 +19,7 @@ export const env = createEnv({
     AFTER_CLIP_URL: z.string().optional(),
     JOB_QUEUE: z.string().optional(),
     AFTER_CLIP_JOB_DEFINITION: z.string().optional(),
-    HLS: z.boolean().optional().default(false),
+    HLS: z.boolean({coerce: true}).optional().default(false),
   },
 
   /**

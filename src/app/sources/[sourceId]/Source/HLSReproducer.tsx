@@ -55,8 +55,8 @@ export default function HLSReproducer({
         },
         () => {
           player.on('loadedmetadata', () => {
-            setVideoWidth(width || player.videoWidth());
-            setVideoHeight(player.videoHeight());
+            setVideoWidth(width || player.videoWidth() || 0);
+            setVideoHeight(player.videoHeight() || 0);
             setLength(player.duration() || 0);
           });
         });

@@ -55,7 +55,7 @@ async function dev() {
     const duration = await ffmpeg(path);
     const resolution = await getResolution(path);
 
-    const { stdout } = await exec(`python3 file.py`);
+    const { stdout } = await exec(`python file.py`);
     const suggestions = JSON.parse(stdout);
 
     await fetch(`${process.env.APP_URL}/api/finish_source_processing`, {
@@ -123,7 +123,7 @@ async function prod() {
     const duration = await ffmpeg(`${path}/${process.env.SOURCE_ID}`);
     const resolution = await getResolution(`${path}/${process.env.SOURCE_ID}`);
 
-    const { stdout } = await exec(`python3 file.py`);
+    const { stdout } = await exec(`python file.py`);
     const suggestions = JSON.parse(stdout);
 
     const files = await fs.readdir(`${path}/${process.env.SOURCE_ID}`);
@@ -164,22 +164,15 @@ async function ffmpeg(path) {
   console.log('Execute ffmpeg', process.env.HLS);
   try {
     if (process.env.HLS) {
-      await exec(`ffmpeg \
-      -hide_banner -loglevel error \
-      -i ${path}/original.mp4 \
-      -filter_complex "[0:v]fps=30,split=3[720_in][480_in][240_in];[720_in]scale=-2:720[720_out];[480_in]scale=-2:480[480_out];[240_in]scale=-2:240[240_out]" \
-      -map "[720_out]" -map "[480_out]" -map "[240_out]" \
-      -map 0:a? -b:v:0 3500k \
-      -maxrate:v:0 3500k -bufsize:v:0 3500k -b:v:1 1690k \
-      -maxrate:v:1 1690k -bufsize:v:1 1690k -b:v:2 326k \
-      -maxrate:v:2 326k -bufsize:v:2 326k -b:a:0 128k \
-      -x264-params "keyint=60:min-keyint=60:scenecut=0" \
-      -hls_playlist 1 -hls_master_name adaptive.m3u8 \
-      -seg_duration 2 \
-      adaptive.mpd`);
+      await exec(`ffmpeg -i ${path}/original.mp4 \
+         -codec: copy \
+         -hls_time 10 \
+         -hls_list_size 0 \
+         -f hls \
+        ${path}/adaptive.m3u8`);
 
       console.log('Move files to', path);
-      await exec(`mv adaptiv* chunk* media* init* ${path}/`);
+      //await exec(`mv adaptiv* chunk* media* init* ${path}/`);
     }
 
     const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
