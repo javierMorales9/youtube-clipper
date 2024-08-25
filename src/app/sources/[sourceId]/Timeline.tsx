@@ -48,10 +48,14 @@ export default function Timeline({
     , [zoom, length]);
   const markSecInc = useMemo(() => length / marks, [length, marks]);
 
-  const timelineWidth = useMemo(() => visibleTimelineWidth * marks / NUMBER_OF_MARKS, [visibleTimelineWidth, zoom]);
-  const reference = useMemo(() => {
-    return timelineWidth * currentSeconds / length - initialPosition;
-  }, [timelineWidth, currentSeconds, length, initialPosition]);
+  const timelineWidth = useMemo(
+    () => visibleTimelineWidth * marks / NUMBER_OF_MARKS,
+    [visibleTimelineWidth, zoom]
+  );
+  const reference = useMemo(
+    () => timelineWidth * currentSeconds / length - initialPosition,
+    [timelineWidth, currentSeconds, length, initialPosition]
+  );
 
   const imageHeight = useMemo(() => {
     const calculated = visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!;
@@ -80,6 +84,20 @@ export default function Timeline({
     timeline.scrollTo(timelineScroll, 0);
   }, [timelineWidth]);
 
+  function changeZoom(newZoom: number) {
+    setZoom(newZoom);
+  }
+
+  useEffect(() => {
+    //Wee need to update the initial position so that the current time mark 
+    //is in the middle of the visible timeline
+    //If we don't do this, the timeline will be calculated from the initial position
+    //prior to the zoom change, which can be very far from the current visible timeline
+
+    const newInitialPosition = currentSeconds / length * timelineWidth - visibleTimelineWidth / 2;
+    setInitialPosition(newInitialPosition);
+  }, [zoom]);
+
   function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
     const target = e.currentTarget as HTMLDivElement;
     const bcr = target.getBoundingClientRect();
@@ -92,12 +110,12 @@ export default function Timeline({
   }
 
   function scroll(e: WheelEvent<HTMLDivElement>) {
+    //Depending if the user is scrolling with the mouse wheel or the trackpad
+    //we get the deltaY or deltaX value
     let value = Math.abs(e.deltaY) !== 0 ? e.deltaY : e.deltaX;
-    const direction = value > 0 ? 1 : -1;
-    value = Math.abs(value);
 
     setInitialPosition(prev => {
-      const newPosition = prev + value * direction;
+      const newPosition = prev + value;
 
       if (newPosition < 0) return 0;
       if (newPosition > timelineWidth - visibleTimelineWidth)
@@ -109,7 +127,7 @@ export default function Timeline({
 
   const sections = useMemo(() => {
     const markWidth = visibleTimelineWidth / NUMBER_OF_MARKS;
-    const leftMark = initialPosition / timelineWidth * marks;
+    const leftMark = Math.abs(initialPosition) / timelineWidth * marks;
 
     const offset = leftMark % 1;
     const complete = Math.floor(offset * 100) === 0;
@@ -122,16 +140,16 @@ export default function Timeline({
       last?: boolean,
     }[] = [];
 
-    if (!complete) {
+    if (complete) {
       result.push({
-        width: markWidth * (1 - offset),
+        width: markWidth,
+        time: toReadableTime(Math.floor(leftMark) * markSecInc),
         second: Math.floor(Math.floor(leftMark) * markSecInc),
         first: true,
       });
     } else {
       result.push({
-        width: markWidth,
-        time: toReadableTime(Math.floor(leftMark) * markSecInc),
+        width: markWidth * (1 - offset),
         second: Math.floor(Math.floor(leftMark) * markSecInc),
         first: true,
       });
@@ -144,17 +162,16 @@ export default function Timeline({
       });
     }
 
-    if (leftMark + NUMBER_OF_MARKS < marks)
-      result.push({
-        width: markWidth * (offset),
-        time: toReadableTime((Math.floor(leftMark) + NUMBER_OF_MARKS) * markSecInc),
-        second: Math.floor((Math.floor(leftMark) + NUMBER_OF_MARKS) * markSecInc),
-        last: true,
-      });
+    result.push({
+      width: markWidth * (offset),
+      time: toReadableTime((Math.floor(leftMark) + NUMBER_OF_MARKS) * markSecInc),
+      second: Math.floor((Math.floor(leftMark) + NUMBER_OF_MARKS) * markSecInc),
+      last: true,
+    });
 
     return result;
 
-  }, [initialPosition, timelineWidth, visibleTimelineWidth]);
+  }, [initialPosition, timelineWidth, visibleTimelineWidth, marks]);
 
   return (
     <>
@@ -165,7 +182,7 @@ export default function Timeline({
             min={1}
             value={zoom}
             max={maxZoom}
-            onChange={(e) => setZoom(parseInt(e.target.value))}
+            onChange={(e) => changeZoom(parseInt(e.target.value))}
           />
         </div>
       )}

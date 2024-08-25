@@ -254,6 +254,7 @@ export default function SourceEditor({
     console.log('Downloading clip', clip);
   }
 
+  console.log('selected panel', selectedPanel);
   return (
     <div className="h-screen py-2 flex flex-col justify-between">
       <div className="flex flex-row justify-between gap-x-4">
@@ -368,7 +369,7 @@ export default function SourceEditor({
               src={source.url!}
               timer={timer}
               startTime={0}
-              height={500}
+              height={400}
             />
           ) : (
             <MP4Reproducer
@@ -397,9 +398,9 @@ export default function SourceEditor({
               onClick={toClip}
               className={`
                 absolute right-0 text-white px-4 py-2 rounded-lg
-                ${false ? 'bg-blue-500' : 'bg-blue-200'}
+                ${selectedPanel.type !== null ? 'bg-blue-500' : 'bg-blue-200'}
               `}
-              disabled={true}
+              disabled={selectedPanel.type === null}
             >
               Create Clip
             </button>
