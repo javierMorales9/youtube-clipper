@@ -111,7 +111,8 @@ export const clipRouter = createTRPCRouter({
       return realClips;
     }),
   create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
-    const { name, clipId, range, sourceId, sections } = input;
+    const { name, clipId, range, width, height, sourceId, sections } = input;
+    console.log("Creating the thing", JSON.stringify(input, null, 2));
     const id = clipId || uuidv4();
 
     await ctx.db.transaction(async (trans) => {
@@ -123,8 +124,8 @@ export const clipRouter = createTRPCRouter({
           sourceId,
           createdAt: new Date(),
           updatedAt: new Date(),
-          width: input.width,
-          height: input.height,
+          width: width.toString(),
+          height: height.toString(),
           processing: true,
         })
         .onConflictDoUpdate({
@@ -132,6 +133,8 @@ export const clipRouter = createTRPCRouter({
           set: {
             name,
             updatedAt: new Date(),
+            width: width.toString(),
+            height: height.toString(),
             processing: true,
           },
         });

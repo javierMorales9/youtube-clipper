@@ -73,19 +73,6 @@ export default function Timeline({
     return real;
   }, [imageRef.current, visibleTimelineWidth, source]);
 
-  useEffect(() => {
-    //Update the timeline scroll, basically, how much space we need to move the timeline
-    //to the left so that the current time mark is in the middle of the visible timeline
-    //Take into account that the timeline width expands as we zoom in and that the visible
-    //timeline width is fixed and doesn't depend on the zoom level.
-    const timelineScroll = (currentSeconds / length) * timelineWidth - visibleTimelineWidth / 2;
-
-    const timeline = timeLineRef.current;
-    if (!timeline) return;
-
-    timeline.scrollTo(timelineScroll, 0);
-  }, [timelineWidth]);
-
   function changeZoom(newZoom: number) {
     setZoom(newZoom);
   }
@@ -97,8 +84,8 @@ export default function Timeline({
     //prior to the zoom change, which can be very far from the current visible timeline
 
     const newInitialPosition = currentSeconds / length * timelineWidth - visibleTimelineWidth / 2;
-    setInitialPosition(newInitialPosition);
-  }, [zoom]);
+    setInitialPosition(newInitialPosition < 0 ? 0 : newInitialPosition);
+  }, [timelineWidth]);
 
   function handleTimelineClick(e: MouseEvent<HTMLDivElement>) {
     const target = e.currentTarget as HTMLDivElement;
@@ -185,6 +172,7 @@ export default function Timeline({
               min={1}
               value={zoom}
               max={maxZoom}
+              step={2}
               onChange={(e) => changeZoom(parseInt(e.target.value))}
             />
           </div>
@@ -196,7 +184,7 @@ export default function Timeline({
   return (
     <>
       {controls ? controls(<ZoomBar />) : (<ZoomBar />)}
-      < div
+      <div
         ref={containerRef}
         className="w-full flex flex-col items-center gap-y-4"
       >

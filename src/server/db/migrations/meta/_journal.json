@@ -57,6 +57,13 @@
       "when": 1718993031838,
       "tag": "0007_perpetual_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1724694782139,
+      "tag": "0008_gray_cyclops",
+      "breakpoints": true
     }
   ]
 }

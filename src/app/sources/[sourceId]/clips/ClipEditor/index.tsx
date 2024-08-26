@@ -88,7 +88,7 @@ export default function ClipEditor({
     <FormProvider {...form}>
       <form className="flex flex-col" onSubmit={(e) => { e.preventDefault(); }}>
         <div className="flex flex-row">
-          <div className="w-1/2 flex flex-col gap-y-2">
+          <div className="w-1/3 h-[450px] flex flex-col gap-y-2">
             <Link
               href={`/sources/${source.id}`}
               className="flex flex-row items-center gap-x-2 text-gray-600"
@@ -113,14 +113,16 @@ export default function ClipEditor({
               handleSelectDisplay={handleSelectDisplay}
             />
           </div>
-          <div className="w-full flex flex-col items-center">
-            <button onClick={() => setShowModal(!showModal)}>Clip</button>
-            <Preview
-              section={section}
-              source={source}
+          <div className="w-full flex flex-col items-center justify-center">
+            <button onClick={() => setShowModal(!showModal)}>Preview</button>
+            <Viewer
+              source={source.url!}
+              start={start}
               timer={timer}
-              startTime={start}
+              section={section}
+              form={form}
               dimensions={dimensions}
+              setDimensions={handleDimensionsUpdate}
             />
           </div>
         </div>
@@ -179,14 +181,12 @@ export default function ClipEditor({
           <div onClick={(e) => {
             e.stopPropagation();
           }}>
-            <Viewer
-              source={source.url!}
-              start={start}
-              timer={timer}
+            <Preview
               section={section}
-              form={form}
+              source={source}
+              timer={timer}
+              startTime={start}
               dimensions={dimensions}
-              setDimensions={handleDimensionsUpdate}
             />
           </div>
         </div>
@@ -204,7 +204,7 @@ function DisplaysSelector({
 }) {
 
   return (
-    <div className="bg-white rounded border border-gray-100">
+    <div className="bg-white h-full rounded border border-gray-100 overflow-y-scroll">
       <div className="p-4 text-xl font-bold">
         Displays
       </div>
@@ -227,7 +227,7 @@ function DisplaysSelector({
             </span>
 
             <img
-              className="w-32"
+              className="w-20"
               src={Displays[key].image} alt={Displays[key].name}
             />
           </div>
@@ -423,13 +423,15 @@ function Viewer({
   dimensions: [number, number],
   setDimensions: (dim: [number, number]) => void
 }) {
+  const factor = 400 / 480
+
   const stageRef = useRef<Konva.Stage | null>(null);
 
   return (
     <Stage
       ref={stageRef}
-      width={dimensions[0]}
-      height={dimensions[1]}
+      width={dimensions[0] * factor}
+      height={dimensions[1] * factor}
     >
       <Layer>
         <Video
@@ -443,14 +445,24 @@ function Viewer({
           section?.fragments.map((element, i) => (
             <Rectangle
               key={i}
-              shapeProps={element}
-              stageWidth={dimensions[0]}
-              stageHeight={dimensions[1]}
+              shapeProps={{
+                x: element.x * factor,
+                y: element.y * factor,
+                width: element.width * factor,
+                height: element.height * factor,
+              }}
+              stageWidth={dimensions[0] * factor}
+              stageHeight={dimensions[1] * factor}
               onChange={(newAttrs) => {
                 if (!section?.fragments || !section?.fragments[i])
                   return;
 
-                section.fragments[i] = newAttrs;
+                section.fragments[i] = {
+                  x: newAttrs.x / factor,
+                  y: newAttrs.y / factor,
+                  width: newAttrs.width / factor,
+                  height: newAttrs.height / factor,
+                };
                 form.setValue('sections', form.watch('sections'));
               }}
             />
@@ -648,7 +660,8 @@ function Preview({
   startTime: number
   dimensions: [number, number],
 }) {
-  const factor = 450 / 480
+
+  const factor = 440 / 480
 
   return (
     <div
@@ -733,6 +746,7 @@ function VideoFragment({
         autoplay: false,
         controls: false,
         responsive: true,
+        muted: true,
         fluid: true,
         sources: [{
           src,

@@ -51,8 +51,8 @@ export const clip = createTable("clip", {
   name: varchar("name", { length: 256 }).notNull().default(sql`''`),
   url: varchar("url", { length: 256 }),
   processing: boolean("processing").notNull(),
-  width: integer("width").notNull(),
-  height: integer("height").notNull(),
+  width: numeric("width").notNull(),
+  height: numeric("height").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updatedAt"),
 });
