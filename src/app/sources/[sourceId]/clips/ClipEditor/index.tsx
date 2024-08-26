@@ -5,7 +5,6 @@ import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
 import { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
-import VideoFragment from "./videoFragment";
 import { Source } from "@/server/db/schema";
 import Konva from "konva";
 import { api } from "@/trpc/react";
@@ -18,6 +17,9 @@ import Split from "../../../../../../public/images/Split.svg";
 import Trash from "../../../../../../public/images/Trash.svg";
 import Pause from "../../../../../../public/images/Pause.svg";
 import { toReadableTime } from "@/app/utils";
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import Player from 'video.js/dist/types/player';
 
 export default function ClipEditor({
   source,
@@ -31,7 +33,6 @@ export default function ClipEditor({
   const { start, end } = clip.range;
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
-  const [zoom, setZoom] = useState(1);
 
   const { mutateAsync: createClip } = api.clip.create.useMutation();
 
@@ -100,7 +101,7 @@ export default function ClipEditor({
               </span>
             </Link>
             <div className="flex flex-col">
-              <label htmlFor="file">Video name</label>
+              <label htmlFor="file">Clip name</label>
               <input
                 type="text"
                 className="border border-gray-200 rounded-lg p-2"
@@ -121,30 +122,9 @@ export default function ClipEditor({
               startTime={start}
               dimensions={dimensions}
             />
-            <div className="flex flex-row items-center gap-x-4">
-              <div className="flex flex-row gap-x-2">
-                <button onClick={() => timer.togglePlay()}>
-                  {timer.playing ?
-                    <Pause className="w-7 h-7 fill-none stroke-gray-700" /> :
-                    <Play className="w-7 h-7 fill-none stroke-gray-700" />
-                  }
-                </button>
-                <div>{toReadableTime(timer.currentSeconds)}</div>
-              </div>
-            </div>
           </div>
         </div>
         <div className="flex flex-col items-center w-full">
-          <div className="w-full flex flex-row gap-x-10 justify-center">
-            <Controls
-              timer={timer}
-              divideSection={divideSection}
-              deleteSection={deleteSection}
-              createClip={onSubmit}
-              zoom={zoom}
-              setZoom={setZoom}
-            />
-          </div>
           {timer.length && (
             <div className="flex flex-col w-full items-center">
               <Timeline
@@ -155,6 +135,17 @@ export default function ClipEditor({
                 setCurrentTime={(time: number) => timer.seek(time)}
                 offset={start}
                 sourceLength={source.duration!}
+                controls={(zoomBar) => (
+                  <div className="w-full flex flex-row gap-x-10 justify-center">
+                    <Controls
+                      timer={timer}
+                      divideSection={divideSection}
+                      deleteSection={deleteSection}
+                      createClip={onSubmit}
+                      zoomBar={zoomBar}
+                    />
+                  </div>
+                )}
               >
                 {(
                   visibleTimelineWidth: number,
@@ -601,25 +592,37 @@ function Controls({
   divideSection,
   deleteSection,
   createClip,
+  zoomBar,
 }: {
   timer: Timer,
   divideSection: () => void,
   deleteSection: () => void
   createClip: () => void,
-  zoom: number,
-  setZoom: (zoom: number) => void,
+  zoomBar?: JSX.Element,
 }) {
 
   return (
     <>
       <div className="relative p-4 flex flex-row justify-between w-full gap-x-4">
-        <div className="flex flex-row justify-center gap-x-4">
+        <div className="flex flex-row justify-center items-center gap-x-4">
+          {zoomBar}
           <button onClick={divideSection}>
             <Split className="w-7 h-7 " />
           </button>
           <button onClick={deleteSection}>
             <Trash className="w-7 h-7" />
           </button>
+        </div>
+        <div className="flex flex-row items-center gap-x-4">
+          <div className="flex flex-row gap-x-2">
+            <button onClick={() => timer.togglePlay()}>
+              {timer.playing ?
+                <Pause className="w-7 h-7 fill-none stroke-gray-700" /> :
+                <Play className="w-7 h-7 fill-none stroke-gray-700" />
+              }
+            </button>
+            <div>{toReadableTime(timer.currentSeconds)}</div>
+          </div>
         </div>
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded-lg"
@@ -666,6 +669,142 @@ function Preview({
           }}
         />
       ))}
+    </div>
+  );
+}
+
+function VideoFragment({
+  src,
+  startTime = 0,
+  timer: {
+    currentTime,
+    playing,
+    currentSeconds
+  },
+  dimensions,
+  x,
+  y,
+  width,
+  height,
+  clip: {
+    x: clipX,
+    y: clipY,
+    width: clipWidth,
+    height: clipHeight,
+  },
+}: {
+  src: string,
+  startTime: number,
+  timer: Timer,
+  dimensions: [number, number],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  clip: {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  },
+}) {
+  const videoRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<Player | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (!playerRef.current) {
+      const videoElement = document.createElement("video-js");
+
+      videoElement.classList.add('vjs-big-play-centered');
+      video.appendChild(videoElement);
+
+      playerRef.current = videojs(videoElement, {
+        autoplay: false,
+        controls: false,
+        responsive: true,
+        fluid: true,
+        sources: [{
+          src,
+          type: 'application/x-mpegURL'
+        }],
+      },
+        () => {
+          videojs.log('player is ready');
+        }
+      );
+    }
+  }, [videoRef]);
+
+  useEffect(() => {
+    const player = playerRef.current;
+
+    return () => {
+      if (player && !player.isDisposed()) {
+        player.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, [playerRef]);
+
+  useEffect(() => {
+    const movie = playerRef.current;
+    if (!movie) return;
+
+    movie.width(dimensions[0]);
+    movie.height(dimensions[1]);
+  }, [dimensions]);
+
+  useEffect(() => {
+    const movie = playerRef.current;
+    if (movie) {
+      movie.currentTime(startTime + currentSeconds);
+    }
+  }, [currentTime]);
+
+  useEffect(() => {
+    if (playing)
+      play();
+    else
+      pause();
+  }, [playing]);
+
+  function pause() {
+    playerRef?.current?.pause();
+  }
+
+  function play() {
+    playerRef?.current?.play()?.catch(console.error);
+  }
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        width: clipWidth,
+        height: clipHeight,
+        transformOrigin: 'left top',
+        transform: `scale(${width / clipWidth}, ${height / clipHeight})`,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          width: dimensions[0],
+          height: dimensions[1],
+          left: -clipX,
+          top: -clipY,
+        }}
+      >
+        <div data-vjs-player>
+          <div ref={videoRef} />
+        </div>
+      </div>
     </div>
   );
 }

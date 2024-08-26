@@ -13,6 +13,7 @@ export default function Timeline({
   setCurrentTime,
   offset = 0,
   sourceLength = length,
+  controls,
   children,
 }: {
   length: number,
@@ -22,6 +23,7 @@ export default function Timeline({
   setCurrentTime: (time: number) => void,
   offset?: number,
   sourceLength?: number,
+  controls?: (ZoomBar: JSX.Element) => JSX.Element,
   children?: (visibleTimelineWidth: number, timelineSeconds: number, initialPosition: number, initialSeconds: number) => JSX.Element,
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -173,19 +175,27 @@ export default function Timeline({
 
   }, [initialPosition, timelineWidth, visibleTimelineWidth, marks]);
 
+  function ZoomBar() {
+    return (
+      <>
+        {length && Math.floor(length / NUMBER_OF_MARKS - 1) > 1 && (
+          <div className="w-full flex flex-col items-start">
+            <input
+              type="range"
+              min={1}
+              value={zoom}
+              max={maxZoom}
+              onChange={(e) => changeZoom(parseInt(e.target.value))}
+            />
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
-      {length && Math.floor(length / NUMBER_OF_MARKS - 1) > 1 && (
-        <div className="w-full flex flex-col items-start">
-          <input
-            type="range"
-            min={1}
-            value={zoom}
-            max={maxZoom}
-            onChange={(e) => changeZoom(parseInt(e.target.value))}
-          />
-        </div>
-      )}
+      {controls ? controls(<ZoomBar />) : (<ZoomBar />)}
       < div
         ref={containerRef}
         className="w-full flex flex-col items-center gap-y-4"
