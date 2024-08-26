@@ -648,24 +648,32 @@ function Preview({
   startTime: number
   dimensions: [number, number],
 }) {
+  const factor = 450 / 480
+
   return (
-    <div className="relative w-[270px] h-[480px]">
+    <div
+      className="relative"
+      style={{
+        width: 270 * factor,
+        height: 480 * factor,
+      }}
+    >
       {section && section.fragments && section.fragments.map((element, i) => (
         <VideoFragment
           key={i}
           src={`${source.url!}`}
           timer={timer}
           startTime={startTime}
-          dimensions={dimensions}
-          x={section.display!.elements[i]!.x}
-          y={section.display!.elements[i]!.y}
-          width={section.display!.elements[i]!.width}
-          height={section.display!.elements[i]!.height}
+          dimensions={[dimensions[0] * factor, dimensions[1] * factor]}
+          x={section.display!.elements[i]!.x * factor}
+          y={section.display!.elements[i]!.y * factor}
+          width={section.display!.elements[i]!.width * factor}
+          height={section.display!.elements[i]!.height * factor}
           clip={{
-            x: element.x,
-            y: element.y,
-            width: element.width,
-            height: element.height,
+            x: element.x * factor,
+            y: element.y * factor,
+            width: element.width * factor,
+            height: element.height * factor,
           }}
         />
       ))}
