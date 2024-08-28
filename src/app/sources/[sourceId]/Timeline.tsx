@@ -65,10 +65,11 @@ export default function Timeline({
     const image = imageRef.current;
     if (!image) return calculated;
 
-    const extracted = image.height / sourceLength;
+    const extracted = image.height / Math.floor(sourceLength);
 
     //Formula caculated empirically
-    const real = (calculated + 29 * extracted) / 30;
+    //const real = (calculated + 29 * extracted) / 30;
+    const real = extracted;
 
     return real;
   }, [imageRef.current, visibleTimelineWidth, source]);

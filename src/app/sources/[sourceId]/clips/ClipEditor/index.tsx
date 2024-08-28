@@ -202,7 +202,6 @@ function DisplaysSelector({
   section?: Section,
   handleSelectDisplay: (newDisplay: Display) => void,
 }) {
-
   return (
     <div className="bg-white h-full rounded border border-gray-100 overflow-y-scroll">
       <div className="p-4 text-xl font-bold">

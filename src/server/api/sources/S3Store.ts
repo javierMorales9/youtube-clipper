@@ -7,7 +7,8 @@ export const S3Store = {
   getSignedUrls: async function (key: string) {
     return {
       manifest: `https://d20lwp9ni0p7dk.cloudfront.net/${key}/adaptive.m3u8`,
-      timeline : `https://d20lwp9ni0p7dk.cloudfront.net/${key}/timeline1.png`,
+      timeline : `https://d20lwp9ni0p7dk.cloudfront.net/${key}/timeline.png`,
+      snapshot : `https://d20lwp9ni0p7dk.cloudfront.net/${key}/snapshot.png`,
     };
     /*
     const s3 = new S3({ region: env.AWS_REGION });

@@ -9,7 +9,8 @@ export const DevStore = {
 
     return {
       manifest: process.env.HLS ? `${dir}/${key}/adaptive.m3u8` : `${dir}/${key}/original.mp4`,
-      timeline: `${dir}/${key}/timeline1.png`,
+      timeline: `${dir}/${key}/timeline.png`,
+      snapshot: `${dir}/${key}/snapshot.png`,
     };
   },
   initiateUpload: async function (name: string) {

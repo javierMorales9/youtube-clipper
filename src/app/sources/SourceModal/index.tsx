@@ -64,7 +64,7 @@ export default function SourceModal({
 
       {show && (
         <div
-          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-start p-20"
+          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-start p-20 z-10"
         >
           <div className="relative w-1/3 bg-white p-8 rounded-lg flex flex-col gap-y-4">
             <div

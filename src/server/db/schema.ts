@@ -26,7 +26,9 @@ export const source = createTable("source", {
   id: uuid("id").primaryKey().notNull(),
   externalId: varchar("external_id", { length: 256 }).notNull(),
   name: varchar("name", { length: 256 }).notNull(),
-  processing: boolean("processing").notNull().default(sql`false`),
+  processing: boolean("processing")
+    .notNull()
+    .default(sql`false`),
   url: varchar("url", { length: 256 }),
   width: integer("width"),
   height: integer("height"),
@@ -38,8 +40,12 @@ export type Source = InferModel<typeof source>;
 
 export const suggestion = createTable("suggestion", {
   id: uuid("id").primaryKey(),
-  sourceId: uuid("source_id").references(() => source.id).notNull(),
-  name: varchar("name", { length: 256 }).notNull().default(sql`''`),
+  sourceId: uuid("source_id")
+    .references(() => source.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 256 })
+    .notNull()
+    .default(sql`''`),
   description: text("description"),
   start: integer("start").notNull(),
   end: integer("end").notNull(),
@@ -47,8 +53,12 @@ export const suggestion = createTable("suggestion", {
 
 export const clip = createTable("clip", {
   id: uuid("id").primaryKey(),
-  sourceId: uuid("source_id").references(() => source.id).notNull(),
-  name: varchar("name", { length: 256 }).notNull().default(sql`''`),
+  sourceId: uuid("source_id")
+    .references(() => source.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 256 })
+    .notNull()
+    .default(sql`''`),
   url: varchar("url", { length: 256 }),
   processing: boolean("processing").notNull(),
   width: numeric("width").notNull(),
@@ -61,7 +71,9 @@ export type Clip = InferModel<typeof clip>;
 export const clipRange = createTable(
   "clip_range",
   {
-    clipId: uuid("clip_id").references(() => clip.id).notNull(),
+    clipId: uuid("clip_id")
+      .references(() => clip.id, { onDelete: "cascade" })
+      .notNull(),
     start: integer("start").notNull(),
     end: integer("end").notNull(),
   },
@@ -77,7 +89,9 @@ export const clipSection = createTable(
   "clip_section",
   {
     order: integer("number").notNull(),
-    clipId: uuid("clip_id").references(() => clip.id).notNull(),
+    clipId: uuid("clip_id")
+      .references(() => clip.id, { onDelete: "cascade" })
+      .notNull(),
     start: integer("start").notNull(),
     end: integer("end").notNull(),
     display: varchar("display", { length: 256 }).notNull(),
@@ -94,7 +108,9 @@ export const sectionFragment = createTable(
   "section_fragment",
   {
     sectionOrder: integer("section_order").notNull(),
-    clipId: uuid("clip_id").references(() => clip.id).notNull(),
+    clipId: uuid("clip_id")
+      .references(() => clip.id, { onDelete: "cascade" })
+      .notNull(),
     x: integer("x").notNull(),
     y: integer("y").notNull(),
     width: integer("width").notNull(),

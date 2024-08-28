@@ -6,14 +6,15 @@ import PlayButton from "../../../public/images/MaterialSymbolsPlayArrow.svg";
 import { useState } from "react";
 import { Source } from "@/server/db/schema";
 
+type SourceListElement = Source & { snapshotUrl: string };
 export function SourceList({
   sources: initialSources,
 }: {
-  sources: any
+  sources: SourceListElement[]
 }) {
-  const [sources, setSources] = useState<Source[]>(initialSources);
+  const [sources, setSources] = useState<SourceListElement[]>(initialSources);
 
-  const addSource = (source: Source) => {
+  const addSource = (source: SourceListElement) => {
     setSources([...sources, source]);
   };
 
@@ -34,8 +35,13 @@ export function SourceList({
                 href={`/sources/${source.id}`}
                 className="w-full h-full"
               >
-                <div className="bg-black flex justify-center items-center h-40">
-                  <PlayButton className="fill-white" />
+                <div className="relative bg-black flex justify-center items-center h-40">
+                  <img
+                    className="w-full h-full object-cover opacity-90"
+                    src={source.snapshotUrl}
+                    alt={source.name}
+                  />
+                  <PlayButton className="fill-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                 </div>
                 <h2 className="text-xl font-bold">{source.name}</h2>
               </Link>

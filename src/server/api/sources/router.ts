@@ -8,7 +8,21 @@ import { eq } from "drizzle-orm";
 
 export const sourceRouter = createTRPCRouter({
   all: publicProcedure.input(z.object({})).query(async ({ ctx }) => {
-    return ctx.db.query.source.findMany();
+    const sources = await ctx.db.query.source.findMany();
+
+    return Promise.all(
+      sources.map(async (source) => {
+        const { manifest, timeline, snapshot } = await Store().getSignedUrls(
+          source.id,
+        );
+        return {
+          ...source,
+          url: manifest,
+          timelineUrl: timeline,
+          snapshotUrl: snapshot,
+        };
+      }),
+    );
   }),
   find: publicProcedure
     .input(z.object({ id: z.string() }))
