@@ -170,18 +170,28 @@ async function ffmpeg(path) {
          -hls_list_size 0 \
          -f hls \
         ${path}/adaptive.m3u8`);
-
-      console.log('Move files to', path);
-      //await exec(`mv adaptiv* chunk* media* init* ${path}/`);
     }
 
-    const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${path}/original.mp4`);
+    const { stdout } = await exec(`ffprobe \
+      -v error \
+      -show_entries format=duration \
+      -of default=noprint_wrappers=1:nokey=1 \
+     ${path}/original.mp4`);
     const duration = parseFloat(stdout);
+
     console.log('Creating timeline. Duration: ', parseInt(stdout));
-    await exec(`ffmpeg -i ${path}/original.mp4 -frames 1 -vf "select=not(mod(n\\,30)),scale=240:-2,tile=1x${parseInt(stdout).toString()}" ${path}/timeline.png -y`);
+    await exec(`ffmpeg -i ${path}/original.mp4 \
+      -frames 1 \
+      -vf "select=not(mod(n\\,30)),scale=240:-1,tile=1x${parseInt(stdout).toString()}" \
+     ${path}/timeline.png -y`);
 
     console.log('Creating snapshot');
-    await exec(`ffmpeg -ss ${duration / 2} -i ${path}/original.mp4 -frames:v 1 -q:v 1 ${path}/snapshot.png -y`);
+    await exec(`ffmpeg \
+      -ss ${duration / 2} \
+      -i ${path}/original.mp4 \
+      -frames:v 1 \
+      -q:v 1 \
+     ${path}/snapshot.png -y`);
 
     return duration;
   } catch (err) {

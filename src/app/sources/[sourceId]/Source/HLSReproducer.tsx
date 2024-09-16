@@ -9,7 +9,6 @@ export default function HLSReproducer({
   src,
   startTime = 0,
   timer: {
-    length,
     setLength,
     currentTime,
     currentSeconds,

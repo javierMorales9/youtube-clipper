@@ -13,7 +13,6 @@ export default function Video({
   timer: {
     length,
     setLength,
-    currentTime,
     currentSeconds,
     playing,
   },
@@ -75,6 +74,14 @@ export default function Video({
   }, [playerRef]);
 
   useEffect(() => {
+    if (!videoNode) return;
+
+    console.log('start', videoNode, playerRef.current);
+    playerRef.current?.currentTime(startTime + currentSeconds);
+    videoNode.getLayer()?.batchDraw();
+  }, [videoNode]);
+
+  useEffect(() => {
     const movie = playerRef.current;
     if (!movie) return;
 
@@ -82,7 +89,7 @@ export default function Video({
       return;
 
     movie.currentTime(startTime + currentSeconds);
-  }, [currentTime]);
+  }, [currentSeconds]);
 
   useEffect(() => {
     if (playing)

@@ -51,7 +51,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
       panel.id = id;
 
       if (type === "clip") {
-        const clip = clips.find((clip) => clip.clipId === id);
+        const clip = clips.find((clip) => clip.id === id);
         if (clip) {
           panel.range = clip.range;
         }
@@ -130,7 +130,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
     else if (selectedPanel.type === "clip") {
       if (!selectedPanel.handleSide || !selectedPanel.id) return;
 
-      const clipIndex = clips.findIndex((clip) => clip.clipId === selectedPanel.id);
+      const clipIndex = clips.findIndex((clip) => clip.id === selectedPanel.id);
       if (clipIndex === -1) return;
 
       const newClips = [...clips];
@@ -227,6 +227,8 @@ export default function SourceEditor({
   const router = useRouter();
   const [view, setView] = useState<"clips" | "suggestions">("suggestions");
 
+  const [redirectingToClip, setRedirectingToClip] = useState(false);
+
   const {
     clips,
     suggestions,
@@ -245,16 +247,22 @@ export default function SourceEditor({
   }, [selectedPanel]);
 
   const toClip = () => {
-    if (!selection.range) return;
+    if (!selectedPanel.range) return;
 
-    router.push(`/sources/${source.id}/clips/new?start=${selection.range.start}&end=${selection.range.end}`);
+    if (selectedPanel.type === 'clip') {
+      router.push(`/sources/${source.id}/clips/${selectedPanel.id}/`);
+    }
+    else {
+      router.push(`/sources/${source.id}/clips/new?start=${selectedPanel.range.start}&end=${selectedPanel.range.end}`);
+    }
+
+    setRedirectingToClip(true);
   }
 
   const downloadClip = async (clip: any) => {
     console.log('Downloading clip', clip);
   }
 
-  console.log('selected panel', selectedPanel);
   return (
     <div className="h-screen py-2 flex flex-col justify-between">
       <div className="flex flex-row justify-between gap-x-4">
@@ -289,16 +297,16 @@ export default function SourceEditor({
               <div className="w-full flex flex-row justify-between flex-wrap">
                 {clips.map((clip) => (
                   <button
-                    key={clip.clipId}
+                    key={clip.id}
                     className={`
                       flex flex-row justify-between items-center cursor-pointer
                       p-2 w-full rounded border 
-                      ${(selectedPanel.id !== null && selectedPanel.id === clip.clipId) ?
+                      ${(selectedPanel.id !== null && selectedPanel.id === clip.id) ?
                         'bg-blue-100 border-blue-300'
                         : 'bg-gray-100 border-gray-300'
                       }
                     `}
-                    onClick={() => setPanel("clip", clip.clipId)}
+                    onClick={() => setPanel("clip", clip.id)}
                     disabled={clip.processing}
                   >
                     <div className="flex flex-col">
@@ -400,9 +408,15 @@ export default function SourceEditor({
                 absolute right-0 text-white px-4 py-2 rounded-lg
                 ${selectedPanel.type !== null ? 'bg-blue-500' : 'bg-blue-200'}
               `}
-              disabled={selectedPanel.type === null}
+              disabled={selectedPanel.type === null || redirectingToClip}
             >
-              Create Clip
+              {redirectingToClip ? (
+                <Loading className="w-6 h-6 fill-white" />
+              ) : (
+                <>
+                  {selectedPanel.type === 'clip' ? 'Edit Clip' : 'Create Clip'}
+                </>
+              )}
             </button>
           </div>
         </div>

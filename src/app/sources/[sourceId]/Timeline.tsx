@@ -52,27 +52,17 @@ export default function Timeline({
 
   const timelineWidth = useMemo(
     () => visibleTimelineWidth * marks / NUMBER_OF_MARKS,
-    [visibleTimelineWidth, zoom]
+    [visibleTimelineWidth, marks]
   );
   const reference = useMemo(
     () => timelineWidth * currentSeconds / length - initialPosition,
     [timelineWidth, currentSeconds, length, initialPosition]
   );
 
-  const imageHeight = useMemo(() => {
-    const calculated = visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!;
-
-    const image = imageRef.current;
-    if (!image) return calculated;
-
-    const extracted = image.height / Math.floor(sourceLength);
-
-    //Formula caculated empirically
-    //const real = (calculated + 29 * extracted) / 30;
-    const real = extracted;
-
-    return real;
-  }, [imageRef.current, visibleTimelineWidth, source]);
+  const imageHeight = useMemo(
+    () => visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!
+    , [imageRef.current, visibleTimelineWidth, source]
+  );
 
   function changeZoom(newZoom: number) {
     setZoom(newZoom);
@@ -140,6 +130,7 @@ export default function Timeline({
     } else {
       result.push({
         width: markWidth * (1 - offset),
+        time: toReadableTime(Math.floor(leftMark) * markSecInc),
         second: Math.floor(Math.floor(leftMark) * markSecInc),
         first: true,
       });
@@ -210,15 +201,22 @@ export default function Timeline({
                   {sections.map((section, i) => (
                     <div
                       key={i}
+                      className="overflow-hidden"
                       style={{ width: section.width + 'px' }}
                     >
                       {
                         section.time ? (
-                          <>
+                          <div style={{
+                            position: 'relative',
+                            width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
+                            left: section.first
+                              ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
+                              : undefined,
+                          }}>
                             <span className="text-[7px]">{section.time}</span>
                             <div className="w-[2px] h-[10px] bg-gray-300"></div>
                             <div className="w-full h-[2px] bg-gray-300"></div>
-                          </>
+                          </div>
                         ) : (
                           <>
                             <span className="text-[7px] text-white">h</span>

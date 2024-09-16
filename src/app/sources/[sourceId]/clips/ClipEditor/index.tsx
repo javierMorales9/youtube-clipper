@@ -71,7 +71,7 @@ export default function ClipEditor({
     await createClip({
       name: data.name,
       sourceId: source.id,
-      clipId: clip.clipId,
+      id: clip.clipId,
       range: data.range,
       width: data.width,
       height: data.height,
@@ -437,7 +437,7 @@ function Viewer({
           src={`${source}`}
           timer={timer}
           startTime={start}
-          dimensions={dimensions}
+          dimensions={[dimensions[0] * factor, dimensions[1] * factor]}
           setDimensions={setDimensions}
         />
         {section?.fragments && (

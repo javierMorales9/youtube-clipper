@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const ClipSchema = z.object({
-  clipId: z.string().optional(),
+  id: z.string().optional(),
   name: z.string(),
   processing: z.boolean().optional(),
   sourceId: z.string(),

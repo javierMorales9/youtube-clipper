@@ -101,6 +101,7 @@ export default function RangeSelection({
       onMouseDown={(e) => startSelection(secondsOfPosition(e))}
       onMouseMove={(e) => changePanelDuration(secondsOfPosition(e))}
       onMouseUp={finishPanelDurationChange}
+      onMouseLeave={finishPanelDurationChange}
     >
       <div
         className="absolute w-full h-full"
@@ -110,22 +111,22 @@ export default function RangeSelection({
           <div
             key={index}
             className={`
-              absolute h-full z-10 overflow-hidden whitespace-nowrap text-ellipsis
+              absolute h-full z-10
               flex flex-row items-center
               px-1 cursor-pointer
             `}
             style={{
               left: clip.left,
               width: clip.width,
-              backgroundColor: 'rgba(151, 202, 232, 0.7)',
+              backgroundColor: 'rgba(122, 237, 59, 0.7)',
             }}
             onClick={(e) => {
               e.stopPropagation();
-              setPanel("clip", suggestions[index]!.id)
+              setPanel("clip", clips[index]!.id);
             }}
           >
-            {selectedPanel.id === clips[index]!.clipId && <Handles />}
-            <div className="w-full p-1 h-full">
+            {/*selectedPanel.id === clips[index]!.id && <Handles />*/}
+            <div className="w-full p-1 h-full overflow-hidden whitespace-nowrap text-ellipsis">
               {clip.name}
             </div>
           </div>
