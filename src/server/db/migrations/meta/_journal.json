@@ -78,6 +78,13 @@
       "when": 1724861524822,
       "tag": "0010_chunky_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1727113444031,
+      "tag": "0011_stormy_sister_grimm",
+      "breakpoints": true
     }
   ]
 }

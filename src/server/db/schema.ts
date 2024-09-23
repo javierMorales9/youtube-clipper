@@ -123,3 +123,13 @@ export const sectionFragment = createTable(
   },
 );
 export type SectionFragment = InferModel<typeof sectionFragment>;
+
+export const processingEvent = createTable("processing_event", {
+  id: uuid("id").primaryKey(),
+  sourceId: uuid("source_id"),
+  clipId: uuid("clip_id"),
+  type: varchar("type", { length: 256 }).notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  finishedAt: timestamp("finished_at"),
+  error: text("error"),
+});
