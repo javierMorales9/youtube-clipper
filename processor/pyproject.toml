@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "processor"
+version = "0.1.0"
+description = ""
+authors = ["Javier Morales de Vera <javiermoralesdevera99@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pendulum = "^3.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
