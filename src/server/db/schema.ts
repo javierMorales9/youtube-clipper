@@ -126,8 +126,8 @@ export type SectionFragment = InferModel<typeof sectionFragment>;
 
 export const processingEvent = createTable("processing_event", {
   id: uuid("id").primaryKey(),
-  sourceId: uuid("source_id"),
-  clipId: uuid("clip_id"),
+  sourceId: uuid("source_id").references(() => source.id, { onDelete: "cascade" }),
+  clipId: uuid("clip_id").references(() => clip.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 256 }).notNull(),
   createdAt: timestamp("created_at").notNull(),
   finishedAt: timestamp("finished_at"),
