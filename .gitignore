@@ -50,3 +50,6 @@ public/test.mp4
 public/assets/
 public/files
 test.mp4
+
+# Python files
+__pycache__/

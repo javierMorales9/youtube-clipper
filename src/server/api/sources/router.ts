@@ -2,9 +2,10 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { source, suggestion } from "@/server/db/schema";
+import { processingEvent, source, suggestion } from "@/server/db/schema";
 import { Store } from "./Store";
 import { eq } from "drizzle-orm";
+import { createSourceUploadedEvent } from "@/server/processingEvent";
 
 export const sourceRouter = createTRPCRouter({
   all: publicProcedure.input(z.object({})).query(async ({ ctx }) => {
@@ -128,5 +129,9 @@ export const sourceRouter = createTRPCRouter({
           updatedAt: new Date(),
         })
         .where(eq(source.id, id));
+
+      await ctx.db
+        .insert(processingEvent)
+        .values(createSourceUploadedEvent(id));
     }),
 });

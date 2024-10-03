@@ -1,29 +1,17 @@
-import { env } from "@/env";
-
 export const DevStore = {
   getSignedUrls: async function (key: string) {
-    const dir = env.AFTER_UPLOAD_URL;
-    if (!dir) {
-      throw new Error("Missing AFTER_UPLOAD_URL");
-    }
-
     return {
-      manifest: process.env.HLS ? `${dir}/${key}/adaptive.m3u8` : `${dir}/${key}/original.mp4`,
-      timeline: `${dir}/${key}/timeline.png`,
-      snapshot: `${dir}/${key}/snapshot.png`,
+      manifest: process.env.HLS ? `/api/dev/files/${key}/adaptive.m3u8` : `/api/dev/files/${key}/original.mp4`,
+      timeline: `/api/dev/files/${key}/timeline.png`,
+      snapshot: `/api/dev/files/${key}/snapshot.png`,
     };
   },
   initiateUpload: async function (name: string) {
-    const dir = env.AFTER_UPLOAD_URL;
-    if (!dir) {
-      throw new Error("Missing AFTER_UPLOAD_URL");
-    }
-
     return {
       fileId: name,
       parts: [
         {
-          signedUrl: `${dir}/upload/${name}`,
+          signedUrl: `api/dev/files/${name}/upload/`,
           PartNumber: 1,
         },
       ],
@@ -34,11 +22,6 @@ export const DevStore = {
     fileKey: string,
     parts: { PartNumber: number; ETag: string }[],
   ) {
-    const dir = env.AFTER_UPLOAD_URL;
-    if (!dir) {
-      throw new Error("Missing AFTER_UPLOAD_URL");
-    }
-
-    return `${dir}/${fileKey}`;
+    return `api/dev/files/${fileKey}`;
   },
 };
