@@ -7,11 +7,12 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.12"
 pendulum = "^3.0.0"
 black = "^24.8.0"
 sqlalchemy = "^2.0.35"
 psycopg2-binary = "^2.9.9"
+boto3 = "^1.35.29"
 
 [build-system]
 requires = ["poetry-core"]
