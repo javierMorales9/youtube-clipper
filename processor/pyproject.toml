@@ -13,6 +13,7 @@ black = "^24.8.0"
 sqlalchemy = "^2.0.35"
 psycopg2-binary = "^2.9.9"
 boto3 = "^1.35.29"
+ffmpeg-python = "^0.2.0"
 
 [build-system]
 requires = ["poetry-core"]

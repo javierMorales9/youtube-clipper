@@ -20,7 +20,7 @@ class Source(Base):
     duration: Mapped[Optional[float]]
 
     createdAt: Mapped[datetime] = mapped_column(DateTime, name="created_at", nullable=False)
-    updatedAt: Mapped[datetime] = mapped_column(DateTime, name="updated_at", nullable=False)
+    updatedAt: Mapped[datetime] = mapped_column(DateTime, name="updatedAt", nullable=False)
 
     def __repr__(self) -> str:
         return f"Source(id={self.id!r}, externalId={self.externalId!r}, name={self.name!r})"
@@ -89,7 +89,7 @@ class SectionFragment(Base):
 class ProcessingEvent(Base):
     __tablename__ = "processing_event"
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     sourceId: Mapped[Optional[str]] = mapped_column(ForeignKey("source.id"), name="source_id")
     clipId: Mapped[Optional[str]] = mapped_column(ForeignKey("clip.id"), name="clip_id")
     type: Mapped[str] = mapped_column(String(256), nullable=False)

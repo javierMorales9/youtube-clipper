@@ -33,6 +33,13 @@ def findClipById(session: Session, clipId: str):
 
     return parseClip(clip, clipRange, sections, fragmentsList)
 
+def finishClipProcessing(session: Session, clipId: str):
+    clip = session.query(ClipModel).filter(ClipModel.id == clipId).first()
+
+    if clip is None:
+        return None
+
+    clip.processing = False
 
 def parseClip(
     clipModel: ClipModel,

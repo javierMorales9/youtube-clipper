@@ -12,10 +12,25 @@ def findSourceById(session: Session, sourceId: str):
 
     return parseSource(source)
 
+def saveSource(session: Session, source: Source):
+    sourceModel = SourceModal(
+        id=source.id,
+        externalId=source.externalId,
+        name=source.name,
+        processing=source.processing,
+        url=source.url,
+        width=source.width,
+        height=source.height,
+        duration=source.duration,
+        createdAt=source.createdAt,
+        updatedAt=source.updatedAt,
+    )
+
+    session.add(sourceModel)
 
 def parseSource(sourceModel: SourceModal):
     return Source(
-        id=sourceModel.id,
+        id=str(sourceModel.id),
         externalId=sourceModel.externalId,
         name=sourceModel.name,
         processing=sourceModel.processing,
