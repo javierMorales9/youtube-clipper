@@ -17,6 +17,9 @@ export default function SourceModal({
   const [videoName, setVideoName] = useState<string>("");
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'video/mp4': ['.mp4'],
+    },
     onDrop: (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
         setFile(acceptedFiles[0]!);
@@ -29,7 +32,7 @@ export default function SourceModal({
 
   const nextStep = async () => {
     setStep("uploading");
-    upload().catch(() => {});
+    upload().catch(() => { });
   };
 
   useEffect(() => {
