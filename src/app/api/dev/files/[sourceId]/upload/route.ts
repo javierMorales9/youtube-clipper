@@ -6,10 +6,9 @@ const addFile = async (
   { params: { sourceId } }: { params: { sourceId: string } },
 ) => {
   try {
-    const a = await req.blob();
-    console.log("a", a);
+    const data = await req.formData()
+    const a = data.get('file');
 
-    //const a = data.get('file');
     if (!a) {
       return new NextResponse(
         JSON.stringify({ message: "No file provided", success: false }),
@@ -20,6 +19,7 @@ const addFile = async (
     }
 
     const buffer = Buffer.from(await (a as File).arrayBuffer());
+    console.log("Buffer leng", buffer.length)
 
     const basePath = `./public/files/${sourceId}`;
 

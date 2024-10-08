@@ -25,8 +25,7 @@ def saveSource(session: Session, source: Source):
         createdAt=source.createdAt,
         updatedAt=source.updatedAt,
     )
-
-    session.add(sourceModel)
+    session.merge(sourceModel)
 
 def parseSource(sourceModel: SourceModal):
     return Source(

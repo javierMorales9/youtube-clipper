@@ -165,10 +165,10 @@ async function ffmpeg(path) {
   try {
     if (process.env.HLS) {
       await exec(`ffmpeg -i ${path}/original.mp4 \
+         -f hls \
          -codec: copy \
          -hls_time 10 \
          -hls_list_size 0 \
-         -f hls \
         ${path}/adaptive.m3u8`);
     }
 
