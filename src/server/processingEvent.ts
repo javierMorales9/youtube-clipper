@@ -13,3 +13,13 @@ export function createSourceUploadedEvent(sourceId: string) {
     createdAt: new Date(),
   };
 }
+
+export function createClipUpdatedEvent(clipId: string, sourceId: string) {
+  return {
+    id: randomUUID(),
+    sourceId,
+    clipId,
+    type: ProcessingEvent.CLIP_UPDATED,
+    createdAt: new Date(),
+  };
+}

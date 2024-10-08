@@ -29,7 +29,7 @@ def findClipById(session: Session, clipId: str):
             )
             .all()
         )
-        fragmentsList.append(fragments)
+        fragmentsList.extend(fragments)
 
     return parseClip(clip, clipRange, sections, fragmentsList)
 

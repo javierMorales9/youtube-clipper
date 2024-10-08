@@ -6,7 +6,7 @@ from enum import Enum
 
 from models import ProcessingEvent
 from processSource import processSource
-from clipUpdated import clipUpdated
+from generateClip import generateClip
 
 from clip.clipRepository import findClipById, finishClipProcessing
 from source.sourceRepository import findSourceById, saveSource
@@ -84,11 +84,12 @@ def loop():
 
                             saveSource(session, source)
                 elif event.type == EventType.CLIP_UPDATED:
+                    print(f"Processing clip {event.clipId}")
                     if event.clipId is not None and event.sourceId is not None:
                         clip = findClipById(session, event.clipId)
                         source = findSourceById(session, event.sourceId)
                         if clip is not None and source is not None:
-                            clipUpdated(clip, source)
+                            generateClip(clip, source)
                             finishClipProcessing(session, event.clipId)
 
             session.commit()

@@ -39,14 +39,14 @@ class Clip(Base):
     __tablename__ = "clip"
 
     id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    sourceId: Mapped[str] = mapped_column(ForeignKey("source.id"), nullable=False)
+    sourceId: Mapped[str] = mapped_column(ForeignKey("source.id"), name="source_id", nullable=False)
     name: Mapped[str] = mapped_column(String(256), default="")
     url: Mapped[Optional[str]] = mapped_column(String(256))
     processing: Mapped[bool] = mapped_column(Boolean, nullable=False)
     width: Mapped[int] = mapped_column(nullable=False)
     height: Mapped[int] = mapped_column(nullable=False)
     createdAt: Mapped[datetime] = mapped_column(DateTime, name="created_at")
-    updatedAt: Mapped[datetime] = mapped_column(DateTime, name="updated_at")
+    updatedAt: Mapped[datetime] = mapped_column(DateTime, name="updatedAt")
 
 class ClipRange(Base):
     __tablename__ = "clip_range"
@@ -62,14 +62,14 @@ class ClipRange(Base):
 class ClipSection(Base):
     __tablename__ = "clip_section"
 
-    order: Mapped[int] = mapped_column(nullable=False)
+    order: Mapped[int] = mapped_column(nullable=False, name="number")
     clipId: Mapped[str] = mapped_column(ForeignKey("clip.id"), name="clip_id", nullable=False)
     start: Mapped[int] = mapped_column(nullable=False)
     end: Mapped[int] = mapped_column(nullable=False)
     display: Mapped[str] = mapped_column(String(256), nullable=False)
 
     __table_args__ = (
-        PrimaryKeyConstraint("order", "clip_id"),
+        PrimaryKeyConstraint("number", "clip_id"),
     )
 
 class SectionFragment(Base):

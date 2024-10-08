@@ -6,12 +6,14 @@ import {
   clip,
   clipRange,
   clipSection,
+  processingEvent,
   sectionFragment,
   source,
 } from "@/server/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import { ClipProcessor } from "./ClipProcessor";
 import { Clip, ClipSchema } from "./ClipSchema";
+import { createClipUpdatedEvent } from "@/server/processingEvent";
 
 export const clipRouter = createTRPCRouter({
   find: publicProcedure
@@ -100,6 +102,8 @@ export const clipRouter = createTRPCRouter({
 
         realClips.push({
           ...theClip,
+          width: parseInt(theClip.width),
+          height: parseInt(theClip.height),
           range: {
             start: range.start,
             end: range.end,
@@ -111,9 +115,9 @@ export const clipRouter = createTRPCRouter({
       return realClips;
     }),
   create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
-    const { name, clipId, range, width, height, sourceId, sections } = input;
+    let { name, id, range, width, height, sourceId, sections } = input;
     console.log("Creating the thing", JSON.stringify(input, null, 2));
-    const id = clipId || uuidv4();
+    id = id || uuidv4();
 
     await ctx.db.transaction(async (trans) => {
       await trans
@@ -188,12 +192,9 @@ export const clipRouter = createTRPCRouter({
 
     if (!theSource) throw new Error("Source not found");
 
-    await ClipProcessor().processClip(
-      id,
-      input,
-      theSource.width!,
-      theSource.height!,
-    );
+    await ctx.db
+      .insert(processingEvent)
+      .values(createClipUpdatedEvent(id, sourceId));
   }),
   finishProcessing: publicProcedure
     .input(z.object({ id: z.string() }))
