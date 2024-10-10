@@ -1,5 +1,7 @@
+import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 from time import sleep
 
 from enum import Enum
@@ -17,7 +19,14 @@ class EventType(str, Enum):
     CLIP_UPDATED = "clip_updated"
 
 
-engine = create_engine("postgresql://user:pass@localhost:5432/db")  # , echo=True)
+env = os.environ["ENV"]
+if env == "dev":
+    load_dotenv()
+    
+dbUrl = os.environ["DATABASE_URL"]
+filesPath = os.environ["FILES_PATH"]
+print(f"Connecting to database at {dbUrl}")
+engine = create_engine(dbUrl)
 
 
 def loop():
@@ -69,7 +78,7 @@ def loop():
                     if event.sourceId is not None:
                         source = findSourceById(session, event.sourceId)
                         if source is not None:
-                            duration, resolution = processSource(event.sourceId)
+                            duration, resolution = processSource(event.sourceId, filesPath)
 
                             source.processing = False
                             source.duration = duration
@@ -89,7 +98,7 @@ def loop():
                         clip = findClipById(session, event.clipId)
                         source = findSourceById(session, event.sourceId)
                         if clip is not None and source is not None:
-                            generateClip(clip, source)
+                            generateClip(clip, source, filesPath)
                             finishClipProcessing(session, event.clipId)
 
             session.commit()

@@ -59,9 +59,8 @@ def getResolution(path: str):
     return process.stdout
 
 
-def processSource(sourceId: str):
-    basePath = "../public/files/"
-    path = basePath + str(sourceId)
+def processSource(sourceId: str, basePath: str):
+    path = f'{basePath}/{str(sourceId)}'
     duration = generateFiles(path)
     resolution = getResolution(path)
 

@@ -5,9 +5,7 @@ from math import floor
 
 from source.Source import Source
 
-path = "../public/files"
-
-def generateClip(clip: Clip, source: Source):
+def generateClip(clip: Clip, source: Source, path):
     if source.width is None or source.height is None:
         raise Exception('Source resolution is missing')
 
@@ -53,5 +51,5 @@ def generateClip(clip: Clip, source: Source):
     result.stdout
 
     if result.returncode != 0:
-        print('jujujuju', result.stderr)
+        print('Error', result.stderr)
         raise Exception('Error generating clip', result.stderr)
