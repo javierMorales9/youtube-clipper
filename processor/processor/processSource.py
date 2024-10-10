@@ -1,4 +1,5 @@
-# import boto3
+import boto3
+import os
 import subprocess
 
 def generateFiles(path: str):
@@ -59,11 +60,48 @@ def getResolution(path: str):
     return process.stdout
 
 
-def processSource(sourceId: str, basePath: str):
-    path = f'{basePath}/{str(sourceId)}'
-    duration = generateFiles(path)
-    resolution = getResolution(path)
+def processSource(sourceId: str):
+    env = os.environ["ENV"]
+    if env == "dev":
+        basePath = os.environ["FILES_PATH"]
+        path = f'{basePath}/{str(sourceId)}'
+        duration = generateFiles(path)
+        resolution = getResolution(path)
 
-    print("Finish processing source", duration, resolution)
+        print("Finish processing source", duration, resolution)
 
-    return (duration, resolution)
+        return (duration, resolution)
+    else:
+        bucket = os.environ["SOURCE_BUCKET"]
+        aws_region = os.environ["AWS_REGION"]
+
+        session = boto3.Session(
+            region_name=aws_region,
+        )
+        resource = session.resource('s3')
+        my_bucket = resource.Bucket(bucket)
+
+        # Create tmp/{sourceId} folder
+        os.mkdir(f'/tmp/{sourceId}')
+
+        key = f'{sourceId}/original.mp4'
+        local_filename = f'/tmp/{sourceId}/original.mp4'
+        print("Downloading file", key)
+        my_bucket.download_file(key, local_filename)
+
+        duration = generateFiles(f'/tmp/{sourceId}')
+        resolution = getResolution(f'/tmp/{sourceId}')
+        print("Finish processing source", duration, resolution)
+
+        # Upload files int tmp/{sourceId} to S3
+        for file in os.listdir(f'/tmp/{sourceId}'):
+            if file == 'original.mp4':
+                continue
+
+            local_file = f'/tmp/{sourceId}/{file}'
+            my_bucket.upload_file(local_file, f'{sourceId}/{file}')
+            os.remove(local_file)
+
+        os.rmdir(f'/tmp/{sourceId}')
+
+        return (duration, resolution)

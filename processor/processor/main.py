@@ -24,7 +24,6 @@ if env == "dev":
     load_dotenv()
     
 dbUrl = os.environ["DATABASE_URL"]
-filesPath = os.environ["FILES_PATH"]
 print(f"Connecting to database at {dbUrl}")
 engine = create_engine(dbUrl)
 
@@ -78,7 +77,7 @@ def loop():
                     if event.sourceId is not None:
                         source = findSourceById(session, event.sourceId)
                         if source is not None:
-                            duration, resolution = processSource(event.sourceId, filesPath)
+                            duration, resolution = processSource(event.sourceId)
 
                             source.processing = False
                             source.duration = duration
@@ -98,7 +97,7 @@ def loop():
                         clip = findClipById(session, event.clipId)
                         source = findSourceById(session, event.sourceId)
                         if clip is not None and source is not None:
-                            generateClip(clip, source, filesPath)
+                            generateClip(clip, source)
                             finishClipProcessing(session, event.clipId)
 
             session.commit()

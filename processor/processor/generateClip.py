@@ -1,3 +1,5 @@
+import boto3
+import os
 from clip.Clip import Clip
 import subprocess
 
@@ -5,7 +7,7 @@ from math import floor
 
 from source.Source import Source
 
-def generateClip(clip: Clip, source: Source, path):
+def generateFiles(clip: Clip, source: Source, path: str):
     if source.width is None or source.height is None:
         raise Exception('Source resolution is missing')
 
@@ -53,3 +55,40 @@ def generateClip(clip: Clip, source: Source, path):
     if result.returncode != 0:
         print('Error', result.stderr)
         raise Exception('Error generating clip', result.stderr)
+
+def generateClip(clip: Clip, source: Source):
+    env = os.environ["ENV"]
+
+    if env == "dev":
+        print('Generating clip', clip.id)
+        path = os.environ["FILES_PATH"]
+        generateFiles(clip, source, path)
+    else:
+        print('Generating clip', clip.id)
+        bucket = os.environ["SOURCE_BUCKET"]
+        aws_region = os.environ["AWS_REGION"]
+
+        session = boto3.Session(
+            region_name=aws_region,
+        )
+        resource = session.resource('s3')
+        my_bucket = resource.Bucket(bucket)
+
+        # Create tmp/{sourceId} folder
+        os.mkdir(f'/tmp/{source.id}')
+
+        print("Downloading file", f'{source.id}/original.mp4')
+        my_bucket.download_file(f'{source.id}/original.mp4', f'/tmp/{source.id}/original.mp4')
+        #my_bucket.download_file(f'{source.id}/transcription.txt', f'/tmp/{source.id}/transcription.txt')
+
+        generateFiles(clip, source, f'/tmp')
+
+        for file in os.listdir(f'/tmp/{source.id}'):
+            if file == 'original.mp4' or file == 'transcription.txt':
+                continue
+
+            local_file = f'/tmp/{source.id}/{file}'
+            my_bucket.upload_file(local_file, f'{source.id}/{file}')
+            os.remove(local_file)
+
+        os.rmdir(f'/tmp/{source.id}')

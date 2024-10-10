@@ -18,9 +18,11 @@ services:
     links:
       - db
     environment:
-      - ENV=prod
+      - ENV=dev
       - FILES_PATH=/public
       - DATABASE_URL=postgresql://user:pass@db/db
+      - AWS_REGION=eu-west-1
+      - SOURCE_BUCKET=bluesun-yt-test-bucket
     extra_hosts:
       - "internal:host-gateway"
     depends_on:
