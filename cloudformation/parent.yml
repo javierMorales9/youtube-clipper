@@ -10,19 +10,8 @@ Parameters:
     Type: String
     Description: The name of the S3 bucket to use for the source code
     Default: "sources-file-bucket"
-  JobQueueName:
-    Type: String
-    Description: The name of the AWS Batch job queue
-    Default: "job-queue"
-  AfterClipUpdateJobDefinitionName:
-    Type: String
-    Description: The name of the AWS Batch job definition for after clip update
-    Default: "after_clip_update_definition"
 
 Resources:
-
-  # The networking configuration. This creates an isolated
-  # network specific to this particular environment
   VpcStack:
     Type: AWS::Serverless::Application
     Properties:
@@ -37,41 +26,11 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
         SourceBucket: !Ref SourceBucketName
-        JobQueue: !Ref JobQueueName
-        AfterClipUpdateJobDefinition: !Ref AfterClipUpdateJobDefinitionName
-
-  SNSStack:
-    Type: AWS::Serverless::Application
-    DependsOn: AppStack
-    Properties:
-      Location: sns.yml
-      Parameters:
-        ServerUrl: !GetAtt AppStack.Outputs.ServerEndpoint
-
-  # This stack defines the container deployment
-  BatchStack:
-    Type: AWS::Serverless::Application
-    DependsOn: [VpcStack, SNSStack]
-    Properties:
-      Location: batch.yml
-      Parameters:
-        ECRUri: !Ref ECRUri
-        VpcId: !GetAtt VpcStack.Outputs.VpcId
-        SubnetIds: !GetAtt VpcStack.Outputs.PrivateSubnetIds
-        PrivateLinkEndpointSecurityGroup: !GetAtt VpcStack.Outputs.PrivateLinkEndpointSecurityGroup
-        AfterUploadTopicArn: !GetAtt SNSStack.Outputs.AfterUploadTopicArn
-        AfterClipUpdateTopicArn: !GetAtt SNSStack.Outputs.AfterClipUpdateTopicArn
-        JobQueueName: !Ref JobQueueName
-        AfterClipUpdateJobDefinitionName: !Ref AfterClipUpdateJobDefinitionName
-        SourceBucketName: !Ref SourceBucketName
 
   S3Stack:
     Type : AWS::Serverless::Application
-    DependsOn: BatchStack
     Properties:
       Location: source_s3_and_lambda.yml
       Parameters:
-        JobQueueArn: !GetAtt BatchStack.Outputs.JobQueueArn
-        AfterUploadJobDefinitionArn: !GetAtt BatchStack.Outputs.AfterUploadJobDefinitionArn
         S3BucketName: !Ref SourceBucketName
 

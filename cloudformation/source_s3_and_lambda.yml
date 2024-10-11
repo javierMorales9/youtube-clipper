@@ -3,12 +3,6 @@ Description: Stack that deploys the s3 bucket where we will upload the
              sources files and the lambda function that will trigger the
              batch job.
 Parameters:
-  JobQueueArn:
-    Type: String
-    Description: The ARN of the AWS Batch job queue
-  AfterUploadJobDefinitionArn:
-    Type: String
-    Description: The ARN of the AWS after upload Batch job definition
   S3BucketName:
     Type: String
     Description: The name of the S3 bucket
@@ -16,7 +10,6 @@ Parameters:
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
-    DependsOn: [AfterUploadLambdaFunction, TranscribeVideoLambdaFunction, AfterUploadInvokePermission, TranscibeInvokePermission]
     Properties:
       BucketName: !Ref S3BucketName
       AccessControl: Private
@@ -34,22 +27,6 @@ Resources:
               - "*"
             ExposedHeaders:
               - "ETag"
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: original.mp4
-            Function: !GetAtt TranscribeVideoLambdaFunction.Arn
-          - Event: s3:ObjectCreated:*
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: .srt
-            Function: !GetAtt AfterUploadLambdaFunction.Arn
 
   CloudfrontOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -116,192 +93,6 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::909166668781:distribution/${CloudFrontDistribution}"
 
-  AfterUploadInvokePermission:
-    Type: AWS::Lambda::Permission
-    DependsOn: [AfterUploadLambdaFunction]
-    Properties:
-      FunctionName: !GetAtt AfterUploadLambdaFunction.Arn
-      Action: lambda:InvokeFunction
-      Principal: s3.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
-      # We create the arn manually to avoid circular dependencies. See
-      # https://repost.aws/knowledge-center/unable-validate-circular-dependency-cloudformation
-      SourceArn: !Sub "arn:aws:s3:::${S3BucketName}"
-
-  TranscibeInvokePermission:
-    Type: AWS::Lambda::Permission
-    DependsOn: [TranscribeVideoLambdaFunction]
-    Properties:
-      FunctionName: !GetAtt TranscribeVideoLambdaFunction.Arn
-      Action: lambda:InvokeFunction
-      Principal: s3.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
-      # We create the arn manually to avoid circular dependencies. See
-      # https://repost.aws/knowledge-center/unable-validate-circular-dependency-cloudformation
-      SourceArn: !Sub "arn:aws:s3:::${S3BucketName}"
-
-  ProcessingLambdaExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-        - PolicyName: allowLogging
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Action:
-              - logs:*
-              Resource: arn:aws:logs:*:*:*
-        - PolicyName: getAndDeleteObjects
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Action:
-                - s3:GetObject
-                - s3:DeleteObject
-                - s3:PutObject
-                - transcribe:*
-              Resource: '*'
-        - PolicyName: allowBatch
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Action:
-                - "batch:*"
-                - "cloudwatch:GetMetricStatistics"
-                - "ec2:DescribeSubnets"
-                - "ec2:DescribeSecurityGroups"
-                - "ec2:DescribeKeyPairs"
-                - "ec2:DescribeVpcs"
-                - "ec2:DescribeImages"
-                - "ec2:DescribeLaunchTemplates"
-                - "ec2:DescribeLaunchTemplateVersions"
-                - "ecs:DescribeClusters"
-                - "ecs:Describe*"
-                - "ecs:List*"
-                - "eks:DescribeCluster"
-                - "eks:ListClusters"
-                - "logs:Describe*"
-                - "logs:Get*"
-                - "logs:TestMetricFilter"
-                - "logs:FilterLogEvents"
-                - "iam:ListInstanceProfiles"
-                - "iam:ListRoles"
-              Resource: '*'
-  TranscribeVideoLambdaFunction:
-    Type: AWS::Lambda::Function
-    DependsOn: [ProcessingLambdaExecutionRole]
-    Properties:
-      Code:
-        ZipFile: >
-          const { StartTranscriptionJobCommand, TranscribeClient } = require("@aws-sdk/client-transcribe");
-          async function handler(event, context, callback) {
-            console.log("Vuelta al sexo quimicamente puro");
-
-            const sourceBucket = event.Records[0].s3.bucket.name;
-            const original = decodeURI(event.Records[0].s3.object.key);
-            const id = decodeURI(event.Records[0].s3.object.key).split('/')[0];
-            
-             const params = {
-             TranscriptionJobName: `${id}-transcribe`,
-             LanguageCode: "es-ES", // For example, 'en-US'
-             MediaFormat: "mp4", // For example, 'wav'
-             Media: {
-               MediaFileUri: `https://${sourceBucket}.s3-${process.env.AWS_REGION}.amazonaws.com/${original}`,
-             },
-             OutputBucketName: sourceBucket,
-             OutputKey: `${id}/transcription.srt`,
-           };
-            
-            try {
-              const transcribeClient = new TranscribeClient();
-              const data = await transcribeClient.send(
-                new StartTranscriptionJobCommand(params)
-              );
-              
-              console.log("Success - put", data);
-              return data; // For unit tests.
-            } catch (err) {
-              console.log("Error::", err);
-            }
-           }
-
-           module.exports.handler = handler;
-      Handler: index.handler
-      Role: !GetAtt ProcessingLambdaExecutionRole.Arn
-      Runtime: nodejs18.x
-      MemorySize: 512
-      Timeout: 120
-      Environment:
-        Variables:
-          OUTPUT_BUCKET_NAME: !Ref S3BucketName
-  AfterUploadLambdaFunction:
-    Type: AWS::Lambda::Function
-    DependsOn: [ProcessingLambdaExecutionRole]
-    Properties:
-      Code:
-        ZipFile: >
-          const { BatchClient, SubmitJobCommand } = require("@aws-sdk/client-batch");
-          async function handler(event, context, callback) {
-            
-            const inputBucket = event.Records[0].s3.bucket.name;
-            const sourceId = decodeURI(event.Records[0].s3.object.key).split('/')[0];
-            
-            const client = new BatchClient();
-            const command = new SubmitJobCommand({
-              jobDefinition: process.env.JOB_DEFINITION,
-              jobName: process.env.JOB_NAME,
-              jobQueue: process.env.JOB_QUEUE,
-              containerOverrides: {
-                environment: [
-                  {
-                    name: 'INPUT_BUCKET',
-                    value: inputBucket,
-                  },
-                  {
-                    name: 'INPUT_KEY',
-                    value: `${sourceId}/original.mp4`,
-                  },
-                  {
-                    name: 'SOURCE_ID',
-                    value: sourceId,
-                  }
-                ]
-              }
-            });
-            try {
-              const response = await client.send(command);
-              console.log(response);
-              return callback();
-            }
-            catch(err) {
-              console.log(err, err.stack);
-              return callback(err);
-            }
-            
-           }
-           module.exports.handler = handler;
-      Handler: index.handler
-      Role: !GetAtt ProcessingLambdaExecutionRole.Arn
-      Runtime: nodejs18.x
-      MemorySize: 512
-      Timeout: 120
-      Environment:
-        Variables:
-          JOB_QUEUE: !Ref JobQueueArn
-          JOB_DEFINITION: !Ref AfterUploadJobDefinitionArn
-          JOB_NAME: !Sub "after_upload_new_${AWS::StackName}"
 Outputs:
   S3BucketName:
     Description: The name of the S3 bucket

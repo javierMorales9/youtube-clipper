@@ -15,12 +15,6 @@ Parameters:
   SourceBucket:
     Type: String
     Description: The S3 bucket that contains the source code of the application
-  JobQueue:
-    Type: String
-    Description: The name of the AWS Batch job queue
-  AfterClipUpdateJobDefinition:
-    Type: String
-    Description: The name of the AWS after clip update Batch job definition
 
 Resources:
   Service:
@@ -44,16 +38,8 @@ Resources:
                 Value: !Ref 'AWS::Region'
               - Name: SOURCE_BUCKET
                 Value: !Ref SourceBucket
-              - Name: JOB_QUEUE
-                Value: !Ref JobQueue
-              - Name: AFTER_CLIP_JOB_DEFINITION
-                Value: !Ref AfterClipUpdateJobDefinition
       InstanceConfiguration:
         InstanceRoleArn: !GetAtt InstanceRole.Arn
-      #NetworkConfiguration:
-        #EgressConfiguration:
-          #EgressType: VPC
-          #VpcConnectorArn: !Ref VPCConnector
 
   AccessRole:
     Type: AWS::IAM::Role
