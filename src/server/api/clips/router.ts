@@ -115,9 +115,9 @@ export const clipRouter = createTRPCRouter({
       return realClips;
     }),
   create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
-    let { name, id, range, width, height, sourceId, sections } = input;
+    const { name, range, width, height, sourceId, sections } = input;
     console.log("Creating the thing", JSON.stringify(input, null, 2));
-    id = id || uuidv4();
+    const id = input.id || uuidv4();
 
     await ctx.db.transaction(async (trans) => {
       await trans

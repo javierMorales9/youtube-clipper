@@ -33,8 +33,8 @@ export default async function EditClip({
             start: range.start,
             end: range.end,
           },
-          width,
-          height,
+          width: parseFloat(width),
+          height: parseFloat(height),
           sections: sections.map((section) => ({
             start: section!.start,
             end: section!.end,

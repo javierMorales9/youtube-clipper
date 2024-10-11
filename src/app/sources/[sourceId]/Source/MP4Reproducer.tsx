@@ -21,7 +21,7 @@ export default function MP4Reproducer({
   height?: number,
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  let videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [videoWidth, setVideoWidth] = useState<number | undefined>(undefined);
   const [videoHeight, setVideoHeight] = useState<number | undefined>(undefined);
@@ -52,6 +52,7 @@ export default function MP4Reproducer({
     const video = videoRef.current;
     if (!video) return;
 
+    // eslint-disable-next-line
     if (Math.abs(currentSeconds - video.currentTime!) < 1)
       return;
 

@@ -92,7 +92,7 @@ export default function Timeline({
   function scroll(e: WheelEvent<HTMLDivElement>) {
     //Depending if the user is scrolling with the mouse wheel or the trackpad
     //we get the deltaY or deltaX value
-    let value = Math.abs(e.deltaY) !== 0 ? e.deltaY : e.deltaX;
+    const value = Math.abs(e.deltaY) !== 0 ? e.deltaY : e.deltaX;
 
     setInitialPosition(prev => {
       const newPosition = prev + value;

@@ -38,7 +38,7 @@ function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
   );
 
   function setPanel(type: "clip" | "suggestion" | "selection", id?: string) {
-    let panel: SelectedPanel = {
+    const panel: SelectedPanel = {
       type,
       id: null,
     };
