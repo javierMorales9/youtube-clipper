@@ -1,8 +1,14 @@
+import math
 import os
+from typing import List
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from time import sleep
+
+from openai import OpenAI
+from openai.types.embedding import Embedding
+import tiktoken
 
 from enum import Enum
 
@@ -22,7 +28,7 @@ class EventType(str, Enum):
 env = os.environ["ENV"]
 if env == "dev":
     load_dotenv()
-    
+
 dbUrl = os.environ["DATABASE_URL"]
 print(f"Connecting to database at {dbUrl}")
 engine = create_engine(dbUrl)
@@ -106,4 +112,77 @@ def loop():
         sleep(10)
 
 
-loop()
+# loop()
+
+
+def toMillis(timeStr):
+    fromStr, millis = timeStr.split(",")
+    hours, minutes, seconds = fromStr.split(":")
+    return (
+        int(hours) * 3600 * 1000
+        + int(minutes) * 60 * 1000
+        + int(seconds) * 1000
+        + int(millis)
+    )
+
+
+def generateEmbeddingsFromSrt():
+    f = open("../public/srtSubtitles.srt", "r")
+    lines = f.readlines()
+    metadata = []
+    interventions = []
+
+    for i in range(4, len(lines), 4):
+        id = lines[i - 4].strip()
+
+        fromStr = lines[i - 3].split(" --> ")[0]
+        fromTime = toMillis(fromStr)
+
+        toStr = lines[i - 3].split(" --> ")[1]
+        toTime = toMillis(toStr)
+
+        text = lines[i - 2].strip()
+
+        metadata.append({"id:": id, "from": fromTime, "to": toTime})
+        interventions.append(text)
+
+    client = OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+    )
+
+
+    fullTranscript = "".join(interventions)
+    encoding = tiktoken.get_encoding("cl100k_base")
+    numTokens = len(encoding.encode(fullTranscript))
+
+    maxTokens = 2048
+
+    lines = len(interventions)
+    numBatches = math.ceil(numTokens / (maxTokens/2))
+    batchSize = lines // numBatches
+
+    batches = []
+    for i in range(numBatches):
+        start = i * batchSize
+        end = (i + 1) * batchSize
+        if i == numBatches - 1:
+            end = lines
+        batch = interventions[start:end]
+        batches.append(batch)
+
+    embeddings: List[Embedding] = []
+    for batch in batches:
+        result = (
+            client.embeddings.create(
+                input=batch,
+                model="text-embedding-3-small",
+                encoding_format="float",
+            )
+        )
+        embeddings.extend(result.data)
+
+
+    # write the embeddings to a file
+    with open("../public/embeddings.json", "w") as f:
+        jsonArray = ',\n'.join([embedding.json() for embedding in embeddings])
+        f.write(f"[{jsonArray}]")
