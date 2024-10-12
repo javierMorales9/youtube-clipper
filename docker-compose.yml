@@ -9,22 +9,21 @@ services:
       - POSTGRES_PASSWORD=pass
       - POSTGRES_USER=user
       - POSTGRES_DB=db
-  processor:
-    image: processor
-    build:
-      context: processor
-    volumes:
-      - /home/javi/personal/bluesun/public/files:/public
-    links:
-      - db
-    environment:
-      - ENV=dev
-      - FILES_PATH=/public
-      - DATABASE_URL=postgresql://user:pass@db/db
-      - AWS_REGION=eu-west-1
-      - SOURCE_BUCKET=bluesun-yt-test-bucket
-    extra_hosts:
-      - "internal:host-gateway"
-    depends_on:
-      - db
-
+#  processor:
+#    image: processor
+#    build:
+#      context: processor
+#    volumes:
+#      - /home/javi/personal/bluesun/public/files:/public
+#    links:
+#      - db
+#    environment:
+#      - ENV=dev
+#      - FILES_PATH=/public
+#      - DATABASE_URL=postgresql://user:pass@db/db
+#      - AWS_REGION=eu-west-1
+#      - SOURCE_BUCKET=bluesun-yt-test-bucket
+#    extra_hosts:
+#      - "internal:host-gateway"
+#    depends_on:
+#      - db

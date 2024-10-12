@@ -50,6 +50,8 @@ public/test.mp4
 public/assets/
 public/files
 test.mp4
+public/srtSubtitles.srt
+public/embeddings.json
 
 # Python files
 __pycache__/
