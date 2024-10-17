@@ -10,6 +10,9 @@ Parameters:
     Type: String
     Description: The name of the S3 bucket to use for the source code
     Default: "sources-file-bucket"
+  DatabaseUrl:
+    Type: String
+    Description: The URL of the database that the server will connect to
 
 Resources:
   VpcStack:
@@ -26,6 +29,18 @@ Resources:
         VpcId: !GetAtt VpcStack.Outputs.VpcId
         PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
         SourceBucket: !Ref SourceBucketName
+        DatabaseUrl: !Ref DatabaseUrl
+
+  ProcessorStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: processor.yml
+      Parameters:
+        ECRUri: !Ref ECRUri 
+        VpcId: !GetAtt VpcStack.Outputs.VpcId
+        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
+        SourceBucket: !Ref SourceBucketName
+        DatabaseUrl: !Ref DatabaseUrl
 
   S3Stack:
     Type : AWS::Serverless::Application
@@ -33,4 +48,5 @@ Resources:
       Location: source_s3_and_lambda.yml
       Parameters:
         S3BucketName: !Ref SourceBucketName
+        DatabaseUrl: !Ref DatabaseUrl
 

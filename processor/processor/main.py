@@ -17,11 +17,13 @@ from processSource import processSource
 from generateClip import generateClip
 
 from clip.clipRepository import findClipById, finishClipProcessing
+from startTranscription import startTranscription
 from source.sourceRepository import findSourceById, saveSource
 
 
 class EventType(str, Enum):
     SOURCE_UPLOADED = "source_uploaded"
+    TRANSCRIPTION_FINISHED = "transcription_finished"
     CLIP_UPDATED = "clip_updated"
 
 
@@ -30,9 +32,7 @@ if env == "dev":
     load_dotenv()
 
 dbUrl = os.environ["DATABASE_URL"]
-print(f"Connecting to database at {dbUrl}")
 engine = create_engine(dbUrl)
-
 
 def loop():
     # We will keep polling the database for new events to process
@@ -79,7 +79,14 @@ def loop():
                 )
 
                 if event.type == EventType.SOURCE_UPLOADED:
-                    print(f"Processing source {event.sourceId}")
+                    print(f"New source {event.sourceId}")
+                    if event.sourceId is not None:
+                        source = findSourceById(session, event.sourceId)
+                        if source is not None:
+                            startTranscription(source)
+
+                if event.type == EventType.TRANSCRIPTION_FINISHED:
+                    print(f"Processing source after transcription {event.sourceId}")
                     if event.sourceId is not None:
                         source = findSourceById(session, event.sourceId)
                         if source is not None:
@@ -112,8 +119,7 @@ def loop():
         sleep(10)
 
 
-# loop()
-
+loop()
 
 def toMillis(timeStr):
     fromStr, millis = timeStr.split(",")

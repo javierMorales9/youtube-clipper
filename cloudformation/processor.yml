@@ -24,17 +24,19 @@ Resources:
     Type: AWS::AppRunner::Service
     DependsOn: AccessRole
     Properties:
-      ServiceName: Server
+      ServiceName: Processor
       SourceConfiguration:
         AuthenticationConfiguration:           
           AccessRoleArn: !GetAtt AccessRole.Arn
         AutoDeploymentsEnabled: true
         ImageRepository:
-          ImageIdentifier: !Sub '${ECRUri}/app:latest'
+          ImageIdentifier: !Sub '${ECRUri}/processor:latest'
           ImageRepositoryType: ECR
           ImageConfiguration:
             Port: 3000
             RuntimeEnvironmentVariables:
+              - Name: ENV
+                Value: prod
               - Name: HOSTNAME
                 Value: '0.0.0.0'
               - Name: AWS_REGION
@@ -121,4 +123,5 @@ Outputs:
   ServerEndpoint:
     Description: The endpoint of the server
     Value: !GetAtt Service.ServiceUrl
+
 
