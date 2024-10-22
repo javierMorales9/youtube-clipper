@@ -1,3 +1,5 @@
+import { SourceData } from ".";
+
 type Part = {
   PartNumber: number;
   signedUrl: string;
@@ -8,7 +10,7 @@ export class Uploader {
   private chunkSize: number;
   private threadsQuantity: number;
   private file: File;
-  private fileName: string;
+  private videoData: SourceData;
   private aborted: boolean;
   private uploadedSize: number;
   private progressCache: Record<string, number>;
@@ -29,7 +31,7 @@ export class Uploader {
     chunkSize?: number;
     threadsQuantity?: number;
     file: File;
-    fileName: string;
+    videoData: SourceData;
     initiate: any;
     complete: any;
   }) {
@@ -40,7 +42,7 @@ export class Uploader {
     // number of parallel uploads
     this.threadsQuantity = Math.min(options.threadsQuantity || 5, 15);
     this.file = options.file;
-    this.fileName = options.fileName;
+    this.videoData = options.videoData;
     this.aborted = false;
     this.uploadedSize = 0;
     this.progressCache = {};
@@ -63,12 +65,11 @@ export class Uploader {
   async initialize() {
     try {
       // adding the the file extension (if present) to fileName
-      const fileName = this.fileName;
-
       const parts = Math.ceil(this.file.size / this.chunkSize);
 
       const { id, parts: newParts } = await this.initiateFn({
-        name: fileName,
+        ...this.videoData,
+        name: this.videoData.name,
         parts,
       });
       this.id = id;

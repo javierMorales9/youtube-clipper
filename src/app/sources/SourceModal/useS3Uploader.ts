@@ -2,13 +2,12 @@
 import { api } from "@/trpc/react";
 import { useState } from "react";
 import { Uploader } from "./Upload";
+import { SourceData } from ".";
 
 export function useS3Uploader({
-  videoName,
   file,
   setFile,
 }: {
-  videoName: string;
   file: File | null;
   setFile: (file: File | null) => void;
 }) {
@@ -19,14 +18,14 @@ export function useS3Uploader({
   const { mutateAsync: initiate } = api.source.initiateUpload.useMutation();
   const { mutateAsync: complete } = api.source.completeUpload.useMutation();
 
-  const upload = async () => {
+  const upload = async (data: SourceData) => {
     if (!file) return;
     setPercentage(0);
     setError(null);
 
     const uploader = new Uploader({
-      fileName: videoName || file.name,
       file: file,
+      videoData: data,
       initiate,
       complete,
     });

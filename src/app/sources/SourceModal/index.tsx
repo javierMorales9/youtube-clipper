@@ -18,7 +18,28 @@ import { NewInput } from "@/app/_components/NewInput";
 import { Button } from "@/app/_components/Button";
 import { toReadableTime } from "@/app/utils";
 
-import { UploadIcon } from "@radix-ui/react-icons";
+const lengths = [
+  "<30s",
+  "30s-1m",
+  "1m-1.5m",
+  "1.5m-3m",
+  "3m-5m",
+  "5m-10m",
+  "10m-15m",
+] as const;
+
+const genres = [
+  "Auto",
+  "Manuel",
+] as const;
+
+export type SourceData = {
+  name: string;
+  genre: string;
+  tags: string[];
+  clipLength: string;
+  range: number[];
+};
 
 export default function SourceModal({
   addSource,
@@ -32,7 +53,10 @@ export default function SourceModal({
   const [invalidError, setInvalidError] = useState<string | null>(null);
 
   const { percentage, error, upload, onCancel, uploading }
-    = useUploader()({ file, setFile, videoName });
+    = useUploader()({ file, setFile });
+
+  const [genre, setGenre] = useState<string>(genres[0]);
+  const [clipLength, setClipLength] = useState<string>(lengths[0]);
 
   const MAX_TAGS = 5;
   const { tags, handleAddTag, handleRemoveTag } = useTags(MAX_TAGS);
@@ -72,8 +96,15 @@ export default function SourceModal({
   })
 
   const nextStep = async () => {
+    const data: SourceData = {
+      name: videoName,
+      genre,
+      tags,
+      clipLength,
+      range,
+    };
     setStep("uploading");
-    upload()
+    upload(data)
       .then(() => {
         setStep("drag-drop");
       })
@@ -130,7 +161,7 @@ export default function SourceModal({
               className={`border  border-gray-200 rounded-lg p-4`}
             >
               <div className="flex flex-col justify-center items-center cursor-pointer">
-                  <Upload className="w-14 h-16 fill-blue-500" />
+                <Upload className="w-14 h-16 fill-blue-500" />
                 <p>
                   Saved correctly
                   <span
@@ -157,11 +188,8 @@ export default function SourceModal({
             <>
               <NewSelect
                 value="Auto"
-                options={[
-                  { value: "Auto", label: "Auto" },
-                  { value: "Manual", label: "Manual" },
-                ]}
-                onSelect={(value) => console.log(value)}
+                options={genres.map((genre) => ({ value: genre, label: genre }))}
+                onSelect={(value) => setGenre(value)}
                 contentClassName="bg-white"
                 label="Genre"
               />
@@ -176,20 +204,15 @@ export default function SourceModal({
               </div>
               <div>
                 <Label>Clip Length</Label>
-                <Select defaultValue="<30s">
+                <Select
+                  defaultValue="<30s"
+                  onValueChange={(value) => setClipLength(value)}
+                >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Duration" />
                   </SelectTrigger>
                   <SelectContent className="">
-                    {[
-                      "<30s",
-                      "30s-1m",
-                      "1m-1.5m",
-                      "1.5m-3m",
-                      "3m-5m",
-                      "5m-10m",
-                      "10m-15m",
-                    ].map((theme) => (
+                    {lengths.map((theme) => (
                       <SelectItem className="rounded-xl flex items-center" key={theme} value={theme}>
                         {theme}
                       </SelectItem>
@@ -206,7 +229,7 @@ export default function SourceModal({
                   defaultValue={range}
                   max={videoDuration}
                   step={10}
-                  onValueChange={(value) => console.log('slider', setRange(value))}
+                  onValueChange={(value) => setRange(value)}
                 />
                 <div className="rounded py-2 px-4 border border-gray-300">
                   {toReadableTime(range[1], { alwaysHours: true })}

@@ -1,15 +1,14 @@
 "use client";
 import { api } from "@/trpc/react";
 import { useState } from "react";
+import { SourceData } from ".";
 
 export function useDevUploader({
   file,
   setFile,
-  videoName,
 }: {
   file: File | null;
   setFile: (file: File | null) => void;
-  videoName: string;
 }) {
   const [percentage, setPercentage] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -18,15 +17,19 @@ export function useDevUploader({
   const { mutateAsync: initiate } = api.source.initiateUpload.useMutation();
   const { mutateAsync: complete } = api.source.completeUpload.useMutation();
 
-  const upload = async () => {
-    console.log('inside the upload function', file);
+  const upload = async (data: SourceData) => {
+    console.log("inside the upload function", file);
     if (!file) {
       return;
     }
     setPercentage(0);
     setUploading(true);
 
-    const { parts, id } = await initiate({ name: videoName || file.name || "", parts: 1 });
+    const { parts, id } = await initiate({
+      ...data,
+      name: data.name || file.name || "",
+      parts: 1,
+    });
     const url = parts[0]?.signedUrl;
 
     if (!url) {

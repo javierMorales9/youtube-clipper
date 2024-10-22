@@ -77,7 +77,16 @@ export const sourceRouter = createTRPCRouter({
       await ctx.db.insert(suggestion).values(suggestionObjs);
     }),
   initiateUpload: publicProcedure
-    .input(z.object({ name: z.string().min(1), parts: z.number() }))
+    .input(
+      z.object({
+        name: z.string().min(1),
+        genre: z.string(),
+        tags: z.array(z.string()),
+        clipLength: z.string(),
+        range: z.array(z.number()),
+        parts: z.number(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { name } = input;
 
