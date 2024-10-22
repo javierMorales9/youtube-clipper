@@ -20,8 +20,7 @@ export function SourceList({
 
   return (
     <div className="flex flex-col p-8">
-      <div className="flex flex-row justify-start gap-x-3">
-        <h1 className="text-3xl font-bold">Videos</h1>
+      <div className="flex flex-row justify-center gap-x-3">
         <SourceModal
           addSource={addSource}
         />

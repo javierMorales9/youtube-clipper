@@ -7,13 +7,13 @@ async function handler(event, context, callback) {
   console.log(`Processing transcription finished event for source ${sourceId}`);
 
   try {
-    if(!process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL must be set');
     }
     const client = new Client({ connectionString: process.env.DATABASE_URL, });
 
     await client.connect();
-    
+
     await client.query(`
       INSERT INTO processing_event
       (id, source_id, clip_id, type, created_at, finished_at, error) 

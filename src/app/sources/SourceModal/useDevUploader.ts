@@ -44,7 +44,8 @@ export function useDevUploader({
 
     await complete({ id, parts: [] });
 
-    setPercentage(100);
+    setPercentage(0);
+    setFile(null);
     setUploading(false);
   };
 
