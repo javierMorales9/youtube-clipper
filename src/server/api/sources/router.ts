@@ -2,7 +2,12 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { processingEvent, source, suggestion } from "@/server/db/schema";
+import {
+  processingEvent,
+  source,
+  sourceTag,
+  suggestion,
+} from "@/server/db/schema";
 import { Store } from "./Store";
 import { eq } from "drizzle-orm";
 import { createSourceUploadedEvent } from "@/server/processingEvent";
@@ -88,8 +93,6 @@ export const sourceRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { name } = input;
-
       const id = uuidv4();
 
       const { fileId, parts } = await Store().initiateUpload(id, input.parts);
@@ -98,13 +101,26 @@ export const sourceRouter = createTRPCRouter({
         throw new Error("Failed to initiate upload");
       }
 
-      await ctx.db.insert(source).values({
-        id,
-        name,
-        processing: true,
-        externalId: fileId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      ctx.db.transaction(async (t) => {
+        console.log("input", input);
+        await t.insert(source).values({
+          id,
+          name: input.name,
+          processing: true,
+          externalId: fileId,
+          genre: input.genre,
+          clipLength: input.clipLength,
+          processingRangeStart: Math.floor(input.range[0]!),
+          processingRangeEnd: Math.floor(input.range[1]!),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        if (input.tags.length > 0) {
+          await t
+            .insert(sourceTag)
+            .values(input.tags.map((tag) => ({ sourceId: id, tag })));
+        }
       });
 
       return { parts, id };

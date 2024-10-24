@@ -33,10 +33,30 @@ export const source = createTable("source", {
   width: integer("width"),
   height: integer("height"),
   duration: numeric("duration").$type<number>(),
+  genre: varchar("genre", { length: 256 }),
+  clipLength: varchar("clip_length", { length: 256 }),
+  processingRangeStart: integer("processing_range_start"),
+  processingRangeEnd: integer("processing_range_end"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updatedAt").notNull(),
 });
 export type Source = InferModel<typeof source>;
+
+export const sourceTag = createTable(
+  "source_tag",
+  {
+    sourceId: uuid("source_id")
+      .references(() => source.id, { onDelete: "cascade" })
+      .notNull(),
+    tag: varchar("tag", { length: 256 }).notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.sourceId, table.tag] }),
+    };
+  },
+);
+export type SourceTag = InferModel<typeof sourceTag>;
 
 export const suggestion = createTable("suggestion", {
   id: uuid("id").primaryKey(),
@@ -126,7 +146,9 @@ export type SectionFragment = InferModel<typeof sectionFragment>;
 
 export const processingEvent = createTable("processing_event", {
   id: uuid("id").primaryKey(),
-  sourceId: uuid("source_id").references(() => source.id, { onDelete: "cascade" }),
+  sourceId: uuid("source_id").references(() => source.id, {
+    onDelete: "cascade",
+  }),
   clipId: uuid("clip_id").references(() => clip.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 256 }).notNull(),
   createdAt: timestamp("created_at").notNull(),

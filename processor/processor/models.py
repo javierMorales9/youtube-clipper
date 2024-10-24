@@ -19,11 +19,26 @@ class Source(Base):
     height: Mapped[Optional[int]]
     duration: Mapped[Optional[float]]
 
+    genre: Mapped[Optional[str]]
+    clipLength: Mapped[Optional[int]] = mapped_column(name="clip_length")
+    processingRangeStart: Mapped[Optional[int]] = mapped_column(name="processing_range_start")
+    processingRangeEnd: Mapped[Optional[int]] = mapped_column(name="processing_range_end")
+
     createdAt: Mapped[datetime] = mapped_column(DateTime, name="created_at", nullable=False)
     updatedAt: Mapped[datetime] = mapped_column(DateTime, name="updatedAt", nullable=False)
 
     def __repr__(self) -> str:
         return f"Source(id={self.id!r}, externalId={self.externalId!r}, name={self.name!r})"
+
+class SourceTag(Base):
+    __tablename__ = "source_tag"
+
+    sourceId: Mapped[str] = mapped_column(ForeignKey("source.id"), name="source_id", nullable=False)
+    tag: Mapped[str] = mapped_column(String(256), nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("source_id", "tag"),
+    )
 
 class Suggestion(Base):
     __tablename__ = "suggestion"

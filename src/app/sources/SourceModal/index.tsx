@@ -99,7 +99,7 @@ export default function SourceModal({
     const data: SourceData = {
       name: videoName,
       genre,
-      tags,
+      tags: tags ?? [],
       clipLength,
       range,
     };

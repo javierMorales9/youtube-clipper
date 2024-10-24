@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from models import Source as SourceModal
+from models import Source as SourceModal, SourceTag as SourceTagModal
 from source.Source import Source
 
 
@@ -10,7 +10,9 @@ def findSourceById(session: Session, sourceId: str):
     if source is None:
         return None
 
-    return parseSource(source)
+    tags = session.query(SourceTagModal).filter(SourceTagModal.sourceId == source.id).all()
+
+    return parseSource(source, tags)
 
 def saveSource(session: Session, source: Source):
     sourceModel = SourceModal(
@@ -27,7 +29,7 @@ def saveSource(session: Session, source: Source):
     )
     session.merge(sourceModel)
 
-def parseSource(sourceModel: SourceModal):
+def parseSource(sourceModel: SourceModal, tags: list[SourceTagModal]):
     return Source(
         id=str(sourceModel.id),
         externalId=sourceModel.externalId,
@@ -37,6 +39,11 @@ def parseSource(sourceModel: SourceModal):
         width=sourceModel.width,
         height=sourceModel.height,
         duration=sourceModel.duration,
+        genre=sourceModel.genre,
+        clipLength=sourceModel.clipLength,
+        processingRangeStart=sourceModel.processingRangeStart,
+        processingRangeEnd=sourceModel.processingRangeEnd,
+        tags=[tag.tag for tag in tags],
         createdAt=sourceModel.createdAt,
         updatedAt=sourceModel.updatedAt,
     )
