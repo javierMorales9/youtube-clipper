@@ -31,10 +31,10 @@ def createSuggestions(source: Source):
             json.dump(embeddings, f)
         """
 
-        queryF = open(f"{path}/../queryEmb.json", "r")
+        queryF = open(f"{path}/../test/queryEmb.json", "r")
         queryEmb = json.load(queryF)
 
-        srtF = open(f"{path}/../embeddings.json", "r")
+        srtF = open(f"{path}/../test/embeddings.json", "r")
         embeddings = json.load(srtF)
         df["intervention_embedding"] = embeddings
 
@@ -42,8 +42,18 @@ def createSuggestions(source: Source):
             lambda x: cosineSimilarity(x, queryEmb)
         )
 
-        res = df.sort_values(by="similarities", ascending=False).head(10)
-        print(res.dtypes)
+        bestClips = df.sort_values(by="similarities", ascending=False).head(20)
+        """
+         Las mejores putas. 
+
+         Cojo una de las 20.
+         Sus y ambas < sus -> descartamos este, y a partir de aqui solo tiramos arriba
+
+         Sus y la anterior < sus -> descartamos este, y a partir de aqui solo tiramos pabajo
+         Sus y posterior
+        """
+        #bestClips
+        print(bestClips)
     else:
         path = f"/tmp/{source.id}"
         df = pd.DataFrame()
