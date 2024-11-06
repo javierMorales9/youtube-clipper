@@ -12,6 +12,7 @@ from generateClip import generateClip
 
 from clip.clipRepository import findClipById, finishClipProcessing
 from createSuggestions import createSuggestions
+from createSubtitles import createSubtitles
 from startTranscription import startTranscription
 from source.sourceRepository import findSourceById, saveSource
 
@@ -118,9 +119,12 @@ def loop():
 # loop()
 print("No te olvides de llamar a loop() y borrar esta mierda\n\n")
 with Session(engine) as session:
-    source = findSourceById(session, "caf604ab-49f4-452c-91c7-57c9130a1d93")
+    source = findSourceById(session, "b3f459c0-e092-4a94-b122-1647007abd47")
     if source is not None:
         createSuggestions(source)
+        #createSubtitles(source)
+        #startTranscription(source)
+
 
 session.commit()
 

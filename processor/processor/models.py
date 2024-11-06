@@ -20,7 +20,7 @@ class Source(Base):
     duration: Mapped[Optional[float]]
 
     genre: Mapped[Optional[str]]
-    clipLength: Mapped[Optional[int]] = mapped_column(name="clip_length")
+    clipLength: Mapped[Optional[str]] = mapped_column(name="clip_length")
     processingRangeStart: Mapped[Optional[int]] = mapped_column(name="processing_range_start")
     processingRangeEnd: Mapped[Optional[int]] = mapped_column(name="processing_range_end")
 

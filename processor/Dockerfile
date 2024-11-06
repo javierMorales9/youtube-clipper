@@ -69,5 +69,4 @@ RUN python -m poetry install --no-root
 
 COPY . .
 
-RUN echo "jfklasjd"
 CMD ["python", "-m", "poetry", "run", "python3", "processor/main.py"]

@@ -13,7 +13,7 @@ class Source:
         height: Optional[int],
         duration: Optional[float],
         genre: Optional[str],
-        clipLength: Optional[int],
+        clipLength: Optional[str],
         processingRangeStart: Optional[int],
         processingRangeEnd: Optional[int],
         tags: list[str],

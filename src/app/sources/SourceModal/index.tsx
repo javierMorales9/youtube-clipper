@@ -29,8 +29,22 @@ const lengths = [
 ] as const;
 
 const genres = [
-  "Auto",
-  "Manuel",
+  "Podcast",
+  "Q&A",
+  "Commentary",
+  "Marketing",
+  "Webinar",
+  "Motivational speech",
+  "Academic",
+  "Listicle",
+  "Product review",
+  "How-to",
+  "Comedy",
+  "Sports comentary",
+  "Church",
+  "News",
+  "Vlog",
+  "Gaming",
 ] as const;
 
 export type SourceData = {
@@ -58,7 +72,7 @@ export default function SourceModal({
   const [genre, setGenre] = useState<string>(genres[0]);
   const [clipLength, setClipLength] = useState<string>(lengths[0]);
 
-  const MAX_TAGS = 5;
+  const MAX_TAGS = 20;
   const { tags, handleAddTag, handleRemoveTag } = useTags(MAX_TAGS);
 
   const [range, setRange] = useState<number[]>([0, 0]);
@@ -187,7 +201,7 @@ export default function SourceModal({
           {file && videoName && (
             <>
               <NewSelect
-                value="Auto"
+                value={genres[0]}
                 options={genres.map((genre) => ({ value: genre, label: genre }))}
                 onSelect={(value) => setGenre(value)}
                 contentClassName="bg-white"

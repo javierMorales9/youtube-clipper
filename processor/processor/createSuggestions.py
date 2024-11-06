@@ -1,5 +1,5 @@
 import os
-import json
+from extractInterventions import extractInterventions
 from source.Source import Source
 import math
 from typing import List
@@ -9,6 +9,16 @@ import tiktoken
 import numpy as np
 import pandas as pd
 
+clipDurationRanges = {
+    "<30s": [0, 30000],
+    "30s-1m": [30000, 60000],
+    "1m-1.5m": [60000, 90000],
+    "1.5m-3m": [90000, 180000],
+    "3m-5m": [180000, 300000],
+    "5m-10m": [300000, 600000],
+    "10m-15m": [600000, 900000],
+}
+
 
 def createSuggestions(source: Source):
     env = os.environ["ENV"]
@@ -16,95 +26,207 @@ def createSuggestions(source: Source):
     if env == "dev":
         path = os.environ["FILES_PATH"]
 
-        interventions = extractInterventionsFromSrt("../public")
+        lines = extractInterventions("../public")
 
-        df = pd.DataFrame(interventions)
+        #
+        # The lines are created to show them in the a mobile view, so they are short
+        # and don't have enough information for the beam search to work properly.
+        # We will join the lines in pairs to create longer phrases.
+        #
+        i = 0
+        step = 2
+        phrasesArr = []
+        index = 0
+        while i < len(lines):
+            phrasesArr.append(
+                {
+                    "index": index,
+                    "start": i,
+                    "length": step,
+                    "text": " ".join([line["text"] for line in lines[i : i + step]]),
+                }
+            )
+            i += step
+            index += 1
 
-        """
+        phrases = pd.DataFrame(phrasesArr)
+ 
+        addEmbeddingsToDf(phrases)        
+
         queryEmb = generateQueryEmedding(source)
-        getEmbeddingsForInterventions(df)
 
-        with open("../public/queryEmb.json", "w") as f:
-            json.dump(queryEmb, f)
-
-        with open("../public/embeddings.json", "w") as f:
-            json.dump(embeddings, f)
-        """
-
-        queryF = open(f"{path}/../test/queryEmb.json", "r")
-        queryEmb = json.load(queryF)
-
-        srtF = open(f"{path}/../test/embeddings.json", "r")
-        embeddings = json.load(srtF)
-        df["intervention_embedding"] = embeddings
-
-        df["similarities"] = df["intervention_embedding"].apply(
+        phrases["similarities"] = phrases["embedding"].apply(
             lambda x: cosineSimilarity(x, queryEmb)
         )
+        topPhrases = phrases.sort_values(by="similarities", ascending=False).head(20)
 
-        bestClips = df.sort_values(by="similarities", ascending=False).head(20)
-        """
-         Las mejores putas. 
+        suggestions = pd.DataFrame(
+            columns=np.array(["start", "length", "text", "similarities"])
+        )
 
-         Cojo una de las 20.
-         Sus y ambas < sus -> descartamos este, y a partir de aqui solo tiramos arriba
+        clipLengthRange = clipDurationRanges[source.clipLength or "<30s"]
 
-         Sus y la anterior < sus -> descartamos este, y a partir de aqui solo tiramos pabajo
-         Sus y posterior
-        """
-        #bestClips
-        print(bestClips)
+        for i in range(0, len(topPhrases)):
+            start = topPhrases.iloc[i]["index"]
+            length = 1
+
+            current = topPhrases.iloc[i]["text"]
+            currentSim = topPhrases.iloc[i]["similarities"]
+            currentDuration = 0
+
+            withPrev = withNext = withBoth = ""
+            withPrevSim = withNextSim = withBothSim = 0
+            withPrevDuration = withNextDuration = withBothDuration = 0
+
+            takePrev = takeNext = True
+
+            while takePrev or takeNext:
+                if takePrev:
+                    withPrev = phrases.loc[start - 1]["text"] + current
+                    newEmb = generateEmbedding(withPrev)
+                    withPrevSim = cosineSimilarity(newEmb, queryEmb)
+
+                    lineStart = phrases.loc[start - 1]["start"]
+                    lineEnd = (
+                        phrases.loc[start + length - 1]["start"]
+                        + phrases.loc[start + length - 1]["length"]
+                    )
+                    millisStart = lines[lineStart]["start"]
+                    millisEnd = lines[lineEnd]["end"]
+
+                    withPrevDuration = millisEnd - millisStart
+
+                if takeNext:
+                    withNext = current + phrases.loc[start + length]["text"]
+                    newEmb = generateEmbedding(withNext)
+                    withNextSim = cosineSimilarity(newEmb, queryEmb)
+
+                    lineStart = phrases.loc[start]["start"]
+                    lineEnd = (
+                        phrases.loc[start + length]["start"]
+                        + phrases.loc[start + length]["length"]
+                    )
+                    millisStart = lines[lineStart]["start"]
+                    millisEnd = lines[lineEnd]["end"]
+
+                    withNextDuration = millisEnd - millisStart
+
+                if takePrev and takeNext:
+                    withBoth = (
+                        phrases.loc[start - 1]["text"]
+                        + current
+                        + phrases.loc[start + length]["text"]
+                    )
+                    newEmb = generateEmbedding(withBoth)
+                    withBothSim = cosineSimilarity(newEmb, queryEmb)
+
+                    lineStart = phrases.loc[start - 1]["start"]
+                    lineEnd = (
+                        phrases.loc[start + length]["start"]
+                        + phrases.loc[start + length - 1]["length"]
+                    )
+                    millisStart = lines[lineStart]["start"]
+                    millisEnd = lines[lineEnd]["end"]
+
+                    withBothDuration = millisEnd - millisStart
+
+#                print(
+#                    f"""start: {start} length: {length} p: {'t' if takePrev else 'f'} n: {'t' if takeNext else 'f'}
+#sim(C, P, N, B): {"{:.4f}".format(currentSim)} {"{:.4f}".format(withPrevSim)} {"{:.4f}".format(withNextSim)} {"{:.4f}".format(withNextSim)}
+#dur(C, P, N, B): {currentDuration} {withPrevDuration} {withNextDuration} {withBothDuration}
+#"""
+#                )
+
+                if withBothSim > withPrevSim and withBothSim > withNextSim:
+                    if (
+                        withBothSim < currentSim
+                        and withBothDuration > clipLengthRange[0]
+                    ):
+                        break
+
+                    if (
+                        withBothSim > currentSim
+                        and withBothDuration > clipLengthRange[1]
+                    ):
+                        break
+
+                    current = withBoth
+                    currentSim = withBothSim
+                    currentDuration = withBothDuration
+
+                    start -= 1
+                    length += 2
+
+                    continue
+
+                if withPrevSim > withNextSim:
+                    if (
+                        withPrevSim < currentSim
+                        and withPrevDuration > clipLengthRange[0]
+                    ):
+                        break
+
+                    if (
+                        withPrevSim > currentSim
+                        and withPrevDuration > clipLengthRange[1]
+                    ):
+                        break
+
+                    current = withPrev
+                    currentSim = withPrevSim
+                    currentDuration = withPrevDuration
+
+                    takeNext = False
+
+                    start -= 1
+                    length += 1
+
+                if withNextSim > withPrevSim:
+                    if (
+                        withNextSim < currentSim
+                        and withNextDuration > clipLengthRange[0]
+                    ):
+                        break
+
+                    if (
+                        withNextSim > currentSim
+                        and withNextDuration > clipLengthRange[1]
+                    ):
+                        break
+
+                    current = withNext
+                    currentSim = withNextSim
+                    currentDuration = withNextDuration
+
+                    takePrev = False
+
+                    length += 1
+
+            lineStart = phrases.loc[start]["start"]
+            lineEnd = (
+                phrases.loc[start + length]["start"]
+                + phrases.loc[start + length]["length"]
+            )
+
+            # Add the suggestion to the dataframe
+            suggestions.loc[-1] = [lineStart, lineEnd - lineStart, current, currentSim]
+            suggestions.index = suggestions.index + 1
+            suggestions = suggestions.sort_index()
+
+        selectedSuggestions = suggestions.sort_values(by="similarities", ascending=False).head(5)
+        print(selectedSuggestions[["start", "length", "similarities"]])
     else:
         path = f"/tmp/{source.id}"
-        df = pd.DataFrame()
+        phrases = pd.DataFrame()
 
-        extractInterventionsFromSrt(path)
+        extractInterventions(path)
 
         queryEmb = generateQueryEmedding(source)
-        getEmbeddingsForInterventions(df)
+        addEmbeddingsToDf(phrases)
 
 
 def cosineSimilarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
-
-def extractInterventionsFromSrt(path: str):
-    f = open(f"{path}/srtSubtitles.srt", "r")
-    lines = f.readlines()
-
-    interventions = []
-    for i in range(4, len(lines), 4):
-        id = lines[i - 4].strip()
-
-        fromStr = lines[i - 3].split(" --> ")[0]
-        fromTime = toMillis(fromStr)
-
-        toStr = lines[i - 3].split(" --> ")[1]
-        toTime = toMillis(toStr)
-
-        text = lines[i - 2].strip()
-
-        interventions.append(
-            {
-                "index": id,
-                "from": fromTime,
-                "to": toTime,
-                "text": text,
-            }
-        )
-
-    return interventions
-
-
-def toMillis(timeStr):
-    fromStr, millis = timeStr.split(",")
-    hours, minutes, seconds = fromStr.split(":")
-    return (
-        int(hours) * 3600 * 1000
-        + int(minutes) * 60 * 1000
-        + int(seconds) * 1000
-        + int(millis)
-    )
 
 
 def generateQueryEmedding(source: Source):
@@ -133,7 +255,19 @@ def generateQueryEmedding(source: Source):
     return result.data[0].embedding
 
 
-def getEmbeddingsForInterventions(df: pd.DataFrame):
+def addEmbeddingsToDf(df: pd.DataFrame):
+    print("\n\n\nDon't forget to set this correctly\n\n\n")
+    return pd.read_json(f"../public/phrases.json")
+    embeddings = generateEmbeddingsFromDf(df)
+    df["embedding"] = [embedding.embedding for embedding in embeddings]
+
+
+def updateRowEmbeddings(df: pd.DataFrame, row: int):
+    embeddings = generateRowEmbedding(df, row)
+    df.at[row, "embedding"] = embeddings
+
+
+def generateEmbeddingsFromDf(df: pd.DataFrame):
     fullTranscript = "".join(df["text"].to_list())
     encoding = tiktoken.get_encoding("cl100k_base")
     numTokens = len(encoding.encode(fullTranscript))
@@ -166,4 +300,32 @@ def getEmbeddingsForInterventions(df: pd.DataFrame):
         )
         embeddings.extend(result.data)
 
-    df["intervention_embedding"] = [embedding.embedding for embedding in embeddings]
+    return embeddings
+
+
+def generateRowEmbedding(df: pd.DataFrame, row: int):
+    client = OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+    )
+
+    result = client.embeddings.create(
+        input=df.at[row, "text"],
+        model="text-embedding-3-small",
+        encoding_format="float",
+    )
+
+    return result.data[0].embedding
+
+
+def generateEmbedding(text: str):
+    client = OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+    )
+
+    result = client.embeddings.create(
+        input=text,
+        model="text-embedding-3-small",
+        encoding_format="float",
+    )
+
+    return result.data[0].embedding
