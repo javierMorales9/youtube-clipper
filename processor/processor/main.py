@@ -13,6 +13,7 @@ from generateClip import generateClip
 from clip.clipRepository import findClipById, finishClipProcessing
 from createSuggestions import createSuggestions
 from createSubtitles import createSubtitles
+from suggestion.suggestionRepository import saveSuggestions
 from startTranscription import startTranscription
 from source.sourceRepository import findSourceById, saveSource
 
@@ -101,6 +102,9 @@ def loop():
                                 source.height = int(resolution[1])
 
                             saveSource(session, source)
+
+                            suggestions = createSuggestions(source)
+                            saveSuggestions(session, suggestions)
                 elif event.type == EventType.CLIP_UPDATED:
                     print(f"Processing clip {event.clipId}")
                     if event.clipId is not None and event.sourceId is not None:
@@ -116,16 +120,4 @@ def loop():
         sleep(10)
 
 
-# loop()
-print("No te olvides de llamar a loop() y borrar esta mierda\n\n")
-with Session(engine) as session:
-    source = findSourceById(session, "b3f459c0-e092-4a94-b122-1647007abd47")
-    if source is not None:
-        createSuggestions(source)
-        #createSubtitles(source)
-        #startTranscription(source)
-
-
-session.commit()
-
-
+loop()
