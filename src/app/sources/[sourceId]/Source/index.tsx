@@ -15,16 +15,16 @@ import { toReadableTime } from "@/app/utils";
 import Download from "../../../../../public/images/Download.svg";
 import Loading from "../../../../../public/images/Loading.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
-import { Suggestion } from "@/server/api/clips/SuggestionSchema";
+import { SuggestionType } from "@/server/api/suggestion/Suggestion";
 import MP4Reproducer from "./MP4Reproducer";
 
-function usePanels(inputClips: Clip[], inputSuggestions: Suggestion[]) {
+function usePanels(inputClips: Clip[], inputSuggestions: SuggestionType[]) {
   const [selection, setSelection] = useState<
     { range: { start: number, end: number } | null, created: boolean }
   >({ range: null, created: false });
 
   const [clips, setClips] = useState<Clip[]>(inputClips);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>(inputSuggestions);
+  const [suggestions, setSuggestions] = useState<SuggestionType[]>(inputSuggestions);
 
   type SelectedPanel = {
     type: "clip" | "suggestion" | "selection" | null,
@@ -219,7 +219,7 @@ export default function SourceEditor({
 }: {
   source: Source,
   clips: Clip[],
-  suggestions: Suggestion[],
+  suggestions: SuggestionType[],
   timelineUrl: string,
   hls: boolean,
 }) {
@@ -264,21 +264,21 @@ export default function SourceEditor({
   }
 
   return (
-    <div className="h-screen py-2 flex flex-col justify-between">
+    <div className="py-2 flex flex-col justify-between">
       <div className="flex flex-row justify-between gap-x-4">
-        <div className="flex flex-col gap-y-2 w-full h-full">
-          <Link
-            href="/sources"
-            className="flex flex-row items-center gap-x-2 text-gray-600"
-          >
-            <Back className="fill-gray-600 w-6 h-6 " />
-            <span
-              className="text-lg font-semibold"
+        <div className="w-full flex flex-col gap-y-2">
+          <div className="p-4 border rounded flex flex-col gap-y-3 bg-white max-h-[500px] ">
+            <Link
+              href="/sources"
+              className="flex flex-row items-center gap-x-2 text-gray-600"
             >
-              Go back
-            </span>
-          </Link>
-          <div className="h-full p-4 border bg-gray-50 rounded flex flex-col gap-y-3">
+              <Back className="fill-gray-600 w-6 h-6 " />
+              <span
+                className="text-lg font-semibold"
+              >
+                Go back
+              </span>
+            </Link>
             <div className="flex flex-row gap-x-4">
               <button
                 className={`text-xl font-semibold ${view === 'clips' ? "text-blue-500" : "text-gray-400"}`}
@@ -340,7 +340,7 @@ export default function SourceEditor({
               </div>
             )}
             {view === 'suggestions' && (
-              <div className="w-full flex flex-row justify-between flex-wrap gap-y-5">
+              <div className="w-full overflow-y-scroll flex flex-row justify-between flex-wrap gap-y-5">
                 {suggestions.map((suggestion, i) => (
                   <button
                     key={i}

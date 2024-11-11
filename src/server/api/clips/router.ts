@@ -11,7 +11,6 @@ import {
   source,
 } from "@/server/db/schema";
 import { and, asc, eq } from "drizzle-orm";
-import { ClipProcessor } from "./ClipProcessor";
 import { Clip, ClipSchema } from "./ClipSchema";
 import { createClipUpdatedEvent } from "@/server/processingEvent";
 
@@ -173,8 +172,10 @@ export const clipRouter = createTRPCRouter({
           end: Math.floor(section.end),
           display: section.display,
         });
-        for (const fragment of section.fragments) {
+        for (let j = 0; j < section.fragments.length; j++) {
+          const fragment = section.fragments[j]!;
           await trans.insert(sectionFragment).values({
+            order: j,
             sectionOrder: i,
             clipId: id,
             x: Math.floor(fragment.x),

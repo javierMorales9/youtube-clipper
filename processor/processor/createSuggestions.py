@@ -58,7 +58,7 @@ def createSuggestions(source: Source):
         phrases["similarities"] = phrases["embedding"].apply(
             lambda x: cosineSimilarity(x, queryEmb)
         )
-        topPhrases = phrases.sort_values(by="similarities", ascending=False).head(20)
+        topPhrases = phrases.sort_values(by="similarities", ascending=False).head(2)
 
         suggestions = pd.DataFrame(
             columns=np.array(["start", "length", "text", "similarities"])
@@ -72,7 +72,6 @@ def createSuggestions(source: Source):
 
             current = topPhrases.iloc[i]["text"]
             currentSim = topPhrases.iloc[i]["similarities"]
-            currentDuration = 0
 
             withPrev = withNext = withBoth = ""
             withPrevSim = withNextSim = withBothSim = 0
@@ -133,7 +132,7 @@ def createSuggestions(source: Source):
 #                print(
 #                    f"""start: {start} length: {length} p: {'t' if takePrev else 'f'} n: {'t' if takeNext else 'f'}
 #sim(C, P, N, B): {"{:.4f}".format(currentSim)} {"{:.4f}".format(withPrevSim)} {"{:.4f}".format(withNextSim)} {"{:.4f}".format(withNextSim)}
-#dur(C, P, N, B): {currentDuration} {withPrevDuration} {withNextDuration} {withBothDuration}
+#dur(P, N, B): {withPrevDuration} {withNextDuration} {withBothDuration}
 #"""
 #                )
 
@@ -152,7 +151,6 @@ def createSuggestions(source: Source):
 
                     current = withBoth
                     currentSim = withBothSim
-                    currentDuration = withBothDuration
 
                     start -= 1
                     length += 2
@@ -174,7 +172,6 @@ def createSuggestions(source: Source):
 
                     current = withPrev
                     currentSim = withPrevSim
-                    currentDuration = withPrevDuration
 
                     takeNext = False
 
@@ -196,7 +193,6 @@ def createSuggestions(source: Source):
 
                     current = withNext
                     currentSim = withNextSim
-                    currentDuration = withNextDuration
 
                     takePrev = False
 
@@ -214,6 +210,9 @@ def createSuggestions(source: Source):
             suggestions = suggestions.sort_index()
 
         selectedSuggestions = suggestions.sort_values(by="similarities", ascending=False).head(5)
+
+        addNameAndDescription(selectedSuggestions)
+
         print(selectedSuggestions[["start", "length", "similarities"]])
     else:
         path = f"/tmp/{source.id}"
@@ -329,3 +328,6 @@ def generateEmbedding(text: str):
     )
 
     return result.data[0].embedding
+
+def addNameAndDescription(df: pd.DataFrame):
+    print(df[["text"]])

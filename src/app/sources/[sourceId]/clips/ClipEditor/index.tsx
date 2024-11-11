@@ -67,6 +67,7 @@ export default function ClipEditor({
 
   async function onSubmit() {
     const data = form.getValues();
+    console.log(data.sections);
 
     await createClip({
       name: data.name,
@@ -250,6 +251,7 @@ function useSections(timer: Timer, form: UseFormReturn<Clip, null, undefined>) {
         display: Displays.One,
         fragments: [
           {
+            order: 0,
             x: 0,
             y: 0,
             width: 270,
@@ -328,6 +330,7 @@ function useSections(timer: Timer, form: UseFormReturn<Clip, null, undefined>) {
 
     section.display = newDisplay;
     section.fragments = newDisplay.elements.map((element, i) => ({
+      order: i,
       x: element.x,
       y: element.y,
       width: element.width / 2,
@@ -457,6 +460,7 @@ function Viewer({
                   return;
 
                 section.fragments[i] = {
+                  order: section.fragments[i]?.order ?? i,
                   x: newAttrs.x / factor,
                   y: newAttrs.y / factor,
                   width: newAttrs.width / factor,

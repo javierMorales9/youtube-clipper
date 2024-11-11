@@ -1,6 +1,6 @@
 import { api } from "@/trpc/server";
 import Source from "./Source";
-import { Suggestion } from "@/server/api/clips/SuggestionSchema";
+import { SuggestionType } from "@/server/api/suggestion/Suggestion";
 import { env } from "@/env";
 import { randomUUID } from "crypto";
 
@@ -16,26 +16,7 @@ export default async function Sources({
   }
 
   const clips = await api.clip.fromSource({ sourceId });
-  const suggestions: Suggestion[] = [
-    {
-      id: randomUUID(),
-      name: "Suggestion test",
-      description: "La descripcion pertinente asociada a la sugerencia de recorte",
-      range: {
-        start: 24,
-        end: 42,
-      },
-    },
-    {
-      id: randomUUID(),
-      name: "This clip is the best",
-      description: "La descripcion pertinente asociada a la sugerencia de recorte",
-      range: {
-        start: 58,
-        end: 112,
-      },
-    },
-  ];
+  const suggestions = await api.suggestion.fromSource({ sourceId });
 
   return (
     <div className="px-6"> 

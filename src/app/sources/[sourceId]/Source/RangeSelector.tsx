@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Cross from "../../../../../public/images/Cross.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
-import { Suggestion } from "@/server/api/clips/SuggestionSchema";
+import { SuggestionType } from "@/server/api/suggestion/Suggestion";
 
 export default function RangeSelection({
   clips,
@@ -28,7 +28,7 @@ export default function RangeSelection({
   startSelection: (second: number) => void,
   deleteSelection: () => void,
   clips: Clip[],
-  suggestions: Suggestion[],
+  suggestions: SuggestionType[],
   selectedPanel: {
     type: "clip" | "suggestion" | "selection" | null,
     id: string | null,

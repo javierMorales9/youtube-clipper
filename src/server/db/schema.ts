@@ -127,6 +127,7 @@ export type ClipSection = InferModel<typeof clipSection>;
 export const sectionFragment = createTable(
   "section_fragment",
   {
+    order: integer("order").default(0).notNull(),
     sectionOrder: integer("section_order").notNull(),
     clipId: uuid("clip_id")
       .references(() => clip.id, { onDelete: "cascade" })
@@ -138,7 +139,7 @@ export const sectionFragment = createTable(
   },
   (table) => {
     return {
-      pk: primaryKey({ columns: [table.sectionOrder, table.clipId] }),
+      pk: primaryKey({ columns: [table.sectionOrder, table.clipId, table.order] }),
     };
   },
 );

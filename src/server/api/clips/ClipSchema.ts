@@ -18,6 +18,7 @@ export const ClipSchema = z.object({
       display: z.string(),
       fragments: z.array(
         z.object({
+          order: z.number(),
           x: z.number(),
           y: z.number(),
           width: z.number(),

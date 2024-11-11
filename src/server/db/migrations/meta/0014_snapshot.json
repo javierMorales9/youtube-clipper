@@ -1,6 +1,6 @@
 {
-  "id": "c069d0ac-0873-4349-8fe7-f472c6199d51",
-  "prevId": "e37d08d6-b11f-4b4e-86ee-4f74e359c010",
+  "id": "6e62e955-3ed4-4146-b437-755327457061",
+  "prevId": "c069d0ac-0873-4349-8fe7-f472c6199d51",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -279,6 +279,13 @@
       "name": "section_fragment",
       "schema": "",
       "columns": {
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "section_order": {
           "name": "section_order",
           "type": "integer",
@@ -333,11 +340,12 @@
         }
       },
       "compositePrimaryKeys": {
-        "section_fragment_section_order_clip_id_pk": {
-          "name": "section_fragment_section_order_clip_id_pk",
+        "section_fragment_section_order_clip_id_order_pk": {
+          "name": "section_fragment_section_order_clip_id_order_pk",
           "columns": [
             "section_order",
-            "clip_id"
+            "clip_id",
+            "order"
           ]
         }
       },

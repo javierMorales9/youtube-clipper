@@ -25,6 +25,7 @@ export type Clip = {
     end: number;
     display?: Display;
     fragments?: {
+      order: number;
       x: number;
       y: number;
       width: number;
