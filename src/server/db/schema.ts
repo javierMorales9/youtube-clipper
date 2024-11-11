@@ -86,7 +86,7 @@ export const clip = createTable("clip", {
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updatedAt"),
 });
-export type Clip = InferModel<typeof clip>;
+export type ClipTable = InferModel<typeof clip>;
 
 export const clipRange = createTable(
   "clip_range",
