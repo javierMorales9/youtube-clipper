@@ -1,12 +1,25 @@
 import json
+from typing import Dict, TypedDict, Union
+from typing_extensions import ReadOnly
+from typing import Literal, NotRequired, TypedDict
 
+class Word(TypedDict):
+    word: str
+    start: int
+    end: int
+
+class Line(TypedDict):
+    text: str
+    start: int
+    end: int
+    words: list[Word]
 
 def extractInterventions(path: str):
     f = open(f"{path}/transcription.json", "r")
     data = json.load(f)
     results = data["results"]["items"]
 
-    words = []
+    words: list[Word] = []
     for i in range(len(results)):
         word = results[i]["alternatives"][0]["content"]
 
@@ -55,12 +68,12 @@ def extractInterventions(path: str):
     # - The maximum number of characters per line.
     # - The maximum duration of a line in seconds. If it takes to long, even if the are less words, we go to the next line
     # - The maximum gap between words. If there is a gap between words where noone is speaking, we go to the next line.
-    maxChars = 30
+    maxChars = 15
     maxDuration = 2500
     maxGap = 1500
 
-    interventions = []
-    line = []
+    interventions: list[Line] = []
+    line: list[Word] = []
     line_duration = 0
 
     for idx, word_data in enumerate(words):
@@ -87,7 +100,7 @@ def extractInterventions(path: str):
         # If we have exceded any criteria, we finish the line and start a new one
         if duration_exceeded or chars_exceeded or maxgap_exceeded:
             if line:
-                subtitle_line = {
+                subtitle_line: Line = {
                     "text": " ".join(item["word"] for item in line),
                     "start": line[0]["start"],
                     "end": line[-1]["end"],
@@ -111,4 +124,8 @@ def extractInterventions(path: str):
 
 def toMillis(timeStr):
     fromStr, millis = timeStr.split(".")
+
+    if len(millis) < 3:
+        millis = millis + "0" * (3 - len(millis))
+
     return int(fromStr) * 1000 + int(millis)

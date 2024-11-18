@@ -28,6 +28,7 @@ def generateFiles(clip: Clip, source: Source, path: str):
         filters += f'[s{i}]split={fragLen}{fs};'
         for j in range(fragLen):
           fragment = section.fragments[j]
+
           cropWidth = floor(fragment.width / clip.width * source.width)
           cropHeight = floor(fragment.height / clip.height * source.height)
           cropX = floor(fragment.x / clip.width * source.width)

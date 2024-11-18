@@ -13,6 +13,7 @@ from generateClip import generateClip
 from clip.clipRepository import findClipById, finishClipProcessing
 from createSuggestions import createSuggestions
 from createSubtitles import createSubtitles
+from addSubtitlestoClip import addSubtitlestoClip
 from suggestion.suggestionRepository import saveSuggestions
 from startTranscription import startTranscription
 from source.sourceRepository import findSourceById, saveSource
@@ -120,4 +121,20 @@ def loop():
         sleep(10)
 
 
-loop()
+#loop()
+
+print("Don't forget to delete this print and call loop() instead")
+
+with Session(engine) as session:
+    clipId = "c5e37d43-28d0-43a4-a3fc-2b2da8d147de"
+    clip = findClipById(session, clipId)
+    if not clip:
+        raise Exception("Clip not found")
+
+    source = findSourceById(session, clip.sourceId)
+    if not source:
+        raise Exception("Source not found")
+
+    #generateClip(clip, source)
+    addSubtitlestoClip(clip)
+    session.commit()
