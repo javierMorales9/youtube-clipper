@@ -90,6 +90,7 @@ class ClipSection(Base):
 class SectionFragment(Base):
     __tablename__ = "section_fragment"
 
+    order: Mapped[int] = mapped_column(nullable=False, default=0)
     sectionOrder: Mapped[int] = mapped_column(name="section_order", nullable=False)
     clipId: Mapped[str] = mapped_column(ForeignKey("clip.id"), name="clip_id", nullable=False)
     x: Mapped[int] = mapped_column(nullable=False)
@@ -98,7 +99,7 @@ class SectionFragment(Base):
     height: Mapped[int] = mapped_column(nullable=False)
     
     __table_args__ = (
-        PrimaryKeyConstraint("section_order", "clip_id"),
+        PrimaryKeyConstraint("section_order", "clip_id", "order"),
     )
 
 class ProcessingEvent(Base):
