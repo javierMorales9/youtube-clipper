@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from extractInterventions import Line, extractInterventions
+from extractInterventions import Line, extractLines
 from clip.Clip import Clip
 
 from moviepy.editor import (
@@ -18,10 +18,12 @@ def addSubtitlestoClip(clip: Clip):
 
     if env == "dev":
         path = os.environ["FILES_PATH"]
+        fontPath = os.environ["FONTS_PATH"]
     else:
         path = f"/tmp/{clip.sourceId}"
+        fontPath = f"../public/fonts"
 
-    lines = extractInterventions(f"{path}/{clip.sourceId}")
+    lines = extractLines(f"{path}/{clip.sourceId}")
 
     # Extract the ones that are in the clip. We multiply by 1000 to compare in millis
     linelevel_subtitles: list[Line] = []
@@ -44,7 +46,7 @@ PlayResY: 1920
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Superpuest main,Lucida Sans Typewriter,110,&H001D8440,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,10,30,5,10,10,10,1
+Style: Superpuest main,Komika Axis,110,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,10,0,5,10,10,10,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -53,13 +55,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     start = linelevel_subtitles[0]["start"]
     for line in linelevel_subtitles:
         subtitle = f"Dialogue: 0,{time_str(line['start'] - start)},{time_str(line['end'] - start)},Superpuest main,,0,0,0,,"
+        subtitle += "{\\fade(200,200)\\blur5} "
 
         for word in line["words"]:
             diff = str(word["end"] - word["start"])
             diff = diff if len(diff) == 3 else "0" + diff
             length = str(int(diff[0:2]))
 
-            subtitle += "{\\K" + length + "}" + word["word"] + " "
+            #subtitle += "{\\K" + length + "}" + word["word"] + " "
+            subtitle += word["word"] + " "
 
         assText += subtitle + "\n"
 
@@ -76,7 +80,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         "-i",
         f"{path}/{clip.sourceId}/{clip.id}.mp4",
         "-vf",
-        f"ass={path}/{clip.sourceId}/{clip.id}.ass",
+        f"ass={path}/{clip.sourceId}/{clip.id}.ass:fontsdir={fontPath}",
         f"{path}/{clip.sourceId}/{clip.id}_temp.mp4",
     ]
     print("arguments", " ".join(arguments))

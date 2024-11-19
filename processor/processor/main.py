@@ -12,8 +12,8 @@ from generateClip import generateClip
 
 from clip.clipRepository import findClipById, finishClipProcessing
 from createSuggestions import createSuggestions
-from createSubtitles import createSubtitles
 from addSubtitlestoClip import addSubtitlestoClip
+from s3FileHandlers import downloadFromS3, saveToS3
 from suggestion.suggestionRepository import saveSuggestions
 from startTranscription import startTranscription
 from source.sourceRepository import findSourceById, saveSource
@@ -89,7 +89,16 @@ def loop():
                     if event.sourceId is not None:
                         source = findSourceById(session, event.sourceId)
                         if source is not None:
-                            duration, resolution = processSource(event.sourceId)
+                            if env == "dev":
+                                path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
+                            else:
+                                path = f"/tmp/{source.id}"
+                                downloadFromS3(source.id, path)
+
+                            duration, resolution = processSource(path)
+
+                            if os.environ["ENV"] == "prod":
+                                saveToS3(source.id, path)
 
                             source.processing = False
                             source.duration = duration
@@ -112,8 +121,17 @@ def loop():
                         clip = findClipById(session, event.clipId)
                         source = findSourceById(session, event.sourceId)
                         if clip is not None and source is not None:
-                            generateClip(clip, source)
+                            if env == "dev":
+                                path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
+                            else:
+                                path = f"/tmp/{source.id}"
+                                downloadFromS3(source.id, path)
+
+                            generateClip(clip, source, path)
                             finishClipProcessing(session, event.clipId)
+
+                            if os.environ["ENV"] == "prod":
+                                saveToS3(source.id, path)
 
             session.commit()
 
@@ -121,7 +139,7 @@ def loop():
         sleep(10)
 
 
-#loop()
+# loop()
 
 print("Don't forget to delete this print and call loop() instead")
 
@@ -135,6 +153,7 @@ with Session(engine) as session:
     if not source:
         raise Exception("Source not found")
 
-    #generateClip(clip, source)
-    addSubtitlestoClip(clip)
+    path = f"../public/files/{source.id}";
+    generateClip(clip, source, path)
+    #addSubtitlestoClip(clip)
     session.commit()

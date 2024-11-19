@@ -1,7 +1,7 @@
 import os
 
 from pydantic import BaseModel
-from extractInterventions import extractInterventions
+from extractInterventions import extractLines
 from suggestion.Suggestion import Suggestion
 from source.Source import Source
 import math
@@ -33,7 +33,7 @@ def createSuggestions(source: Source):
         path = f"/tmp/{source.id}"
         useCache = False
 
-    lines = extractInterventions(path)
+    lines = extractLines(path)
 
     #
     # The lines are created to show them in the a mobile view, so they are short

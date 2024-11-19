@@ -1,95 +1,93 @@
-import boto3
-import os
-from clip.Clip import Clip
+from clip.Clip import Clip, Section
 import subprocess
 
 from math import floor
 
 from source.Source import Source
 
-def generateFiles(clip: Clip, source: Source, path: str):
-    if source.width is None or source.height is None:
-        raise Exception('Source resolution is missing')
+
+def generateClip(clip: Clip, source: Source, path: str):
+    sects = len(clip.sections)
+
+    split = f"[0:v]split={sects}"
+    ss = "".join(f"[s{i}]" for i in range(sects))
+    vs = "".join(f"[v{i}]" for i in range(sects))
+
+    sections = sectionsString(clip, source)
+
+    filters = f"{split}{ss};{';'.join(sections)};{vs}concat=n={sects}:v=1[v]"
 
     arguments = [
-        'ffmpeg',
-        '-i', f'{path}/{clip.sourceId}/original.mp4',
-        '-ss', str(clip.range.start), '-to', str(clip.range.end),
+        "ffmpeg",
+        "-i",
+        f"{path}/original.mp4",
+        "-ss",
+        str(clip.range.start),
+        "-to",
+        str(clip.range.end),
+        "-filter_complex",
+        filters,
+        "-map",
+        "[v]",
+        "-map",
+        "0:a?",
+        "-y",
+        f"{path}/{clip.id}.mp4",
     ]
 
-    ss = ''.join(f'[s{i}]' for i in range(len(clip.sections)))
-    filters = f'[0:v]split={len(clip.sections)}{ss};'
-    concat = ''
-    for i in range(len(clip.sections)):
-        section = clip.sections[i];
-        fragLen = len(section.fragments)
-
-        fs = ''.join(f'[f{i}{j}]' for j in range(len(section.fragments)))
-        filters += f'[s{i}]split={fragLen}{fs};'
-        for j in range(fragLen):
-          fragment = section.fragments[j]
-
-          cropWidth = floor(fragment.width / clip.width * source.width)
-          cropHeight = floor(fragment.height / clip.height * source.height)
-          cropX = floor(fragment.x / clip.width * source.width)
-          cropY = floor(fragment.y / clip.height * source.height)
-          filters += f'[f{i}{j}]crop={cropWidth}:{cropHeight}:{cropX}:{cropY}[e{i}{j}];'
-
-          es = ''.join(f'[e{i}{j}]' for i in section.fragments)
-          filters += f'{es}vstack=inputs={fragLen},' if fragLen > 1 else f'[e{i}0]'
-          filters += f'scale=1080:1920[v{i}];';
-          concat += f'[v{i}]';
-
-    filters += f'{concat}concat=n={len(clip.sections)}[v]';
-
-    arguments.extend([
-        "-filter_complex", filters,
-        "-map", "[v]",
-        "-map", "0:a?",
-        "-y",
-        f"{path}/{clip.sourceId}/{clip.id}.mp4"
-    ])
-
+    print("arguments", " ".join(arguments))
     result = subprocess.run(arguments, capture_output=True, text=True)
-    result.stdout
 
     if result.returncode != 0:
-        print('Error', result.stderr)
-        raise Exception('Error generating clip', result.stderr)
+        print("Error", result.stderr)
+        raise Exception("Error generating clip", result.stderr)
 
-def generateClip(clip: Clip, source: Source):
-    env = os.environ["ENV"]
 
-    if env == "dev":
-        print('Generating clip', clip.id)
-        path = os.environ["FILES_PATH"]
-        generateFiles(clip, source, path)
-    else:
-        print('Generating clip', clip.id)
-        bucket = os.environ["SOURCE_BUCKET"]
-        aws_region = os.environ["AWS_REGION"]
+def sectionsString(clip: Clip, source: Source):
+    sects = len(clip.sections)
 
-        session = boto3.Session(
-            region_name=aws_region,
-        )
-        resource = session.resource('s3')
-        my_bucket = resource.Bucket(bucket)
+    sections = []
+    for i in range(sects):
+        section = clip.sections[i]
+        frags = len(section.fragments)
 
-        # Create tmp/{sourceId} folder
-        os.mkdir(f'/tmp/{source.id}')
+        fs = "".join(f"[f{i}{j}]" for j in range(frags))
+        es = "".join(f"[e{i}{j}]" for j in range(frags))
 
-        print("Downloading file", f'{source.id}/original.mp4')
-        my_bucket.download_file(f'{source.id}/original.mp4', f'/tmp/{source.id}/original.mp4')
-        #my_bucket.download_file(f'{source.id}/transcription.txt', f'/tmp/{source.id}/transcription.txt')
+        trim = f"trim=start={clip.range.start + section.start}:end={clip.range.start + section.end}"
+        split = f"split={frags}"
 
-        generateFiles(clip, source, f'/tmp')
+        fragments = fragmentsString(clip, source, i, section)
 
-        for file in os.listdir(f'/tmp/{source.id}'):
-            if file == 'original.mp4' or file == 'transcription.txt':
-                continue
+        stack = f"vstack=inputs={frags}," if frags > 1 else ""
+        aspectRatio = f"setdar=1080/1920,"
+        scale = f"scale=1080:1920"
+        #scale = f"scale=316:562"
 
-            local_file = f'/tmp/{source.id}/{file}'
-            my_bucket.upload_file(local_file, f'{source.id}/{file}')
-            os.remove(local_file)
+        sectionStr = f"[s{i}]{trim},{split}{fs};{';'.join(fragments)};{es}{stack}{aspectRatio}{scale}[v{i}]"
+        sections.append(sectionStr)
 
-        os.rmdir(f'/tmp/{source.id}')
+    return sections
+
+
+def fragmentsString(clip: Clip, source: Source, i: int, section: Section):
+    if source.width is None or source.height is None:
+        raise Exception("Source resolution is missing")
+
+    frags = len(section.fragments)
+
+    fragments = []
+    for j in range(frags):
+        fragment = section.fragments[j]
+
+        cropWidth = floor(fragment.width / clip.width * source.width)
+        cropHeight = floor(fragment.height / clip.height * source.height)
+        cropX = floor(fragment.x / clip.width * source.width)
+        cropY = floor(fragment.y / clip.height * source.height)
+
+        crop = f"crop={cropWidth}:{cropHeight}:{cropX}:{cropY}"
+
+        fragmentStr = f"[f{i}{j}]{crop}[e{i}{j}]"
+        fragments.append(fragmentStr)
+
+    return fragments
