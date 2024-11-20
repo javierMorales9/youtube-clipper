@@ -5,6 +5,7 @@ import { sql, InferModel } from "drizzle-orm";
 import {
   boolean,
   integer,
+  jsonb,
   numeric,
   pgTableCreator,
   primaryKey,
@@ -57,6 +58,15 @@ export const sourceTag = createTable(
   },
 );
 export type SourceTag = InferModel<typeof sourceTag>;
+
+export const sourceTranscription = createTable("source_transcription", {
+  sourceId: uuid("source_id")
+    .primaryKey()
+    .references(() => source.id, { onDelete: "cascade" }),
+  transcription: jsonb("transcription").notNull(),
+});
+
+export type SourceTranscription = InferModel<typeof sourceTranscription>;
 
 export const suggestion = createTable("suggestion", {
   id: uuid("id").primaryKey(),
@@ -139,7 +149,9 @@ export const sectionFragment = createTable(
   },
   (table) => {
     return {
-      pk: primaryKey({ columns: [table.sectionOrder, table.clipId, table.order] }),
+      pk: primaryKey({
+        columns: [table.sectionOrder, table.clipId, table.order],
+      }),
     };
   },
 );

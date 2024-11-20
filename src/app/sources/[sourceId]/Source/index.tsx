@@ -307,7 +307,7 @@ export default function SourceEditor({
                       }
                     `}
                     onClick={() => setPanel("clip", clip.id)}
-                    disabled={clip.processing}
+                    //disabled={clip.processing}
                   >
                     <div className="flex flex-col">
                       <span className="flex justify-start">
