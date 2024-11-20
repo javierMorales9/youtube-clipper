@@ -21,11 +21,10 @@ export default async function EditClip({
 
   const { name, range, sections, width, height } = clip;
 
-  const transcription = await api.source.getClipWords({ sourceId, range: clip.range });
-  console.log(transcription);
+  const clipWords = await api.source.getClipWords({ sourceId, range: clip.range });
 
   return (
-    <div className="px-4">
+    <div className="">
       <ClipEditor
         source={source}
         timelineUrl={source.timelineUrl}
@@ -45,6 +44,7 @@ export default async function EditClip({
             fragments: section!.fragments,
           })),
         }}
+        words={clipWords}
       />
     </div>
   );

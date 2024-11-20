@@ -3,7 +3,7 @@ import Timeline from "../../Timeline";
 import Video from "./video";
 import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import { Source } from "@/server/db/schema";
 import Konva from "konva";
@@ -16,25 +16,34 @@ import Play from "../../../../../../public/images/MaterialSymbolsPlayArrow.svg";
 import Split from "../../../../../../public/images/Split.svg";
 import Trash from "../../../../../../public/images/Trash.svg";
 import Pause from "../../../../../../public/images/Pause.svg";
-import { toReadableTime } from "@/app/utils";
+import { Line, toReadableTime, wordsIntoLines } from "@/app/utils";
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';
+import { Word } from "@/server/api/sources/Word";
 
 export default function ClipEditor({
   source,
   timelineUrl,
   clip,
+  words,
 }: {
   source: Source,
   timelineUrl: string,
   clip: Clip,
+  words: Word[]
 }) {
   const { start, end } = clip.range;
+  const menuViews = ["Display", "Translations"] as const;
+  const [menuView, setMenuView] = useState<typeof menuViews[number]>(menuViews[1]);
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
 
   const { mutateAsync: createClip } = api.clip.create.useMutation();
+
+  const form = useForm<Clip>({
+    defaultValues: clip,
+  });
 
   const [dimensions, setDimensions] = useState<[number, number]>([0, 0]);
 
@@ -45,10 +54,6 @@ export default function ClipEditor({
 
     setDimensions([newW, height]);
   }
-
-  const form = useForm<Clip>({
-    defaultValues: clip,
-  });
 
   useEffect(() => {
     form.setValue("width", dimensions[0]);
@@ -87,35 +92,68 @@ export default function ClipEditor({
 
   return (
     <FormProvider {...form}>
-      <form className="flex flex-col" onSubmit={(e) => { e.preventDefault(); }}>
-        <div className="flex flex-row">
-          <div className="w-1/3 h-[450px] flex flex-col gap-y-2">
-            <Link
-              href={`/sources/${source.id}`}
-              className="flex flex-row items-center gap-x-2 text-gray-600"
+      <form
+        className="flex flex-col gap-y-3 h-screen"
+        onSubmit={(e) => { e.preventDefault(); }}
+      >
+        <div className="flex flex-row gap-x-6 bg-white px-4 py-3 shadow-sm">
+          <Link
+            href={`/sources/${source.id}`}
+            className="flex flex-row items-center gap-x-2 text-gray-600"
+          >
+            <Back className="fill-gray-600 w-6 h-6 " />
+            <span
+              className="text-lg font-semibold"
             >
-              <Back className="fill-gray-600 w-6 h-6 " />
-              <span
-                className="text-lg font-semibold"
-              >
-                Go back
-              </span>
-            </Link>
-            <div className="flex flex-col">
-              <label htmlFor="file">Clip name</label>
-              <input
-                type="text"
-                className="border border-gray-200 rounded-lg p-2"
-                {...form.register('name')}
-              />
-            </div>
-            <DisplaysSelector
-              section={section}
-              handleSelectDisplay={handleSelectDisplay}
+              Go back
+            </span>
+          </Link>
+          <div className="flex flex-col">
+            <input
+              type="text"
+              className="border border-gray-200 rounded-lg p-2"
+              {...form.register('name')}
             />
           </div>
-          <div className="w-full flex flex-col items-center justify-center">
-            <button onClick={() => setShowModal(!showModal)}>Preview</button>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+            onClick={onSubmit}
+          >
+            Save
+          </button>
+        </div>
+        <div className="h-[calc(100vh-90px)] flex flex-row gap-x-6 px-4">
+          <div className="h-full w-1/3 flex flex-col gap-y-2">
+            <div className="flex space-x-4 bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
+              {menuViews.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setMenuView(tab)}
+                  className={`px-4 py-2 rounded-md text font-medium 
+                    ${menuView === tab
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'text-gray-600 hover:bg-gray-100'
+                    }
+                  `}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+            {menuView === "Display" && (
+              <DisplaysSelector
+                section={section}
+                handleSelectDisplay={handleSelectDisplay}
+              />
+            )}
+            {menuView === "Translations" && (
+              <Translations
+                words={words}
+                timer={timer}
+              />
+            )}
+          </div>
+          <div className="w-2/3 flex flex-col items-center justify-between">
             <Viewer
               source={source.url!}
               start={start}
@@ -125,50 +163,50 @@ export default function ClipEditor({
               dimensions={dimensions}
               setDimensions={handleDimensionsUpdate}
             />
-          </div>
-        </div>
-        <div className="flex flex-col items-center w-full">
-          {timer.length && (
-            <div className="flex flex-col w-full items-center">
-              <Timeline
-                length={timer.length}
-                imageUrl={timelineUrl}
-                source={source}
-                currentSeconds={timer.currentSeconds}
-                setCurrentTime={(time: number) => timer.seek(time)}
-                offset={start}
-                sourceLength={source.duration!}
-                controls={(zoomBar) => (
-                  <div className="w-full flex flex-row gap-x-10 justify-center">
-                    <Controls
-                      timer={timer}
-                      divideSection={divideSection}
-                      deleteSection={deleteSection}
-                      createClip={onSubmit}
-                      zoomBar={zoomBar}
-                    />
-                  </div>
-                )}
-              >
-                {(
-                  visibleTimelineWidth: number,
-                  timelineSeconds: number,
-                  initialPosition: number,
-                  initialSeconds: number
-                ) => (
-                  <SectionSelector
-                    visibleTimelineWidth={visibleTimelineWidth}
-                    timelineSeconds={timelineSeconds}
-                    initialPosition={initialPosition}
-                    initialSeconds={initialSeconds}
-                    sections={form.watch('sections')}
-                    selectedSection={selectedSection}
-                    setSelectedSection={setSelectedSection}
-                  />
-                )}
-              </Timeline>
+            <div className="flex flex-col items-center w-full">
+              {timer.length && (
+                <div className="flex flex-col w-full items-center">
+                  <Timeline
+                    length={timer.length}
+                    imageUrl={timelineUrl}
+                    source={source}
+                    currentSeconds={timer.currentSeconds}
+                    setCurrentTime={(time: number) => timer.seek(time)}
+                    offset={start}
+                    sourceLength={source.duration!}
+                    controls={(zoomBar) => (
+                      <div className="w-full flex flex-row gap-x-10 justify-center">
+                        <Controls
+                          timer={timer}
+                          divideSection={divideSection}
+                          deleteSection={deleteSection}
+                          zoomBar={zoomBar}
+                          showPreview={() => setShowModal(!showModal)}
+                        />
+                      </div>
+                    )}
+                  >
+                    {(
+                      visibleTimelineWidth: number,
+                      timelineSeconds: number,
+                      initialPosition: number,
+                      initialSeconds: number
+                    ) => (
+                      <SectionSelector
+                        visibleTimelineWidth={visibleTimelineWidth}
+                        timelineSeconds={timelineSeconds}
+                        initialPosition={initialPosition}
+                        initialSeconds={initialSeconds}
+                        sections={form.watch('sections')}
+                        selectedSection={selectedSection}
+                        setSelectedSection={setSelectedSection}
+                      />
+                    )}
+                  </Timeline>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
         <div
           className={`
@@ -196,6 +234,70 @@ export default function ClipEditor({
   );
 }
 
+function Translations({
+  words,
+  timer,
+}: {
+  words: Word[],
+  timer: Timer,
+}) {
+  const lines = useMemo(() => {
+    return wordsIntoLines(words);
+  }, [words]);
+
+  const startTime = useMemo(() => {
+    return words[0]?.start ?? 0;
+  }, [words]);
+
+  return (
+    <div className="h-full bg-white rounded-xl border border-gray-200 p-6 shadow-sm overflow-y-scroll">
+      <div className="w-full flex flex-col gap-y-3">
+        {lines.map((line, i) => (
+          <Line
+            key={i}
+            line={line}
+            isActive={
+              (line.start - startTime) <= timer.currentSeconds * 1000
+              && timer.currentSeconds * 1000 <= (line.end - startTime)
+            }
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  function Line({ line, isActive }: { line: Line, isActive: boolean }) {
+    const parseTime = (time: number) => {
+      const secondFromStart = ((time - startTime) / 1000);
+      const [seconds, milliseconds] = secondFromStart.toString().split('.');
+
+      return `${seconds}.${milliseconds?.substring(0, 2).padEnd(2, '0') ?? '00'}`;
+    }
+    return (
+      <div
+        className={`flex flex-col gap-y-1 p-3 cursor-pointer ${isActive && 'bg-blue-100 rounded-xl'}`}
+        onClick={() => timer.seek((line.start - startTime) / 1000 + 0.1)}
+      >
+        <div className="flex flex-row justify-start">
+          <span className={`
+            flex justify-center px-2 py-1 rounded-2xl text-xs 
+            ${isActive ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-500'}
+          `}>
+            {`${parseTime(line.start)}  -  ${parseTime(line.end)}`}
+          </span>
+        </div>
+        <span className="text-lg flex flex-row gap-x-1">
+          {line.words.map((word, i) => (
+            <span key={i} className="inline-block hover:bg-gray-100 px-1">
+              {word.word}
+            </span>
+          ))}
+        </span>
+      </div>
+    );
+  }
+}
+
 function DisplaysSelector({
   section,
   handleSelectDisplay,
@@ -204,11 +306,8 @@ function DisplaysSelector({
   handleSelectDisplay: (newDisplay: Display) => void,
 }) {
   return (
-    <div className="bg-white h-full rounded border border-gray-100 overflow-y-scroll">
-      <div className="p-4 text-xl font-bold">
-        Displays
-      </div>
-      <div className="p-3 w-full flex flex-wrap flex-row justify-between">
+    <div className="bg-white h-full rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="w-full flex flex-wrap flex-row justify-between">
         {(Object.keys(Displays) as DisplayKey[]).map((key) => (
           <div
             key={key}
@@ -606,14 +705,14 @@ function Controls({
   timer,
   divideSection,
   deleteSection,
-  createClip,
   zoomBar,
+  showPreview,
 }: {
   timer: Timer,
   divideSection: () => void,
   deleteSection: () => void
-  createClip: () => void,
   zoomBar?: JSX.Element,
+  showPreview?: () => void
 }) {
 
   return (
@@ -639,12 +738,7 @@ function Controls({
             <div>{toReadableTime(timer.currentSeconds)}</div>
           </div>
         </div>
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-          onClick={createClip}
-        >
-          Save
-        </button>
+        <button onClick={showPreview}>Preview</button>
       </div>
     </>
   );

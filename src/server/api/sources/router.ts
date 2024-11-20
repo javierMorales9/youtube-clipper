@@ -12,6 +12,7 @@ import {
 import { Store } from "./Store";
 import { eq, sql } from "drizzle-orm";
 import { createSourceUploadedEvent } from "@/server/processingEvent";
+import { Word } from "./Word";
 
 export const sourceRouter = createTRPCRouter({
   all: publicProcedure.input(z.object({})).query(async ({ ctx }) => {
@@ -187,23 +188,14 @@ export const sourceRouter = createTRPCRouter({
       //
       // See the following link for more info about jsonb arrays and how to query them
       // https://hevodata.com/learn/query-jsonb-array-of-objects/
-
-      const query = sql`
-        SELECT word -> 'word', word -> 'start', word -> 'end'
-        FROM source_transcription, jsonb_array_elements(source_transcription.transcription) AS word
-        WHERE
-          source_transcription.source_id = ${input.sourceId}
-          AND CAST((word -> 'start') AS INTEGER) > ${input.range.start}
-          AND CAST((word -> 'end') AS INTEGER) < ${input.range.end}
-      `;
-      console.log(query)
-      return await ctx.db.execute(sql`
-        SELECT word -> 'word', word -> 'start', word -> 'end'
+      return (await ctx.db.execute(sql`
+        SELECT word -> 'word' as word, word -> 'start' as start, word -> 'end' as end
         FROM ${sourceTranscription}, jsonb_array_elements(${sourceTranscription.transcription}) AS word
         WHERE
           ${sourceTranscription.sourceId} = ${input.sourceId}
-          AND CAST((word -> 'start') AS INTEGER) > ${input.range.start}
-          AND CAST((word -> 'end') AS INTEGER) < ${input.range.end}
-      `);
+          AND CAST((word -> 'start') AS INTEGER) > ${input.range.start * 1000}
+          AND CAST((word -> 'end') AS INTEGER) < ${input.range.end * 1000}
+        ;
+      `)) as Word[];
     }),
 });
