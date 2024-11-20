@@ -2,6 +2,7 @@ import os
 
 import boto3
 
+filesToDownload = ["original.mp4", "transcription.json"]
 
 def downloadFromS3(sourceId: str, path: str):
     my_bucket = getBucket()
@@ -9,10 +10,12 @@ def downloadFromS3(sourceId: str, path: str):
     # Create tmp/{sourceId} folder
     os.mkdir(path)
 
-    key = f"{sourceId}/original.mp4"
-    local_filename = f"{path}/original.mp4"
-    print("Downloading file", key)
-    my_bucket.download_file(key, local_filename)
+    for file in filesToDownload:
+        key = f"{sourceId}/{file}"
+        local_filename = f"{path}/{file}"
+
+        print("Downloading file", key)
+        my_bucket.download_file(key, local_filename)
 
 
 def saveToS3(sourceId: str, path: str):
@@ -20,7 +23,7 @@ def saveToS3(sourceId: str, path: str):
 
     # Upload files int tmp/{sourceId} to S3
     for file in os.listdir(path):
-        if file == "original.mp4":
+        if file in filesToDownload:
             continue
 
         local_file = f"{path}/{file}"
@@ -28,7 +31,6 @@ def saveToS3(sourceId: str, path: str):
         os.remove(local_file)
 
     os.rmdir(path)
-
 
 def getBucket():
     bucket = os.environ["SOURCE_BUCKET"]

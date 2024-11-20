@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
@@ -13,10 +14,13 @@ from generateClip import generateClip
 from clip.clipRepository import findClipById, finishClipProcessing
 from createSuggestions import createSuggestions
 from addSubtitlestoClip import addSubtitlestoClip
+from extractWordsFromFile import extractWordsFromFile
+from clip.Clip import Clip
+from source.Source import Source
 from s3FileHandlers import downloadFromS3, saveToS3
 from suggestion.suggestionRepository import saveSuggestions
 from startTranscription import startTranscription
-from source.sourceRepository import findSourceById, saveSource
+from source.sourceRepository import findSourceById, getClipWords, saveSource, saveTranscription
 
 
 class EventType(str, Enum):
@@ -77,72 +81,68 @@ def loop():
                     createdAt=created_at,
                 )
 
-                if event.type == EventType.SOURCE_UPLOADED:
-                    print(f"New source {event.sourceId}")
-                    if event.sourceId is not None:
-                        source = findSourceById(session, event.sourceId)
-                        if source is not None:
-                            startTranscription(source)
+                if event.sourceId is not None:
+                    source = findSourceById(session, event.sourceId)
+                    if source is not None:
+                        clip: Optional[Clip] = None
+                        if event.clipId is not None:
+                            clip = findClipById(session, event.clipId)
 
-                if event.type == EventType.TRANSCRIPTION_FINISHED:
-                    print(f"Processing source after transcription {event.sourceId}")
-                    if event.sourceId is not None:
-                        source = findSourceById(session, event.sourceId)
-                        if source is not None:
-                            if env == "dev":
-                                path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
-                            else:
-                                path = f"/tmp/{source.id}"
-                                downloadFromS3(source.id, path)
+                        if env == "prod":
+                            downloadFromS3(source.id, path)
 
-                            duration, resolution = processSource(path)
+                        handleEvent(event, source, clip)
 
-                            if os.environ["ENV"] == "prod":
-                                saveToS3(source.id, path)
-
-                            source.processing = False
-                            source.duration = duration
-
-                            # Resolution format is "1920x1080"
-                            resolution = resolution.split("x")
-                            if len(resolution) != 2:
-                                print("Invalid resolution")
-                            else:
-                                source.width = int(resolution[0])
-                                source.height = int(resolution[1])
-
-                            saveSource(session, source)
-
-                            suggestions = createSuggestions(source)
-                            saveSuggestions(session, suggestions)
-                elif event.type == EventType.CLIP_UPDATED:
-                    print(f"Processing clip {event.clipId}")
-                    if event.clipId is not None and event.sourceId is not None:
-                        clip = findClipById(session, event.clipId)
-                        source = findSourceById(session, event.sourceId)
-                        if clip is not None and source is not None:
-                            if env == "dev":
-                                path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
-                            else:
-                                path = f"/tmp/{source.id}"
-                                downloadFromS3(source.id, path)
-
-                            generateClip(clip, source, path)
-                            finishClipProcessing(session, event.clipId)
-
-                            if os.environ["ENV"] == "prod":
-                                saveToS3(source.id, path)
+                        if env == "prod":
+                            saveToS3(source.id, path)
 
             session.commit()
 
-        # Sleep for 10 seconds before polling again
         sleep(10)
 
+def handleEvent(event: ProcessingEvent, source: Source, clip: Optional[Clip] = None):
+    path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
+
+    if event.type == EventType.SOURCE_UPLOADED:
+        print(f"New source {source.id}")
+        startTranscription(source)
+
+    if event.type == EventType.TRANSCRIPTION_FINISHED:
+        print(f"Processing source after transcription {source.id}")
+
+        duration, resolution = processSource(path)
+
+        source.processing = False
+        source.duration = duration
+
+        # Resolution format is "1920x1080"
+        resolution = resolution.split("x")
+        if len(resolution) != 2:
+            print("Invalid resolution")
+        else:
+            source.width = int(resolution[0])
+            source.height = int(resolution[1])
+
+        saveSource(session, source)
+
+        words = extractWordsFromFile(path)
+        saveTranscription(session, source.id, words)
+
+        suggestions = createSuggestions(source)
+        saveSuggestions(session, suggestions)
+    elif clip is not None and event.type == EventType.CLIP_UPDATED:
+        print(f"Processing clip {event.clipId}")
+
+        generateClip(clip, source, path)
+
+        words = getClipWords(session, clip.range, source.id)
+        addSubtitlestoClip(path, clip, words)
+
+        finishClipProcessing(session, clip.id)
 
 # loop()
 
 print("Don't forget to delete this print and call loop() instead")
-
 with Session(engine) as session:
     clipId = "c5e37d43-28d0-43a4-a3fc-2b2da8d147de"
     clip = findClipById(session, clipId)
@@ -153,7 +153,14 @@ with Session(engine) as session:
     if not source:
         raise Exception("Source not found")
 
-    path = f"../public/files/{source.id}";
-    generateClip(clip, source, path)
-    #addSubtitlestoClip(clip)
+    path = f"../public/files/{source.id}"
+
+    #words = extractWords(path)
+    #saveTranscription(session, source.id, words)
+
+    words = getClipWords(session, clip.range, source.id)
+    print(words)
+
+    # generateClip(clip, source, path)
+    #addSubtitlestoClip(path, clip, words)
     session.commit()

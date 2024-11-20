@@ -1,13 +1,15 @@
 from typing import TypedDict
 from typing import TypedDict
 
-from extractWords import extractWords, Word
+from extractWordsFromFile import  Word
+
 
 class Line(TypedDict):
     text: str
     start: int
     end: int
     words: list[Word]
+
 
 #
 # Join the words into sentences of fixed length
@@ -37,15 +39,13 @@ class Line(TypedDict):
 #
 # We determine if we have to go to the next line based on three criteria:
 # - The maximum number of characters per line.
-# - The maximum duration of a line in seconds. 
+# - The maximum duration of a line in seconds.
 #   If it takes to long, even if the are less words, we go to the next line
 # - The maximum gap between words. If there is a gap between words where no one
 #   is speaking, we go to the next line.
 def extractLines(
-    path: str, maxChars: int = 15, maxDuration: int = 2500, maxGap: int = 1500
+    words: list[Word], maxChars: int = 15, maxDuration: int = 2500, maxGap: int = 1500
 ):
-    words = extractWords(path)
-
     interventions: list[Line] = []
     line: list[Word] = []
     line_duration = 0

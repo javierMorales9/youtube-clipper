@@ -12,18 +12,11 @@ from moviepy.editor import (
 )
 import numpy as np
 
+from extractWordsFromFile import Word
 
-def addSubtitlestoClip(clip: Clip):
-    env = os.environ["ENV"]
-
-    if env == "dev":
-        path = os.environ["FILES_PATH"]
-        fontPath = os.environ["FONTS_PATH"]
-    else:
-        path = f"/tmp/{clip.sourceId}"
-        fontPath = f"../public/fonts"
-
-    lines = extractLines(f"{path}/{clip.sourceId}")
+def addSubtitlestoClip(path: str, clip: Clip, words: list[Word]):
+    fontPath = os.environ["FONTS_PATH"]
+    lines = extractLines(words)
 
     # Extract the ones that are in the clip. We multiply by 1000 to compare in millis
     linelevel_subtitles: list[Line] = []
@@ -62,7 +55,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             diff = diff if len(diff) == 3 else "0" + diff
             length = str(int(diff[0:2]))
 
-            #subtitle += "{\\K" + length + "}" + word["word"] + " "
+            # subtitle += "{\\K" + length + "}" + word["word"] + " "
             subtitle += word["word"] + " "
 
         assText += subtitle + "\n"
