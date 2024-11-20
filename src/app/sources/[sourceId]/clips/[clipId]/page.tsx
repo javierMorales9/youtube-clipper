@@ -21,6 +21,9 @@ export default async function EditClip({
 
   const { name, range, sections, width, height } = clip;
 
+  const transcription = await api.source.getClipWords({ sourceId, range: clip.range });
+  console.log(transcription);
+
   return (
     <div className="px-4">
       <ClipEditor
@@ -33,8 +36,8 @@ export default async function EditClip({
             start: range.start,
             end: range.end,
           },
-          width: parseFloat(width),
-          height: parseFloat(height),
+          width: width,
+          height: height,
           sections: sections.map((section) => ({
             start: section!.start,
             end: section!.end,

@@ -6,10 +6,11 @@ import {
   processingEvent,
   source,
   sourceTag,
+  sourceTranscription,
   suggestion,
 } from "@/server/db/schema";
 import { Store } from "./Store";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createSourceUploadedEvent } from "@/server/processingEvent";
 
 export const sourceRouter = createTRPCRouter({
@@ -158,5 +159,51 @@ export const sourceRouter = createTRPCRouter({
       await ctx.db
         .insert(processingEvent)
         .values(createSourceUploadedEvent(id));
+    }),
+  getClipWords: publicProcedure
+    .input(
+      z.object({
+        sourceId: z.string(),
+        range: z.object({ start: z.number(), end: z.number() }),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // The words are in the SourceTranscription table. In a jsonb field called transcription
+      // The jsonb field has the following structure:
+      // [
+      //     { "word": "This", "start": 0, "end": 100 },
+      //     { "word": "is", "start": 100, "end": 200 },
+      //     ...
+      // ]
+      // Apply a query similar to this one
+      //
+      // SELECT word -> 'word', word -> 'start', word -> 'end'
+      // FROM source_transcription, jsonb_array_elements(source_transcription.transcription) AS word
+      // WHERE
+      //   source_transcription.source_id = sourceId
+      //   AND CAST((word -> 'start') AS INTEGER) > range.start
+      //   AND CAST((word -> 'end') AS INTEGER) < range.end
+      //;
+      //
+      // See the following link for more info about jsonb arrays and how to query them
+      // https://hevodata.com/learn/query-jsonb-array-of-objects/
+
+      const query = sql`
+        SELECT word -> 'word', word -> 'start', word -> 'end'
+        FROM source_transcription, jsonb_array_elements(source_transcription.transcription) AS word
+        WHERE
+          source_transcription.source_id = ${input.sourceId}
+          AND CAST((word -> 'start') AS INTEGER) > ${input.range.start}
+          AND CAST((word -> 'end') AS INTEGER) < ${input.range.end}
+      `;
+      console.log(query)
+      return await ctx.db.execute(sql`
+        SELECT word -> 'word', word -> 'start', word -> 'end'
+        FROM ${sourceTranscription}, jsonb_array_elements(${sourceTranscription.transcription}) AS word
+        WHERE
+          ${sourceTranscription.sourceId} = ${input.sourceId}
+          AND CAST((word -> 'start') AS INTEGER) > ${input.range.start}
+          AND CAST((word -> 'end') AS INTEGER) < ${input.range.end}
+      `);
     }),
 });
