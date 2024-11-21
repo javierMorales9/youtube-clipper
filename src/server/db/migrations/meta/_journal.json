@@ -120,6 +120,27 @@
       "when": 1732180119926,
       "tag": "0016_add_theme_columns_to_clip",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1732181733645,
+      "tag": "0017_lying_legion",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1732183921199,
+      "tag": "0018_add_theme_font_color_column",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1732194084766,
+      "tag": "0019_add_theme_emoji_position",
+      "breakpoints": true
     }
   ]
 }

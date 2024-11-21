@@ -23,6 +23,11 @@ export enum ThemeStroke {
   Large = "Large",
 }
 
+export enum ThemeEmojiPosition {
+  Top = "Top",
+  Bottom = "Bottom",
+}
+
 export const SectionSchema = z.object({
   start: z.number(),
   end: z.number(),
@@ -42,6 +47,7 @@ export type Section = z.infer<typeof SectionSchema>;
 
 export const ThemeSchema = z.object({
   themeFont: z.nativeEnum(ThemeFont),
+  themeFontColor: z.string(),
   themeSize: z.number(),
   themeMainColor: z.string(),
   themeSecondaryColor: z.string(),
@@ -52,6 +58,7 @@ export const ThemeSchema = z.object({
   themeUpperText: z.boolean(),
   themePosition: z.number(),
   themeEmoji: z.boolean(),
+  themeEmojiPosition: z.nativeEnum(ThemeEmojiPosition),
 });
 
 export type Theme = z.infer<typeof ThemeSchema>;
@@ -87,16 +94,18 @@ export const defaultFragments = [
   },
 ];
 
-export const defaultTheme = {
+export const defaultTheme: Theme = {
   themeFont: ThemeFont.Arial,
+  themeFontColor: "#000000",
   themeSize: 12,
   themePosition: 50,
-  themeMainColor: "#000000",
-  themeSecondaryColor: "#000000",
-  themeThirdColor: "#000000",
+  themeMainColor: "#d4c591",
+  themeSecondaryColor: "#63edc3",
+  themeThirdColor: "#9560c6",
   themeShadow: ThemeShadow.Medium,
   themeStroke: ThemeStroke.Small,
   themeStrokeColor: "#000000",
   themeUpperText: false,
   themeEmoji: false,
+  themeEmojiPosition: ThemeEmojiPosition.Top,
 };

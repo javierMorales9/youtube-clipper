@@ -1,0 +1,1 @@
+ALTER TABLE "clip" ADD COLUMN "theme_font_color" varchar(25) DEFAULT '#000000' NOT NULL;

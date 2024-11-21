@@ -2,7 +2,7 @@
 import Timeline from "../../Timeline";
 import Video from "./video";
 import { Timer, useTimer } from "../../useTimer";
-import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
+import { useForm, FormProvider, UseFormReturn, useFormContext } from "react-hook-form";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import { Source } from "@/server/db/schema";
@@ -23,6 +23,12 @@ import Player from 'video.js/dist/types/player';
 import { Word } from "@/server/api/sources/Word";
 import { Label } from "@/app/_components/Label";
 import { NewInput } from "@/app/_components/NewInput";
+import { Select, SelectItem, SelectLabel, SelectValue, SelectContent, SelectTrigger } from "@/app/_components/Select";
+import { ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/api/clips/ClipSchema";
+import { ColorPicker } from "@/app/_components/ColorPicker";
+import { SingleChoice } from "@/app/_components/SingleChoice";
+import { YesOrNo } from "@/app/_components/YesOrNo";
+import { NewSelect } from "@/app/_components/NewSelect";
 
 export default function ClipEditor({
   source,
@@ -305,15 +311,127 @@ function Translations({
 }
 
 function Captions({ }) {
+  const { getValues: vals, setValue: setVal, register } = useFormContext<Clip>();
+
   return (
-    <div className="h-full bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-      <div className="flex flex-col gap-y-3">
-        <Label htmlFor="file">Video name</Label>
-        <NewInput
-          type="text"
-          className="border border-gray-200 rounded-lg p-2"
-          //onChange={(e) => setVideoName(e.target.value)}
-        />
+    <div className="h-full bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col gap-y-10 overflow-y-scroll">
+      <div className="flex flex-col gap-y-6">
+        <Label className="text-xl">Font</Label>
+        <div className="flex flex-row gap-x-5">
+          <div className="flex flex-col gap-y-2">
+            <Label htmlFor="file">Famliy</Label>
+            <NewSelect
+              options={Object.values(ThemeFont).map((font) => ({ value: font, label: font }))}
+              value={vals("theme.themeFont")}
+              onSelect={(v) => setVal("theme.themeFont", v as ThemeFont)}
+            />
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <Label htmlFor="file">Size</Label>
+            <NewInput
+              type="number"
+              className="border border-gray-200 rounded-lg p-2"
+              {...register('theme.themeSize', { valueAsNumber: true })}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-col gap-y-2">
+            <Label>Font color</Label>
+            <ColorPicker
+              color={vals("theme.themeFontColor")}
+              setColor={(v) => setVal("theme.themeFontColor", v)}
+            />
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <Label htmlFor="file">Uppercase</Label>
+            <YesOrNo
+              value={vals("theme.themeUpperText")}
+              onChange={(v) => setVal("theme.themeUpperText", v)}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-y-2">
+          <Label htmlFor="file">Shadow</Label>
+          <SingleChoice
+            value={vals("theme.themeShadow")}
+            choices={Object.values(ThemeShadow)}
+            onChange={(v) => { console.log('v', v); setVal("theme.themeShadow", v as ThemeShadow) }}
+          />
+        </div>
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-col gap-y-2">
+            <Label htmlFor="file">Stroke</Label>
+            <SingleChoice
+              value={vals("theme.themeStroke")}
+              choices={Object.values(ThemeStroke)}
+              onChange={(v) => { console.log('v', v); setVal("theme.themeStroke", v as ThemeStroke) }}
+            />
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <Label htmlFor="file">Stroke color</Label>
+            <ColorPicker
+              color={vals("theme.themeStrokeColor")}
+              setColor={(v) => setVal("theme.themeStrokeColor", v)}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-y-6">
+        <Label className="text-xl">Style</Label>
+        <div className="flex flex-col gap-y-2">
+          <Label htmlFor="file">Position</Label>
+          <NewInput
+            type="number"
+            min={1}
+            max={100}
+            className="border border-gray-200 rounded-lg p-2"
+            {...register('theme.themePosition', { valueAsNumber: true })}
+          />
+        </div>
+        <div className="flex flex-row justify-between gap-x-2">
+          <div className="flex flex-col gap-y-2">
+            <Label htmlFor="file">Include emoji</Label>
+            <YesOrNo
+              value={vals("theme.themeEmoji")}
+              width="small"
+              onChange={(v) => setVal("theme.themeEmoji", v)}
+            />
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <Label htmlFor="file">Emoji Position</Label>
+            <SingleChoice
+              value={vals("theme.themeEmojiPosition")}
+              choices={Object.values(ThemeEmojiPosition)}
+              onChange={(v) => setVal("theme.themeEmojiPosition", v as ThemeEmojiPosition)}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-col gap-y-2">
+            <Label>Main color</Label>
+            <ColorPicker
+              color={vals("theme.themeMainColor")}
+              setColor={(v) => setVal("theme.themeMainColor", v)}
+            />
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <Label>Secondary color</Label>
+            <ColorPicker
+              color={vals("theme.themeSecondaryColor")}
+              setColor={(v) => setVal("theme.themeSecondaryColor", v)}
+            />
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <Label>Third color</Label>
+            <ColorPicker
+              color={vals("theme.themeThirdColor")}
+              setColor={(v) => setVal("theme.themeThirdColor", v)}
+            />
+          </div>
+        </div>
+        <div>
+        </div>
       </div>
     </div>
   );

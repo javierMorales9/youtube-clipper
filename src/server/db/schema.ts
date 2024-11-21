@@ -102,6 +102,9 @@ export const clip = createTable("clip", {
   themeFont: varchar("theme_font", { length: 25 })
     .notNull()
     .default(defaultTheme.themeFont),
+  themeFontColor: varchar("theme_font_color", { length: 25 })
+    .notNull()
+    .default(defaultTheme.themeFontColor),
   themeSize: integer("theme_size").notNull().default(defaultTheme.themeSize),
   themePosition: integer("theme_position")
     .notNull()
@@ -117,19 +120,22 @@ export const clip = createTable("clip", {
   themeThirdColor: varchar("theme_third_color", { length: 25 })
     .notNull()
     .default(defaultTheme.themeThirdColor),
-  themeStroke: varchar("theme_stroke", { length: 5 })
+  themeStroke: varchar("theme_stroke", { length: 20 })
     .notNull()
-    .default(ThemeStroke.Small),
+    .default(defaultTheme.themeStroke),
   themeStrokeColor: varchar("theme_stroke_color", { length: 25 })
     .notNull()
     .default(defaultTheme.themeStrokeColor),
-  themeShadow: varchar("theme_stroke", { length: 5 })
+  themeShadow: varchar("theme_shadow", { length: 20 })
     .notNull()
-    .default(ThemeShadow.Small),
+    .default(defaultTheme.themeShadow),
   themeUpperText: boolean("theme_upper_text")
     .notNull()
     .default(defaultTheme.themeUpperText),
   themeEmoji: boolean("theme_emoji").notNull().default(defaultTheme.themeEmoji),
+  themeEmojiPosition: varchar("theme_emoji_position", { length: 20 })
+    .notNull()
+    .default(defaultTheme.themeEmojiPosition),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updatedAt"),
 });

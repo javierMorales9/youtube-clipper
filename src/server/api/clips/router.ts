@@ -15,9 +15,6 @@ import { and, asc, eq } from "drizzle-orm";
 import {
   Clip,
   ClipSchema,
-  ThemeFont,
-  ThemeShadow,
-  ThemeStroke,
   defaultDisplay,
   defaultFragments,
   defaultHeight,
@@ -25,7 +22,6 @@ import {
   defaultWidth,
 } from "./ClipSchema";
 import { createClipUpdatedEvent } from "@/server/processingEvent";
-import { Displays } from "@/app/sources/[sourceId]/clips/Displays";
 import { Db } from "@/server/db";
 
 export const clipRouter = createTRPCRouter({
@@ -90,7 +86,7 @@ export const clipRouter = createTRPCRouter({
       return clip;
     }),
   create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
-    console.log("Creating the thing", JSON.stringify(input, null, 2));
+    console.log("Saving clip", JSON.stringify(input, null, 2));
     input.id = input.id || uuidv4();
     saveClip(ctx.db, input);
 
@@ -157,6 +153,7 @@ async function completeClip(db: Db, theClip: ClipTable): Promise<Clip> {
     },
     theme: {
       themeFont: theClip.themeFont,
+      themeFontColor: theClip.themeFontColor,
       themeSize: theClip.themeSize,
       themeMainColor: theClip.themeMainColor,
       themeSecondaryColor: theClip.themeSecondaryColor,
@@ -167,6 +164,7 @@ async function completeClip(db: Db, theClip: ClipTable): Promise<Clip> {
       themeUpperText: theClip.themeUpperText,
       themePosition: theClip.themePosition,
       themeEmoji: theClip.themeEmoji,
+      themeEmojiPosition: theClip.themeEmojiPosition,
     },
     sections,
   });
@@ -184,42 +182,22 @@ async function saveClip(db: Db, data: Clip) {
         id,
         name,
         sourceId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         width: width.toString(),
         height: height.toString(),
-        themeFont: data.theme.themeFont,
-        themeSize: data.theme.themeSize,
-        themeMainColor: data.theme.themeMainColor,
-        themeSecondaryColor: data.theme.themeSecondaryColor,
-        themeThirdColor: data.theme.themeThirdColor,
-        themeShadow: data.theme.themeShadow,
-        themeStroke: data.theme.themeStroke,
-        themeStrokeColor: data.theme.themeStrokeColor,
-        themeUpperText: data.theme.themeUpperText,
-        themePosition: data.theme.themePosition,
-        themeEmoji: data.theme.themeEmoji,
-        processing: true,
+        ...data.theme,
+        processing: data.processing ?? true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: [clip.id],
         set: {
           name,
-          updatedAt: new Date(),
           width: width.toString(),
           height: height.toString(),
-          themeFont: data.theme.themeFont,
-          themeSize: data.theme.themeSize,
-          themeMainColor: data.theme.themeMainColor,
-          themeSecondaryColor: data.theme.themeSecondaryColor,
-          themeThirdColor: data.theme.themeThirdColor,
-          themeShadow: data.theme.themeShadow,
-          themeStroke: data.theme.themeStroke,
-          themeStrokeColor: data.theme.themeStrokeColor,
-          themeUpperText: data.theme.themeUpperText,
-          themePosition: data.theme.themePosition,
-          themeEmoji: data.theme.themeEmoji,
-          processing: true,
+          ...data.theme,
+          processing: data.processing ?? true,
+          updatedAt: new Date(),
         },
       });
 
