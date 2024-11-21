@@ -1,4 +1,4 @@
-import z from "zod";
+import { Section, Clip as ClipBack } from "@/server/api/clips/ClipSchema";
 
 export type Display = {
   name: string;
@@ -10,28 +10,5 @@ export type Display = {
   }[];
 };
 
-export type Clip = {
-  clipId?: string;
-  processing?: boolean;
-  name: string;
-  range: {
-    start: number;
-    end: number;
-  };
-  width: number;
-  height: number;
-  sections: {
-    start: number;
-    end: number;
-    display?: Display;
-    fragments?: {
-      order: number;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }[];
-  }[];
-};
-
-export type Section = Clip["sections"][0];
+export type SectionFront = Omit<Section, "display"> & { display?: Display };
+export type Clip = Omit<ClipBack, "sections"> & { sections: SectionFront[] };

@@ -8,7 +8,7 @@ import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import { Source } from "@/server/db/schema";
 import Konva from "konva";
 import { api } from "@/trpc/react";
-import { Clip, Display, Section } from "../Clip";
+import { Clip, Display, SectionFront } from "../Clip";
 import { Displays, DisplayKey } from "../Displays";
 import Link from "next/link";
 import Back from "../../../../../../public/images/Back.svg";
@@ -21,6 +21,8 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';
 import { Word } from "@/server/api/sources/Word";
+import { Label } from "@/app/_components/Label";
+import { NewInput } from "@/app/_components/NewInput";
 
 export default function ClipEditor({
   source,
@@ -34,8 +36,8 @@ export default function ClipEditor({
   words: Word[]
 }) {
   const { start, end } = clip.range;
-  const menuViews = ["Display", "Translations"] as const;
-  const [menuView, setMenuView] = useState<typeof menuViews[number]>(menuViews[1]);
+  const menuViews = ["Display", "Translations", "Captions"] as const;
+  const [menuView, setMenuView] = useState<typeof menuViews[number]>(menuViews[2]);
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
 
@@ -70,6 +72,10 @@ export default function ClipEditor({
     handleSelectDisplay
   } = useSections(timer, form);
 
+  const lines = useMemo(() => {
+    return wordsIntoLines(words);
+  }, [words]);
+
   async function onSubmit() {
     const data = form.getValues();
     console.log(data.sections);
@@ -77,7 +83,7 @@ export default function ClipEditor({
     await createClip({
       name: data.name,
       sourceId: source.id,
-      id: clip.clipId,
+      id: clip.id,
       range: data.range,
       width: data.width,
       height: data.height,
@@ -86,7 +92,8 @@ export default function ClipEditor({
         end: section.end,
         display: section.display!.name,
         fragments: section.fragments!,
-      }))
+      })),
+      theme: data.theme,
     });
   }
 
@@ -148,9 +155,13 @@ export default function ClipEditor({
             )}
             {menuView === "Translations" && (
               <Translations
-                words={words}
+                lines={lines}
+                startTime={start * 1000}
                 timer={timer}
               />
+            )}
+            {menuView === "Captions" && (
+              <Captions />
             )}
           </div>
           <div className="w-2/3 flex flex-col items-center justify-between">
@@ -235,19 +246,14 @@ export default function ClipEditor({
 }
 
 function Translations({
-  words,
+  lines,
+  startTime,
   timer,
 }: {
-  words: Word[],
+  lines: Line[],
+  startTime: number,
   timer: Timer,
 }) {
-  const lines = useMemo(() => {
-    return wordsIntoLines(words);
-  }, [words]);
-
-  const startTime = useMemo(() => {
-    return words[0]?.start ?? 0;
-  }, [words]);
 
   return (
     <div className="h-full bg-white rounded-xl border border-gray-200 p-6 shadow-sm overflow-y-scroll">
@@ -298,11 +304,26 @@ function Translations({
   }
 }
 
+function Captions({ }) {
+  return (
+    <div className="h-full bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="flex flex-col gap-y-3">
+        <Label htmlFor="file">Video name</Label>
+        <NewInput
+          type="text"
+          className="border border-gray-200 rounded-lg p-2"
+          //onChange={(e) => setVideoName(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
+
 function DisplaysSelector({
   section,
   handleSelectDisplay,
 }: {
-  section?: Section,
+  section?: SectionFront,
   handleSelectDisplay: (newDisplay: Display) => void,
 }) {
   return (
@@ -484,7 +505,7 @@ function SectionSelector({
     selected,
     onClick,
   }: {
-    section: Section,
+    section: SectionFront,
     selected: boolean,
     onClick: () => void,
   }) {
@@ -519,7 +540,7 @@ function Viewer({
   source: string,
   start: number,
   timer: Timer,
-  section?: Section
+  section?: SectionFront
   form: UseFormReturn<Clip, null, undefined>,
   dimensions: [number, number],
   setDimensions: (dim: [number, number]) => void
@@ -751,7 +772,7 @@ function Preview({
   startTime,
   dimensions,
 }: {
-  section?: Section,
+  section?: SectionFront,
   source: Source,
   timer: Timer,
   startTime: number

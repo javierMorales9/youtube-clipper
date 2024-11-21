@@ -14,6 +14,12 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import {
+  ThemeFont,
+  ThemeShadow,
+  ThemeStroke,
+  defaultTheme,
+} from "../api/clips/ClipSchema";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -93,6 +99,37 @@ export const clip = createTable("clip", {
   processing: boolean("processing").notNull(),
   width: numeric("width").notNull(),
   height: numeric("height").notNull(),
+  themeFont: varchar("theme_font", { length: 25 })
+    .notNull()
+    .default(defaultTheme.themeFont),
+  themeSize: integer("theme_size").notNull().default(defaultTheme.themeSize),
+  themePosition: integer("theme_position")
+    .notNull()
+    .default(defaultTheme.themePosition),
+  themeMainColor: varchar("theme_main_color", { length: 25 })
+    .notNull()
+    .default(defaultTheme.themeMainColor),
+  themeSecondaryColor: varchar("theme_secondary_color", {
+    length: 25,
+  })
+    .notNull()
+    .default(defaultTheme.themeSecondaryColor),
+  themeThirdColor: varchar("theme_third_color", { length: 25 })
+    .notNull()
+    .default(defaultTheme.themeThirdColor),
+  themeStroke: varchar("theme_stroke", { length: 5 })
+    .notNull()
+    .default(ThemeStroke.Small),
+  themeStrokeColor: varchar("theme_stroke_color", { length: 25 })
+    .notNull()
+    .default(defaultTheme.themeStrokeColor),
+  themeShadow: varchar("theme_stroke", { length: 5 })
+    .notNull()
+    .default(ThemeShadow.Small),
+  themeUpperText: boolean("theme_upper_text")
+    .notNull()
+    .default(defaultTheme.themeUpperText),
+  themeEmoji: boolean("theme_emoji").notNull().default(defaultTheme.themeEmoji),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updatedAt"),
 });

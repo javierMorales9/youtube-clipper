@@ -19,8 +19,6 @@ export default async function EditClip({
     return <h1>Clip not found</h1>
   }
 
-  const { name, range, sections, width, height } = clip;
-
   const clipWords = await api.source.getClipWords({ sourceId, range: clip.range });
 
   return (
@@ -29,15 +27,8 @@ export default async function EditClip({
         source={source}
         timelineUrl={source.timelineUrl}
         clip={{
-          clipId,
-          name,
-          range: {
-            start: range.start,
-            end: range.end,
-          },
-          width: width,
-          height: height,
-          sections: sections.map((section) => ({
+          ...clip,
+          sections: clip.sections.map((section) => ({
             start: section!.start,
             end: section!.end,
             display: Displays[section!.display as DisplayKey],

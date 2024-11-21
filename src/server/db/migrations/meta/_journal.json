@@ -113,6 +113,13 @@
       "when": 1732043592745,
       "tag": "0015_created_source_transcription_table",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1732180119926,
+      "tag": "0016_add_theme_columns_to_clip",
+      "breakpoints": true
     }
   ]
 }

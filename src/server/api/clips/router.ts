@@ -12,7 +12,18 @@ import {
   source,
 } from "@/server/db/schema";
 import { and, asc, eq } from "drizzle-orm";
-import { Clip, ClipSchema } from "./ClipSchema";
+import {
+  Clip,
+  ClipSchema,
+  ThemeFont,
+  ThemeShadow,
+  ThemeStroke,
+  defaultDisplay,
+  defaultFragments,
+  defaultHeight,
+  defaultTheme,
+  defaultWidth,
+} from "./ClipSchema";
 import { createClipUpdatedEvent } from "@/server/processingEvent";
 import { Displays } from "@/app/sources/[sourceId]/clips/Displays";
 import { Db } from "@/server/db";
@@ -53,7 +64,7 @@ export const clipRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const clip = {
+      const clip: Clip = {
         id: uuidv4(),
         name: "",
         sourceId: input.sourceId,
@@ -61,24 +72,17 @@ export const clipRouter = createTRPCRouter({
           start: input.start,
           end: input.end,
         },
-        width: 0,
-        height: 0,
+        width: defaultWidth,
+        height: defaultHeight,
         sections: [
           {
             start: 0,
             end: input.end - input.start,
-            display: Displays.One.name,
-            fragments: [
-              {
-                order: 0,
-                x: 0,
-                y: 0,
-                width: 270,
-                height: 480,
-              },
-            ],
+            display: defaultDisplay,
+            fragments: defaultFragments,
           },
         ],
+        theme: defaultTheme,
       };
 
       await saveClip(ctx.db, clip);
@@ -143,7 +147,7 @@ async function completeClip(db: Db, theClip: ClipTable): Promise<Clip> {
     }),
   );
 
-  return {
+  return ClipSchema.parse({
     ...theClip,
     width: parseInt(theClip.width),
     height: parseInt(theClip.height),
@@ -151,8 +155,21 @@ async function completeClip(db: Db, theClip: ClipTable): Promise<Clip> {
       start: range.start,
       end: range.end,
     },
+    theme: {
+      themeFont: theClip.themeFont,
+      themeSize: theClip.themeSize,
+      themeMainColor: theClip.themeMainColor,
+      themeSecondaryColor: theClip.themeSecondaryColor,
+      themeThirdColor: theClip.themeThirdColor,
+      themeShadow: theClip.themeShadow,
+      themeStroke: theClip.themeStroke,
+      themeStrokeColor: theClip.themeStrokeColor,
+      themeUpperText: theClip.themeUpperText,
+      themePosition: theClip.themePosition,
+      themeEmoji: theClip.themeEmoji,
+    },
     sections,
-  };
+  });
 }
 
 async function saveClip(db: Db, data: Clip) {
@@ -171,6 +188,17 @@ async function saveClip(db: Db, data: Clip) {
         updatedAt: new Date(),
         width: width.toString(),
         height: height.toString(),
+        themeFont: data.theme.themeFont,
+        themeSize: data.theme.themeSize,
+        themeMainColor: data.theme.themeMainColor,
+        themeSecondaryColor: data.theme.themeSecondaryColor,
+        themeThirdColor: data.theme.themeThirdColor,
+        themeShadow: data.theme.themeShadow,
+        themeStroke: data.theme.themeStroke,
+        themeStrokeColor: data.theme.themeStrokeColor,
+        themeUpperText: data.theme.themeUpperText,
+        themePosition: data.theme.themePosition,
+        themeEmoji: data.theme.themeEmoji,
         processing: true,
       })
       .onConflictDoUpdate({
@@ -180,6 +208,17 @@ async function saveClip(db: Db, data: Clip) {
           updatedAt: new Date(),
           width: width.toString(),
           height: height.toString(),
+          themeFont: data.theme.themeFont,
+          themeSize: data.theme.themeSize,
+          themeMainColor: data.theme.themeMainColor,
+          themeSecondaryColor: data.theme.themeSecondaryColor,
+          themeThirdColor: data.theme.themeThirdColor,
+          themeShadow: data.theme.themeShadow,
+          themeStroke: data.theme.themeStroke,
+          themeStrokeColor: data.theme.themeStrokeColor,
+          themeUpperText: data.theme.themeUpperText,
+          themePosition: data.theme.themePosition,
+          themeEmoji: data.theme.themeEmoji,
           processing: true,
         },
       });
