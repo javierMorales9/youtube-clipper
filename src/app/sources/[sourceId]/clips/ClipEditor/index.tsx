@@ -4,7 +4,7 @@ import Video from "./video";
 import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider, UseFormReturn, useFormContext } from "react-hook-form";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Stage, Layer, Transformer, Rect } from 'react-konva';
+import { Stage, Layer, Text, Transformer, Rect } from 'react-konva';
 import { Source } from "@/server/db/schema";
 import Konva from "konva";
 import { api } from "@/trpc/react";
@@ -23,7 +23,6 @@ import Player from 'video.js/dist/types/player';
 import { Word } from "@/server/api/sources/Word";
 import { Label } from "@/app/_components/Label";
 import { NewInput } from "@/app/_components/NewInput";
-import { Select, SelectItem, SelectLabel, SelectValue, SelectContent, SelectTrigger } from "@/app/_components/Select";
 import { ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/api/clips/ClipSchema";
 import { ColorPicker } from "@/app/_components/ColorPicker";
 import { SingleChoice } from "@/app/_components/SingleChoice";
@@ -42,10 +41,17 @@ export default function ClipEditor({
   words: Word[]
 }) {
   const { start, end } = clip.range;
-  const menuViews = ["Display", "Translations", "Captions"] as const;
+  const menuViews = ["Display", "Translations", "Theme"] as const;
   const [menuView, setMenuView] = useState<typeof menuViews[number]>(menuViews[2]);
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    console.log("\n\n\n Borra esto joder \n\n\n")
+    if (showModal === false) {
+      //setShowModal(true);
+    }
+  }, [showModal]);
 
   const { mutateAsync: createClip } = api.clip.create.useMutation();
 
@@ -166,8 +172,8 @@ export default function ClipEditor({
                 timer={timer}
               />
             )}
-            {menuView === "Captions" && (
-              <Captions />
+            {menuView === "Theme" && (
+              <Theme />
             )}
           </div>
           <div className="w-2/3 flex flex-col items-center justify-between">
@@ -243,6 +249,7 @@ export default function ClipEditor({
               timer={timer}
               startTime={start}
               dimensions={dimensions}
+              lines={lines}
             />
           </div>
         </div>
@@ -310,7 +317,7 @@ function Translations({
   }
 }
 
-function Captions({ }) {
+function Theme({ }) {
   const { getValues: vals, setValue: setVal, register } = useFormContext<Clip>();
 
   return (
@@ -889,12 +896,14 @@ function Preview({
   timer,
   startTime,
   dimensions,
+  lines,
 }: {
   section?: SectionFront,
   source: Source,
   timer: Timer,
   startTime: number
   dimensions: [number, number],
+  lines: Line[],
 }) {
 
   const factor = 440 / 480
@@ -907,6 +916,13 @@ function Preview({
         height: 480 * factor,
       }}
     >
+      <Captions
+        previewWidth={270 * factor}
+        previewHeight={480 * factor}
+        lines={lines}
+        timer={timer}
+        startTime={startTime}
+      />
       {section && section.fragments && section.fragments.map((element, i) => (
         <VideoFragment
           key={i}
@@ -926,6 +942,92 @@ function Preview({
           }}
         />
       ))}
+    </div>
+  );
+}
+
+function Captions({
+  previewWidth,
+  previewHeight,
+  lines,
+  timer,
+  startTime,
+}: {
+  previewWidth: number,
+  previewHeight: number,
+  lines: Line[],
+  timer: Timer,
+  startTime: number,
+}) {
+  const { getValues: vals, watch } = useFormContext<Clip>();
+  const theme = watch("theme");
+
+  const fonts: Record<ThemeFont, string> = {
+    [ThemeFont.Arial]: 'komika',
+  };
+
+  const currentLine = useMemo(() => {
+    for (const line of lines) {
+      if (
+        timer.currentSeconds * 1000 - (line.start - startTime * 1000) >= 0
+        && timer.currentSeconds * 1000 - (line.end - startTime * 1000) <= 0
+      ) {
+        return line;
+      }
+    }
+  }, [timer.currentSeconds]);
+
+  const shadow = () => {
+    switch (theme.themeShadow) {
+      case ThemeShadow.None:
+        return 'none';
+      case ThemeShadow.Small:
+        return `0px 0px 70px ${theme.themeFontColor}`;
+      case ThemeShadow.Medium:
+        return `0px 0px 4px ${theme.themeFontColor}`;
+      case ThemeShadow.Large:
+        return `0px 0px 6px ${theme.themeFontColor}`;
+    }
+  }
+
+  const stroke = () => {
+    const base = `${theme.themeStrokeColor}`;
+
+    switch (theme.themeStroke) {
+      case ThemeStroke.None:
+        return `none ${base}`;
+      case ThemeStroke.Small:
+        return `1px ${base}`;
+      case ThemeStroke.Medium:
+        return `2px ${base}`;
+      case ThemeStroke.Large:
+        return `3px ${base}`;
+    }
+  }
+
+  return (
+    <div
+      className="absolute z-10 left-1/2 -translate-x-1/2 w-full p-5"
+      style={{
+        top: previewHeight * theme.themePosition / 100,
+      }}
+    >
+      <div
+        style={{
+          fontSize: theme.themeSize,
+          fontFamily: fonts[theme.themeFont],
+          color: theme.themeFontColor,
+          textShadow: shadow(),
+          textAlign: 'center',
+          WebkitTextStroke: stroke(),
+        }}
+      >
+        {currentLine && (
+          theme.themeUpperText
+            ? currentLine.text.toUpperCase()
+            : currentLine.text
+        )}
+      </div>
     </div>
   );
 }

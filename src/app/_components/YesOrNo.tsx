@@ -23,7 +23,6 @@ export function YesOrNo({
     { value: false, label: 'No' }
   ];
 
-  console.log(value);
   return (
     <div className="inline-block">
       <div className="flex flex-row rounded-md border border-gray-300">

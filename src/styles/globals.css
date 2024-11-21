@@ -96,3 +96,8 @@ body {
   }
 }
 
+@font-face {
+  font-family: 'komika';
+  src: url('/fonts/Komika.ttf') format('truetype');
+}
+

@@ -3,10 +3,6 @@ import z from "zod";
 
 export enum ThemeFont {
   Arial = "Arial",
-  ComicSans = "ComicSans",
-  Impact = "Impact",
-  TimesNewRoman = "TimesNewRoman",
-  Verdana = "Verdana",
 }
 
 export enum ThemeShadow {
