@@ -38,7 +38,7 @@
     "**/*.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "containers/**/*.js", "lambdas/**/*.js"],
+  "exclude": ["node_modules", "containers/**/*.js", "lambdas/**/*.js", "public/**/*.ts"],
   "ts-node": {
     "transpileOnly": true,
     "files": true,

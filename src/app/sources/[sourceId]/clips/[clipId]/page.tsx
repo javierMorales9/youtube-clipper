@@ -29,10 +29,10 @@ export default async function EditClip({
         clip={{
           ...clip,
           sections: clip.sections.map((section) => ({
-            start: section!.start,
-            end: section!.end,
-            display: Displays[section!.display as DisplayKey],
-            fragments: section!.fragments,
+            start: section.start,
+            end: section.end,
+            display: Displays[section.display as DisplayKey],
+            fragments: section.fragments,
           })),
         }}
         words={clipWords}

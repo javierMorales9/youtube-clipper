@@ -9,4 +9,6 @@ const Description = forwardRef<HTMLHeadingElement, DescriptionProps>(
   )
 )
 
+Description.displayName = "Description";
+
 export {Description}

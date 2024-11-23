@@ -88,7 +88,7 @@ export const clipRouter = createTRPCRouter({
   create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
     console.log("Saving clip", JSON.stringify(input, null, 2));
     input.id = input.id || uuidv4();
-    saveClip(ctx.db, input);
+    await saveClip(ctx.db, input);
 
     const theSource = await ctx.db.query.source.findFirst({
       where: eq(source.id, input.sourceId),
@@ -117,7 +117,7 @@ export const clipRouter = createTRPCRouter({
 
 async function completeClip(db: Db, theClip: ClipTable): Promise<Clip> {
   const range = await db.query.clipRange.findFirst({
-    where: eq(clipRange.clipId, theClip.id!),
+    where: eq(clipRange.clipId, theClip.id),
   });
 
   if (!range) throw new Error("No range found");
@@ -125,14 +125,14 @@ async function completeClip(db: Db, theClip: ClipTable): Promise<Clip> {
   const sections = await Promise.all(
     (
       await db.query.clipSection.findMany({
-        where: eq(clipSection.clipId, theClip.id!),
+        where: eq(clipSection.clipId, theClip.id),
         orderBy: [asc(clipSection.order)],
       })
     ).map(async (section, i) => {
       const fragments = await db.query.sectionFragment.findMany({
         where: and(
           eq(sectionFragment.sectionOrder, section.order),
-          eq(sectionFragment.clipId, theClip.id!),
+          eq(sectionFragment.clipId, theClip.id),
         ),
       });
 

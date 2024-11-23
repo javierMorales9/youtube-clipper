@@ -95,7 +95,7 @@ export default function ClipEditor({
         start: section.start,
         end: section.end,
         display: section.display!.name,
-        fragments: section.fragments!,
+        fragments: section.fragments,
       })),
       theme: data.theme,
     });

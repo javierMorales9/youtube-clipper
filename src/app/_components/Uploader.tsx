@@ -45,7 +45,7 @@ export function Upload({
         {!file && isDragActive ? (
           <p>Drop the file here ...</p>
         ) : (
-          <p>Drag 'n' drop some files here, or click to select files</p>
+          <p>{"Drag 'n' drop some files here, or click to select files"}</p>
         )}
         {file && (
           <p>

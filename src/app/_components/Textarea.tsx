@@ -31,7 +31,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           {...rest}
           ref={(e) => {
-            theRef && (theRef as any)(e);
+            theRef && (theRef as (e: HTMLTextAreaElement | null) => void)(e);
             (textAreaRef as unknown as { current: HTMLTextAreaElement | null }).current = e;
           }}
           onChange={(e) => {
@@ -46,5 +46,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       </>
     );
   })
+
+Textarea.displayName = "Textarea";
 
 export default Textarea;

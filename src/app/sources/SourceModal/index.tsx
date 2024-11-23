@@ -87,7 +87,7 @@ export default function SourceModal({
     onDrop: (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
         const f = acceptedFiles[0]!
-        var video = document.createElement('video');
+        const video = document.createElement('video');
         video.preload = 'metadata';
         video.ondurationchange = function() {
           window.URL.revokeObjectURL(video.src);
@@ -122,6 +122,9 @@ export default function SourceModal({
       .then(() => {
         setStep("drag-drop");
       })
+      .catch((e) => {
+        setStep("drag-drop");
+      });
   };
 
   const handleChoseAnotherFile = () => {

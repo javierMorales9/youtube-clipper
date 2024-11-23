@@ -75,7 +75,7 @@ export function wordsIntoLines(
 ) {
   const options = { ...defaultWordsIntoLinesOptions, ...inputOptions };
 
-  let lines: Line[] = [];
+  const lines: Line[] = [];
   let line: Word[] = [];
 
   let lineDuration = 0;

@@ -103,7 +103,7 @@ export const sourceRouter = createTRPCRouter({
         throw new Error("Failed to initiate upload");
       }
 
-      ctx.db.transaction(async (t) => {
+      await ctx.db.transaction(async (t) => {
         console.log("input", input);
         await t.insert(source).values({
           id,
