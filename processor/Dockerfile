@@ -48,7 +48,6 @@ WORKDIR "/install/x264"
 RUN ./configure --enable-shared
 RUN make
 RUN make install
-#RUN sudo cp x264.pc /usr/local/lib/pkgconfig/
 WORKDIR "/install"
 RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 WORKDIR "/install/ffmpeg"
@@ -56,16 +55,6 @@ RUN ./configure --enable-shared --enable-gpl --enable-libx264
 RUN make
 RUN make install
 RUN ldconfig
-
-# Install imagemagick
-WORKDIR "/install"
-RUN git clone --depth 1 --branch 7.1.1-40 https://github.com/ImageMagick/ImageMagick.git ImageMagick-7.1.1
-WORKDIR "/install/ImageMagick-7.1.1"
-RUN ./configure
-RUN make
-RUN make install
-ENV LD_LIBRARY_PATH=/usr/local/lib
-RUN magick identify -version
 
 RUN pip install poetry
 ENV PATH="$PATH:$HOME/.local/bin"

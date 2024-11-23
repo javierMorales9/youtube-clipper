@@ -19,8 +19,6 @@ openai = "^1.51.2"
 tiktoken = "^0.8.0"
 pandas = "^2.2.3"
 numpy = "^2.1.2"
-moviepy = "2.0.0.dev2"
-imageio = "2.25.1"
 
 [build-system]
 requires = ["poetry-core"]
