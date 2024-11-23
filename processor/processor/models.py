@@ -59,6 +59,7 @@ class SourceTranscription(Base):
     )
     transcription: Mapped[str] = mapped_column(String(256), nullable=False)
 
+
 class Suggestion(Base):
     __tablename__ = "suggestion"
 
@@ -84,6 +85,19 @@ class Clip(Base):
     processing: Mapped[bool] = mapped_column(Boolean, nullable=False)
     width: Mapped[int] = mapped_column(nullable=False)
     height: Mapped[int] = mapped_column(nullable=False)
+    themeFont: Mapped[str] = mapped_column(String(25), name="theme_font")
+    themeFontColor: Mapped[str] = mapped_column(String(25), name="theme_font_color")
+    themeSize: Mapped[int] = mapped_column(name="theme_size")
+    themePosition: Mapped[int] = mapped_column(name="theme_position")
+    themeMainColor: Mapped[str] = mapped_column(String(25), name="theme_main_color")
+    themeSecondaryColor: Mapped[str] = mapped_column(String(25), name="theme_secondary_color")
+    themeThirdColor: Mapped[str] = mapped_column(String(25), name="theme_third_color")
+    themeStroke: Mapped[str] = mapped_column(String(20), name="theme_stroke")
+    themeStrokeColor: Mapped[str] = mapped_column(String(25), name="theme_stroke_color")
+    themeShadow: Mapped[str] = mapped_column(String(20), name="theme_shadow")
+    themeUpperText: Mapped[bool] = mapped_column(Boolean, name="theme_upper_text")
+    themeEmoji: Mapped[bool] = mapped_column(Boolean, name="theme_emoji")
+    themeEmojiPosition: Mapped[str] = mapped_column(String(20), name="theme_emoji_position")
     createdAt: Mapped[datetime] = mapped_column(DateTime, name="created_at")
     updatedAt: Mapped[datetime] = mapped_column(DateTime, name="updatedAt")
 

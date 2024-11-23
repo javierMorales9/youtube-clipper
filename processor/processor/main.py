@@ -159,8 +159,7 @@ with Session(engine) as session:
     #saveTranscription(session, source.id, words)
 
     words = getClipWords(session, clip.range, source.id)
-    print(words)
 
-    # generateClip(clip, source, path)
-    #addSubtitlestoClip(path, clip, words)
+    #generateClip(clip, source, path)
+    addSubtitlestoClip(path, clip, words)
     session.commit()

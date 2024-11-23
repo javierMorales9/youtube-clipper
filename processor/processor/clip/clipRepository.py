@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from clip.Clip import Fragment, Range, Section, Clip
+from clip.Clip import Fragment, Range, Section, Clip, Theme
 
 from models import Clip as ClipModel, ClipRange, ClipSection, SectionFragment
 
@@ -76,6 +76,22 @@ def parseClip(
         end=rangeModel.end,
     )
 
+    theme = Theme(
+        themeFont=clipModel.themeFont,
+        themeFontColor=clipModel.themeFontColor,
+        themeSize=clipModel.themeSize,
+        themePosition=clipModel.themePosition,
+        themeMainColor=clipModel.themeMainColor,
+        themeSecondaryColor=clipModel.themeSecondaryColor,
+        themeThirdColor=clipModel.themeThirdColor,
+        themeStroke=clipModel.themeStroke,
+        themeStrokeColor=clipModel.themeStrokeColor,
+        themeShadow=clipModel.themeShadow,
+        themeUpperText=clipModel.themeUpperText,
+        themeEmoji=clipModel.themeEmoji,
+        themeEmojiPosition=clipModel.themeEmojiPosition,
+    )
+
     return Clip(
         id=clipModel.id,
         sourceId=clipModel.sourceId,
@@ -88,4 +104,5 @@ def parseClip(
         updatedAt=clipModel.updatedAt,
         range=clipRange,
         sections=sections,
+        theme=theme,
     )
