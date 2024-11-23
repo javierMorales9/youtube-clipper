@@ -4,7 +4,7 @@ import Video from "./video";
 import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider, UseFormReturn, useFormContext } from "react-hook-form";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Stage, Layer, Text, Transformer, Rect } from 'react-konva';
+import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import { Source } from "@/server/db/schema";
 import Konva from "konva";
 import { api } from "@/trpc/react";
@@ -46,13 +46,6 @@ export default function ClipEditor({
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    console.log("\n\n\n Borra esto joder \n\n\n")
-    if (showModal === false) {
-      //setShowModal(true);
-    }
-  }, [showModal]);
-
   const { mutateAsync: createClip } = api.clip.create.useMutation();
 
   const form = useForm<Clip>({
@@ -90,7 +83,6 @@ export default function ClipEditor({
 
   async function onSubmit() {
     const data = form.getValues();
-    console.log(data.sections);
 
     await createClip({
       name: data.name,
@@ -363,7 +355,7 @@ function Theme({ }) {
           <SingleChoice
             value={vals("theme.themeShadow")}
             choices={Object.values(ThemeShadow)}
-            onChange={(v) => { console.log('v', v); setVal("theme.themeShadow", v as ThemeShadow) }}
+            onChange={(v) => setVal("theme.themeShadow", v as ThemeShadow)}
           />
         </div>
         <div className="flex flex-row justify-between">
@@ -372,7 +364,7 @@ function Theme({ }) {
             <SingleChoice
               value={vals("theme.themeStroke")}
               choices={Object.values(ThemeStroke)}
-              onChange={(v) => { console.log('v', v); setVal("theme.themeStroke", v as ThemeStroke) }}
+              onChange={(v) => setVal("theme.themeStroke", v as ThemeStroke)}
             />
           </div>
           <div className="flex flex-col gap-y-2">
