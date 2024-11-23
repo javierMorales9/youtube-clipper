@@ -191,7 +191,7 @@ def shadowStyle(theme: Theme):
 def positionFilter(theme: Theme):
     position = theme.themePosition
 
-    return f"\\pos({500},{1920 * position/100})"
+    return f"\\pos({200},{1920 * position/100})"
 
 def shadowFilter(theme: Theme):
     return ""
