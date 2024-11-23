@@ -160,6 +160,6 @@ with Session(engine) as session:
 
     words = getClipWords(session, clip.range, source.id)
 
-    #generateClip(clip, source, path)
+    generateClip(clip, source, path)
     addSubtitlestoClip(path, clip, words)
     session.commit()

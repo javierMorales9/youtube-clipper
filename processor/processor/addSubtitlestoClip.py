@@ -72,8 +72,6 @@ PlayResY: 1920
 
 [Aegisub Project Garbage]
 Last Style Storage: Styles
-Audio File: ../files/4b3ef08c-a8b6-46f8-b241-dada7144624e/c5e37d43-28d0-43a4-a3fc-2b2da8d147de.mp4
-Video File: ../files/4b3ef08c-a8b6-46f8-b241-dada7144624e/c5e37d43-28d0-43a4-a3fc-2b2da8d147de.mp4
 Video AR Mode: 4
 Video AR Value: 0.561111
 Video Zoom Percent: 0.250000
@@ -100,7 +98,7 @@ Video Position: 178
         "BorderStyle": 1,
         "Outline": strokeStyle(theme),
         "Shadow": shadowStyle(theme),
-        "Alignment": 7,
+        "Alignment": 8, #8 is top center
         "MarginL": 10,
         "MarginR": 10,
         "MarginV": 10,
@@ -174,7 +172,7 @@ def strokeStyle(theme: Theme):
 
 
 def shadowStyle(theme: Theme):
-    return ""
+    return "0"
 
     shadow = theme.themeShadow
     if shadow == ThemeShadow.NONE:
@@ -191,7 +189,7 @@ def shadowStyle(theme: Theme):
 def positionFilter(theme: Theme):
     position = theme.themePosition
 
-    return f"\\pos({200},{1920 * position/100})"
+    return f"\\pos({str(550)},{str(1920 * position/100)})"
 
 def shadowFilter(theme: Theme):
     return ""
