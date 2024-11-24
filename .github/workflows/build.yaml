@@ -52,4 +52,4 @@ jobs:
           name: isolate-vpc-environment
           template: ./cloudformation/parent.yml
           capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
-          parameter-overrides: "ImageUri=${{ steps.build-image.outputs.image }}"
+          parameter-overrides: "ECRUri=${{ steps.commit_hash.outputs.hash }}, DatabaseUrl=postgresql://postgres:OMBbjlVoCmAKLrRAjjcJnmtsGjIIHaIt@roundhouse.proxy.rlwy.net:27949/railway"
