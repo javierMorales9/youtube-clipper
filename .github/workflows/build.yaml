@@ -26,30 +26,30 @@ jobs:
         id: commit_hash
         run: echo "::set-output name=hash::$(echo $GITHUB_SHA | cut -c1-7)"
 
-      - name: Build, tag, and push the app image to Amazon ECR with the latest tag
-        id: build-app-image
-        env:
-          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/app:latest
-          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
-        run: |
-          docker build -t $IMAGE_URL -t $COMMIT_HASH .
-          docker push $IMAGE_URL
-          echo "::set-output name=image::$IMAGE_URL"
+#      - name: Build, tag, and push the app image to Amazon ECR with the latest tag
+#        id: build-app-image
+#        env:
+#          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/app:latest
+#          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
+#        run: |
+#          docker build -t $IMAGE_URL -t $COMMIT_HASH .
+#          docker push $IMAGE_URL
+#          echo "::set-output name=image::$IMAGE_URL"
+#
+#      - name: Build, tag, and push the processor image to Amazon ECR with the latest tag
+#        id: build-processor-image
+#        env:
+#          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/processor:latest
+#          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
+#        run: |
+#          docker build -t $IMAGE_URL -t $COMMIT_HASH processor
+#          docker push $IMAGE_URL
+#          echo "::set-output name=image::$IMAGE_URL"
 
-      - name: Build, tag, and push the processor image to Amazon ECR with the latest tag
-        id: build-processor-image
-        env:
-          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/processor:latest
-          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
-        run: |
-          docker build -t $IMAGE_URL -t $COMMIT_HASH processor
-          docker push $IMAGE_URL
-          echo "::set-output name=image::$IMAGE_URL"
-
-#      - name: Deploy stack to cloudformation
-#        uses: aws-actions/aws-cloudformation-github-deploy@v1
-#        with:
-#          name: isolate-vpc-environment
-#          template: ./cloudformation/parent.yml
-#          capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
-#          parameter-overrides: "ImageUri=${{ steps.build-image.outputs.image }}"
+      - name: Deploy stack to cloudformation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: isolate-vpc-environment
+          template: ./cloudformation/parent.yml
+          capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+          parameter-overrides: "ImageUri=${{ steps.build-image.outputs.image }}"
