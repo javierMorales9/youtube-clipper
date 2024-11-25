@@ -20,7 +20,7 @@ ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 RUN npm --version
 
-WORKDIR /installation
+WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
@@ -37,8 +37,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-WORKDIR /app
-RUN cp -r /installation/.next/standalone ./
-RUN mkdir .next/
-RUN cp -r /installation/.next/static ./.next/static
-CMD ["node", "server.js"]
+CMD ["node", ".next/standalone/server.js"]

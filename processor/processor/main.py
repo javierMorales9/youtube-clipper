@@ -140,26 +140,27 @@ def handleEvent(event: ProcessingEvent, source: Source, clip: Optional[Clip] = N
 
         finishClipProcessing(session, clip.id)
 
-# loop()
+if env != 'prod':
+    loop()
+else:
+    print("Don't forget to delete this print and call loop() instead")
+    with Session(engine) as session:
+        clipId = "c5e37d43-28d0-43a4-a3fc-2b2da8d147de"
+        clip = findClipById(session, clipId)
+        if not clip:
+            raise Exception("Clip not found")
 
-print("Don't forget to delete this print and call loop() instead")
-with Session(engine) as session:
-    clipId = "c5e37d43-28d0-43a4-a3fc-2b2da8d147de"
-    clip = findClipById(session, clipId)
-    if not clip:
-        raise Exception("Clip not found")
+        source = findSourceById(session, clip.sourceId)
+        if not source:
+            raise Exception("Source not found")
 
-    source = findSourceById(session, clip.sourceId)
-    if not source:
-        raise Exception("Source not found")
+        path = f"../public/files/{source.id}"
 
-    path = f"../public/files/{source.id}"
+        #words = extractWords(path)
+        #saveTranscription(session, source.id, words)
 
-    #words = extractWords(path)
-    #saveTranscription(session, source.id, words)
+        words = getClipWords(session, clip.range, source.id)
 
-    words = getClipWords(session, clip.range, source.id)
-
-    generateClip(clip, source, path)
-    addSubtitlestoClip(path, clip, words)
-    session.commit()
+        generateClip(clip, source, path)
+        addSubtitlestoClip(path, clip, words)
+        session.commit()
