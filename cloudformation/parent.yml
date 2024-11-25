@@ -13,6 +13,9 @@ Parameters:
   DatabaseUrl:
     Type: String
     Description: The URL of the database that the server will connect to
+  OpenApiKey:
+    Type: String
+    Description: The OpenAI API key
 
 Resources:
   VpcStack:
@@ -41,6 +44,7 @@ Resources:
         PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
         SourceBucket: !Ref SourceBucketName
         DatabaseUrl: !Ref DatabaseUrl
+        OpenApiKey: !Ref OpenApiKey
 
   S3Stack:
     Type : AWS::Serverless::Application

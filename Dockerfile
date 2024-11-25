@@ -20,17 +20,12 @@ ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 RUN npm --version
 
-WORKDIR /app
+WORKDIR /installation
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+
 RUN npm install
-#RUN \
-#  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-#  elif [ -f package-lock.json ]; then npm ci; \
-#  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i; \
-#  else echo "Lockfile not found." && exit 1; \
-#  fi
 
 COPY . .
 
@@ -42,4 +37,8 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD node server.js
+WORKDIR /app
+RUN cp -r /installation/.next/standalone ./
+RUN mkdir .next/
+RUN cp -r /installation/.next/static ./.next/static
+CMD ["node", "server.js"]

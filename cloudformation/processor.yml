@@ -18,6 +18,9 @@ Parameters:
   DatabaseUrl:
     Type: String
     Description: The URL of the database that the server will connect to
+  OpenApiKey:
+    Type: String
+    Description: The OpenAI API key
 
 Resources:
   Service:
@@ -45,6 +48,12 @@ Resources:
                 Value: !Ref SourceBucket
               - Name: DATABASE_URL
                 Value: !Ref DatabaseUrl
+              - Name: FILES_PATH
+                Value: /tmp
+              - Name: FONTS_PATH
+                Value: ./processor/public/fonts
+              - Name: OPEN_API_KEY
+                Value: !Ref OpenApiKey
       InstanceConfiguration:
         InstanceRoleArn: !GetAtt InstanceRole.Arn
 
