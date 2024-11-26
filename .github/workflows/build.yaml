@@ -20,13 +20,6 @@ jobs:
         id: commit_hash
         run: echo "::set-output name=hash::$(echo $GITHUB_SHA | cut -c1-7)"
 
-#      - name: Configure AWS credentials
-#        uses: aws-actions/configure-aws-credentials@v2
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: ${{ secrets.AWS_REGION }}
-
       - name: Login to ECR
         uses: docker/login-action@v3
         with:
@@ -36,10 +29,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-#      - name: Login to Amazon ECR
-#        id: login-ecr
-#        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Create and use a new builder instance
         run: |
@@ -66,45 +55,6 @@ jobs:
           builder: mybuilder
           cache-from: type=registry,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/processor:cache
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/processor:cache
-
-#      - name: Build and push app
-#        uses: docker/build-push-action@v6
-#        with:
-#          file: ./Dockerfile
-#          push: true
-#          tags: ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/app:latest,${{ steps.commit_hash.outputs.hash }}
-#          builder: mybuilder
-#          cache-from: type=registry,ref=${{ secrets.AWS_ACCESS_KEY_ID  }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com:cache-app
-#          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ secrets.AWS_ACCESS_KEY_ID  }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com:cache-app
-
-#      - name: Build, tag, and push the app image to Amazon ECR with the latest tag
-#        id: build-app-image
-#        env:
-#          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/app:latest
-#          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
-#        run: |
-#          docker build -t $IMAGE_URL -t $COMMIT_HASH .
-#          docker push $IMAGE_URL
-#          echo "::set-output name=image::$IMAGE_URL"
-
-#      - name: Build and push processor
-#        uses: docker/build-push-action@v6
-#        with:
-#          file: ./processor/Dockerfile
-#          push: true
-#          tags: ${{ steps.login-ecr.outputs.registry }}/processor:latest,${{ steps.commit_hash.outputs.hash }}
-#          cache-from: type=registry,ref=${{ secrets.AWS_ACCESS_KEY_ID  }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ steps.login-ecr.outputs.registry }}/processor:cache
-#          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ secrets.AWS_ACCESS_KEY_ID  }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ steps.login-ecr.outputs.registry }}/processor:cache
-
-#      - name: Build, tag, and push the processor image to Amazon ECR with the latest tag
-#        id: build-processor-image
-#        env:
-#          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/processor:latest
-#          COMMIT_HASH: ${{ steps.commit_hash.outputs.hash }}
-#        run: |
-#          docker build -t $IMAGE_URL -t $COMMIT_HASH processor
-#          docker push $IMAGE_URL
-#          echo "::set-output name=image::$IMAGE_URL"
 
 #     - name: Deploy stack to cloudformation
 #        uses: aws-actions/aws-cloudformation-github-deploy@v1
