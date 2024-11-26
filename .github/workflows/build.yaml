@@ -24,7 +24,7 @@ jobs:
       - name: Login to ECR
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          registry: ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           username: ${{ secrets.AWS_ACCESS_KEY_ID }}
           password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -45,7 +45,7 @@ jobs:
         with:
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/app:latest,${{ steps.commit_hash.outputs.hash }}
+          tags: ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/app:latest,${{ steps.commit_hash.outputs.hash }}
           builder: mybuilder
           cache-from: type=registry,ref=${{ secrets.AWS_ACCESS_KEY_ID  }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/app:cache
           cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ secrets.AWS_ACCESS_KEY_ID  }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/app:cache
