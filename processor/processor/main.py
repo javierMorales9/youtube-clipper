@@ -88,6 +88,8 @@ def loop():
                         if event.clipId is not None:
                             clip = findClipById(session, event.clipId)
 
+                        path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
+
                         if env == "prod":
                             downloadFromS3(source.id, path)
 
