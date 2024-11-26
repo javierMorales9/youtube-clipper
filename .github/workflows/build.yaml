@@ -47,7 +47,7 @@ jobs:
       - name: Build and push app
         uses: docker/build-push-action@v5
         with:
-          #context: .
+          context: .
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/app:latest,${{ steps.commit_hash.outputs.hash }}
@@ -58,7 +58,7 @@ jobs:
       - name: Build and push processor
         uses: docker/build-push-action@v5
         with:
-          #context: .
+          context: .
           file: ./processor/Dockerfile
           push: true
           tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/processor:latest,${{ steps.commit_hash.outputs.hash }}
