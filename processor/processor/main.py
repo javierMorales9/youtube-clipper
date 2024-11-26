@@ -140,10 +140,10 @@ def handleEvent(event: ProcessingEvent, source: Source, clip: Optional[Clip] = N
 
         finishClipProcessing(session, clip.id)
 
-if env != 'prod':
+if env == 'prod':
     loop()
 else:
-    print("Don't forget to delete this print and call loop() instead")
+    print("Dev mode")
     with Session(engine) as session:
         clipId = "c5e37d43-28d0-43a4-a3fc-2b2da8d147de"
         clip = findClipById(session, clipId)
