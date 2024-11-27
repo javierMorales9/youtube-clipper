@@ -5,8 +5,8 @@ on:
       - main
 
 env:
-  AWS_REGION: eu-west-1
-  ECR_REPOSITORY: app
+  ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  CACHE_TO_META: mode=max,image-manifest=true,oci-mediatypes=true
 
 jobs:
   Build:
@@ -23,7 +23,7 @@ jobs:
       - name: Login to ECR
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          registry: ${{ env.ECR_URI }}
           username: ${{ secrets.AWS_ACCESS_KEY_ID }}
           password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -40,10 +40,10 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/app:latest
+          tags: ${{ env.ECR_URI }}/app:latest
           builder: mybuilder
-          cache-from: type=registry,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/app:cache
-          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/app:cache
+          cache-from: type=registry,ref=${{ env.ECR_URI }}/app:cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/app:cache
 
       - name: Build and push processor
         uses: docker/build-push-action@v5
@@ -51,15 +51,7 @@ jobs:
           context: processor
           file: ./processor/Dockerfile
           push: true
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/processor:latest
+          tags: ${{ env.ECR_URI }}/processor:latest
           builder: mybuilder
-          cache-from: type=registry,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/processor:cache
-          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/processor:cache
-
-#     - name: Deploy stack to cloudformation
-#        uses: aws-actions/aws-cloudformation-github-deploy@v1
-#        with:
-#          name: isolate-vpc-environment
-#          template: ./cloudformation/parent.yml
-#          capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
-#          parameter-overrides: "ECRUri=${{ steps.commit_hash.outputs.hash }}, DatabaseUrl=postgresql://postgres:OMBbjlVoCmAKLrRAjjcJnmtsGjIIHaIt@roundhouse.proxy.rlwy.net:27949/railway"
+          cache-from: type=registry,ref=${{ env.ECR_URI }}/processor:cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/processor:cache

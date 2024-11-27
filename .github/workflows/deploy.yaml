@@ -1,0 +1,19 @@
+name: Deploy the stack to AWS CloudFormation
+on:
+  workflow_dispatch:
+
+env:
+  ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+
+jobs:
+  Deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+       - name: Deploy stack to cloudformation
+         uses: aws-actions/aws-cloudformation-github-deploy@v1
+         with:
+           name: isolate-vpc-environment
+           template: ./cloudformation/parent.yml
+           capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+           parameter-overrides: "ECRUri=${{ env.ECR_URI }}, DatabaseUrl=${{ secrets.DATABASE_URL }}, OpenApiKey=${{ secrets.OPEN_API_KEY }}"

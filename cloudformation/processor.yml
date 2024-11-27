@@ -36,7 +36,7 @@ Resources:
           ImageIdentifier: !Sub '${ECRUri}/processor:latest'
           ImageRepositoryType: ECR
           ImageConfiguration:
-            Port: 3000
+            #Port: 3000
             RuntimeEnvironmentVariables:
               - Name: ENV
                 Value: prod
