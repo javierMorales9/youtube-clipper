@@ -20,22 +20,6 @@ jobs:
         id: commit_hash
         run: echo "::set-output name=hash::$(echo $GITHUB_SHA | cut -c1-7)"
 
-      - name: Install Sam
-        run: |
-          apt-get update;
-          apt-get install -y unzip;
-          wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip;
-          unzip aws-sam-cli-linux-x86_64.zip -d sam-installation;
-          ./sam-installation/install;
-          sam --version;
-
-#      - name: Login to ECR
-#        uses: docker/login-action@v3
-#        with:
-#          registry: ${{ env.ECR_URI }}
-#          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
