@@ -2,6 +2,7 @@ import os
 
 from pydantic import BaseModel
 from extractInterventions import extractLines
+from extractWordsFromFile import Word
 from suggestion.Suggestion import Suggestion
 from source.Source import Source
 import math
@@ -23,7 +24,7 @@ clipDurationRanges = {
 }
 
 
-def createSuggestions(source: Source):
+def createSuggestions(source: Source, words: list[Word]):
     env = os.environ["ENV"]
 
     if env == "dev":
@@ -33,7 +34,7 @@ def createSuggestions(source: Source):
         path = f"/tmp/{source.id}"
         useCache = False
 
-    lines = extractLines(path)
+    lines = extractLines(words)
 
     #
     # The lines are created to show them in the a mobile view, so they are short
@@ -69,6 +70,7 @@ def createSuggestions(source: Source):
         lambda x: cosineSimilarity(x, queryEmb)
     )
     topPhrases = phrases.sort_values(by="similarities", ascending=False).head(10)
+    print(topPhrases)
 
     selections = pd.DataFrame(
         columns=np.array(["start", "end", "text", "similarities"])
@@ -205,6 +207,7 @@ def createSuggestions(source: Source):
     selectedSuggestions = selections.sort_values(
         by="similarities", ascending=False
     ).head(5)
+    print(selectedSuggestions)
 
     addNameAndDescription(selectedSuggestions, source)
 

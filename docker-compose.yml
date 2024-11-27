@@ -9,21 +9,37 @@ services:
       - POSTGRES_PASSWORD=pass
       - POSTGRES_USER=user
       - POSTGRES_DB=db
-#  processor:
-#    image: processor
-#    build:
-#      context: processor
-#    volumes:
-#      - /home/javi/personal/bluesun/public/files:/public
-#    links:
-#      - db
-#    environment:
-#      - ENV=dev
-#      - FILES_PATH=/public
-#      - DATABASE_URL=postgresql://user:pass@db/db
-#      - AWS_REGION=eu-west-1
-#      - SOURCE_BUCKET=sources-file-bucket
-#    extra_hosts:
-#      - "internal:host-gateway"
-#    depends_on:
-#      - db
+  app:
+    image: app
+    network_mode: "host"
+    build:
+      context: .
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - HLS=true
+      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
+      - AWS_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - SOURCE_BUCKET=${SOURCE_BUCKET}
+    depends_on:
+      - db
+  processor:
+    image: processor
+    network_mode: "host"
+    build:
+      context: processor
+    environment:
+      - ENV=prod
+      - FILES_PATH=/tmp
+      - FONTS_PATH=./processor/public/fonts
+      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AWS_REGION=eu-west-1
+      - SOURCE_BUCKET=${SOURCE_BUCKET}
+    extra_hosts:
+      - "internal:host-gateway"
+    depends_on:
+      - db

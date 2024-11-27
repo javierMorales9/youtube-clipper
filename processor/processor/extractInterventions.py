@@ -51,7 +51,6 @@ def extractLines(
     line_duration = 0
 
     for idx, word_data in enumerate(words):
-        word = word_data["word"]
         start = word_data["start"]
         end = word_data["end"]
 

@@ -6,4 +6,9 @@ README.md
 .next
 docker
 .git
+processor
+cloudformation
+docker-compose.yml
+public/files
 #.env
+

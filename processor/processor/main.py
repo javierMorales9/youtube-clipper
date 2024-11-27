@@ -20,7 +20,12 @@ from source.Source import Source
 from s3FileHandlers import downloadFromS3, saveToS3
 from suggestion.suggestionRepository import saveSuggestions
 from startTranscription import startTranscription
-from source.sourceRepository import findSourceById, getClipWords, saveSource, saveTranscription
+from source.sourceRepository import (
+    findSourceById,
+    getClipWords,
+    saveSource,
+    saveTranscription,
+)
 
 
 class EventType(str, Enum):
@@ -30,7 +35,7 @@ class EventType(str, Enum):
 
 
 env = os.environ["ENV"]
-if env == "dev":
+if True or env == "dev":
     load_dotenv()
 
 dbUrl = os.environ["DATABASE_URL"]
@@ -93,7 +98,7 @@ def loop():
                         if env == "prod":
                             downloadFromS3(source.id, path)
 
-                        handleEvent(event, source, clip)
+                        handleEvent(session, event, source, clip)
 
                         if env == "prod":
                             saveToS3(source.id, path)
@@ -102,7 +107,8 @@ def loop():
 
         sleep(10)
 
-def handleEvent(event: ProcessingEvent, source: Source, clip: Optional[Clip] = None):
+
+def handleEvent(session: Session, event: ProcessingEvent, source: Source, clip: Optional[Clip] = None):
     path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
 
     if event.type == EventType.SOURCE_UPLOADED:
@@ -130,7 +136,7 @@ def handleEvent(event: ProcessingEvent, source: Source, clip: Optional[Clip] = N
         words = extractWordsFromFile(path)
         saveTranscription(session, source.id, words)
 
-        suggestions = createSuggestions(source)
+        suggestions = createSuggestions(source, words)
         saveSuggestions(session, suggestions)
     elif clip is not None and event.type == EventType.CLIP_UPDATED:
         print(f"Processing clip {event.clipId}")
@@ -142,7 +148,8 @@ def handleEvent(event: ProcessingEvent, source: Source, clip: Optional[Clip] = N
 
         finishClipProcessing(session, clip.id)
 
-if env == 'prod':
+
+if env == "prod":
     loop()
 else:
     print("Dev mode")
@@ -158,8 +165,8 @@ else:
 
         path = f"../public/files/{source.id}"
 
-        #words = extractWords(path)
-        #saveTranscription(session, source.id, words)
+        # words = extractWords(path)
+        # saveTranscription(session, source.id, words)
 
         words = getClipWords(session, clip.range, source.id)
 

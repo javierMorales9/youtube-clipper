@@ -17,14 +17,17 @@ def startTranscription(source: Source):
         )
         resource = session.client('transcribe')
 
-        resource.start_transcription_job(
-            TranscriptionJobName=f'{source.id}-transcribe',
-            LanguageCode="es-ES",
-            MediaFormat="mp4",
-            Media={
-                "MediaFileUri": f'https://{bucket}.s3-{aws_region}.amazonaws.com/{source.id}/original.mp4',
-            },
-            OutputBucketName=bucket,
-            OutputKey=f'{source.id}/transcription.json',
-        )
+        try:
+            resource.start_transcription_job(
+                TranscriptionJobName=f'{source.id}-transcribe',
+                LanguageCode="es-ES",
+                MediaFormat="mp4",
+                Media={
+                    "MediaFileUri": f'https://{bucket}.s3-{aws_region}.amazonaws.com/{source.id}/original.mp4',
+                },
+                OutputBucketName=bucket,
+                OutputKey=f'{source.id}/transcription.json',
+            )
+        except Exception as e:
+            print("Error starting transcription job", e)
 

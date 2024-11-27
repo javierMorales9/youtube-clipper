@@ -120,7 +120,7 @@ export default function SourceModal({
     setStep("uploading");
     upload(data)
       .then(() => {
-        setStep("drag-drop");
+        //setStep("drag-drop");
       })
       .catch((e) => {
         setStep("drag-drop");
@@ -133,11 +133,10 @@ export default function SourceModal({
   }
 
   useEffect(() => {
-    console.log(percentage, uploading);
-
     if (percentage === 100 && uploading === false) {
       setFile(null);
       setVideoName("");
+      setStep("drag-drop");
       addSource({ name: videoName, processing: true });
     }
   }, [percentage, uploading]);
