@@ -23,6 +23,7 @@ import {
 } from "./ClipSchema";
 import { createClipUpdatedEvent } from "@/server/processingEvent";
 import { Db } from "@/server/db";
+import { newDate } from "@/utils/newDate";
 
 export const clipRouter = createTRPCRouter({
   find: publicProcedure
@@ -109,7 +110,7 @@ export const clipRouter = createTRPCRouter({
         .update(clip)
         .set({
           processing: false,
-          updatedAt: new Date(),
+          updatedAt: newDate(),
         })
         .where(eq(clip.id, id));
     }),
@@ -186,8 +187,8 @@ async function saveClip(db: Db, data: Clip) {
         height: height.toString(),
         ...data.theme,
         processing: data.processing ?? true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: newDate(),
+        updatedAt: newDate(),
       })
       .onConflictDoUpdate({
         target: [clip.id],
@@ -197,7 +198,7 @@ async function saveClip(db: Db, data: Clip) {
           height: height.toString(),
           ...data.theme,
           processing: data.processing ?? true,
-          updatedAt: new Date(),
+          updatedAt: newDate(),
         },
       });
 

@@ -1,9 +1,12 @@
+from datetime import datetime, timedelta
 import os
+from pathlib import Path
 from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from time import sleep
+from uuid import uuid4
 
 from enum import Enum
 
@@ -16,6 +19,8 @@ from createSuggestions import createSuggestions
 from addSubtitlestoClip import addSubtitlestoClip
 from extractWordsFromFile import extractWordsFromFile
 from clip.Clip import Clip
+from utils import newDate
+from source.eventRepository import saveEvent
 from source.Source import Source
 from s3FileHandlers import downloadFromS3, saveToS3
 from suggestion.suggestionRepository import saveSuggestions
@@ -56,8 +61,11 @@ def loop():
                 UPDATE processing_event
                 SET finished_at = now()
                 WHERE id = (
-                  SELECT id FROM processing_event
-                  WHERE finished_at IS NULL
+                  SELECT id
+                  FROM processing_event
+                  WHERE
+                    finished_at IS NULL
+                    AND (start_processing_at IS NULL OR start_processing_at < now())
                   ORDER BY id
                   FOR UPDATE SKIP LOCKED
                   LIMIT 1
@@ -108,36 +116,44 @@ def loop():
         sleep(10)
 
 
-def handleEvent(session: Session, event: ProcessingEvent, source: Source, clip: Optional[Clip] = None):
+def handleEvent(
+    session: Session,
+    event: ProcessingEvent,
+    source: Source,
+    clip: Optional[Clip] = None,
+):
     path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
 
     if event.type == EventType.SOURCE_UPLOADED:
         print(f"New source {source.id}")
         startTranscription(source)
 
+        createTranscriptionFinishedEvent(session, source.id)
     if event.type == EventType.TRANSCRIPTION_FINISHED:
         print(f"Processing source after transcription {source.id}")
-
-        duration, resolution = processSource(path)
-
-        source.processing = False
-        source.duration = duration
-
-        # Resolution format is "1920x1080"
-        resolution = resolution.split("x")
-        if len(resolution) != 2:
-            print("Invalid resolution")
+        if not Path(f"{path}/transcription.json").exists():
+            createTranscriptionFinishedEvent(session, source.id)
         else:
-            source.width = int(resolution[0])
-            source.height = int(resolution[1])
+            duration, resolution = processSource(path)
 
-        saveSource(session, source)
+            source.processing = False
+            source.duration = duration
 
-        words = extractWordsFromFile(path)
-        saveTranscription(session, source.id, words)
+            # Resolution format is "1920x1080"
+            resolution = resolution.split("x")
+            if len(resolution) != 2:
+                print("Invalid resolution")
+            else:
+                source.width = int(resolution[0])
+                source.height = int(resolution[1])
 
-        suggestions = createSuggestions(source, words)
-        saveSuggestions(session, suggestions)
+            saveSource(session, source)
+
+            words = extractWordsFromFile(path)
+            saveTranscription(session, source.id, words)
+
+            suggestions = createSuggestions(source, words)
+            saveSuggestions(session, suggestions)
     elif clip is not None and event.type == EventType.CLIP_UPDATED:
         print(f"Processing clip {event.clipId}")
 
@@ -148,6 +164,17 @@ def handleEvent(session: Session, event: ProcessingEvent, source: Source, clip: 
 
         finishClipProcessing(session, clip.id)
 
+def createTranscriptionFinishedEvent(session, sourceId: str):
+    print(newDate(), newDate() + timedelta(minutes=1))
+    checkTranscriptionEvent = ProcessingEvent(
+        id=str(uuid4()),
+        sourceId=sourceId,
+        clipId=None,
+        type=EventType.TRANSCRIPTION_FINISHED,
+        createdAt=newDate(),
+        startProcessingAt=newDate() + timedelta(minutes=1),
+    )
+    saveEvent(session, checkTranscriptionEvent)
 
 if env == "prod":
     loop()

@@ -90,14 +90,18 @@ class Clip(Base):
     themeSize: Mapped[int] = mapped_column(name="theme_size")
     themePosition: Mapped[int] = mapped_column(name="theme_position")
     themeMainColor: Mapped[str] = mapped_column(String(25), name="theme_main_color")
-    themeSecondaryColor: Mapped[str] = mapped_column(String(25), name="theme_secondary_color")
+    themeSecondaryColor: Mapped[str] = mapped_column(
+        String(25), name="theme_secondary_color"
+    )
     themeThirdColor: Mapped[str] = mapped_column(String(25), name="theme_third_color")
     themeStroke: Mapped[str] = mapped_column(String(20), name="theme_stroke")
     themeStrokeColor: Mapped[str] = mapped_column(String(25), name="theme_stroke_color")
     themeShadow: Mapped[str] = mapped_column(String(20), name="theme_shadow")
     themeUpperText: Mapped[bool] = mapped_column(Boolean, name="theme_upper_text")
     themeEmoji: Mapped[bool] = mapped_column(Boolean, name="theme_emoji")
-    themeEmojiPosition: Mapped[str] = mapped_column(String(20), name="theme_emoji_position")
+    themeEmojiPosition: Mapped[str] = mapped_column(
+        String(20), name="theme_emoji_position"
+    )
     createdAt: Mapped[datetime] = mapped_column(DateTime, name="created_at")
     updatedAt: Mapped[datetime] = mapped_column(DateTime, name="updatedAt")
 
@@ -153,6 +157,9 @@ class ProcessingEvent(Base):
     )
     clipId: Mapped[Optional[str]] = mapped_column(ForeignKey("clip.id"), name="clip_id")
     type: Mapped[str] = mapped_column(String(256), nullable=False)
+    startProcessingAt: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, name="start_processing_at"
+    )
     createdAt: Mapped[datetime] = mapped_column(
         DateTime, name="created_at", nullable=False
     )

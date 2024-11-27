@@ -177,20 +177,20 @@ Resources:
                 - "iam:ListRoles"
               Resource: '*'
 
-  AfterUploadLambdaFunction:
-    Type: AWS::Lambda::Function
-    DependsOn: [ProcessingLambdaExecutionRole]
-    Properties:
-      Code: ../lambdas/transcriptionFinished/package.zip
-      FunctionName: transcriptionFinished
-      Handler: index.handler
-      Role: !GetAtt ProcessingLambdaExecutionRole.Arn
-      Runtime: nodejs18.x
-      MemorySize: 512
-      Timeout: 120
-      Environment:
-        Variables:
-          DATABASE_URL: !Ref DatabaseUrl
+#  AfterUploadLambdaFunction:
+#    Type: AWS::Lambda::Function
+#    DependsOn: [ProcessingLambdaExecutionRole]
+#    Properties:
+#      Code: ../lambdas/transcriptionFinished/package.zip
+#      FunctionName: transcriptionFinished
+#      Handler: index.handler
+#      Role: !GetAtt ProcessingLambdaExecutionRole.Arn
+#      Runtime: nodejs18.x
+#      MemorySize: 512
+#      Timeout: 120
+#      Environment:
+#        Variables:
+#          DATABASE_URL: !Ref DatabaseUrl
 
 Outputs:
   S3BucketName:

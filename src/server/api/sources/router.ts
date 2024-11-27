@@ -13,6 +13,7 @@ import { Store } from "./Store";
 import { eq, sql } from "drizzle-orm";
 import { createSourceUploadedEvent } from "@/server/processingEvent";
 import { Word } from "./Word";
+import { newDate } from "@/utils/newDate";
 
 export const sourceRouter = createTRPCRouter({
   all: publicProcedure.input(z.object({})).query(async ({ ctx }) => {
@@ -69,7 +70,7 @@ export const sourceRouter = createTRPCRouter({
         .update(source)
         .set({
           processing: false,
-          updatedAt: new Date(),
+          updatedAt: newDate(),
           width: res[0],
           height: res[1],
           duration: input.duration,
@@ -114,8 +115,8 @@ export const sourceRouter = createTRPCRouter({
           clipLength: input.clipLength,
           processingRangeStart: Math.floor(input.range[0]!),
           processingRangeEnd: Math.floor(input.range[1]!),
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: newDate(),
+          updatedAt: newDate(),
         });
 
         if (input.tags.length > 0) {
@@ -153,7 +154,7 @@ export const sourceRouter = createTRPCRouter({
         .update(source)
         .set({
           url: location,
-          updatedAt: new Date(),
+          updatedAt: newDate(),
         })
         .where(eq(source.id, id));
 

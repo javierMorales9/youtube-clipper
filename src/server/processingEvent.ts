@@ -1,3 +1,4 @@
+import { newDate } from "@/utils/newDate";
 import { randomUUID } from "crypto";
 
 export const ProcessingEvent = {
@@ -11,7 +12,8 @@ export function createTranscriptionFinishedEvent(sourceId: string) {
     id: randomUUID(),
     sourceId,
     type: ProcessingEvent.TRANSCRIPTION_FINISHED,
-    createdAt: new Date(),
+    startProcessingAt: new Date(newDate().getTime() + 10*60000), //We add 10 minutes to the current time
+    createdAt: newDate(),
   };
 }
 
@@ -20,7 +22,7 @@ export function createSourceUploadedEvent(sourceId: string) {
     id: randomUUID(),
     sourceId,
     type: ProcessingEvent.SOURCE_UPLOADED,
-    createdAt: new Date(),
+    createdAt: newDate(),
   };
 }
 
@@ -30,6 +32,6 @@ export function createClipUpdatedEvent(clipId: string, sourceId: string) {
     sourceId,
     clipId,
     type: ProcessingEvent.CLIP_UPDATED,
-    createdAt: new Date(),
+    createdAt: newDate(),
   };
 }

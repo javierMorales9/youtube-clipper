@@ -44,8 +44,8 @@ export const source = createTable("source", {
   clipLength: varchar("clip_length", { length: 256 }),
   processingRangeStart: integer("processing_range_start"),
   processingRangeEnd: integer("processing_range_end"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updatedAt").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).notNull(),
 });
 export type Source = InferModel<typeof source>;
 
@@ -136,8 +136,8 @@ export const clip = createTable("clip", {
   themeEmojiPosition: varchar("theme_emoji_position", { length: 20 })
     .notNull()
     .default(defaultTheme.themeEmojiPosition),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updatedAt"),
+  createdAt: timestamp("created_at", { withTimezone: true }),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }),
 });
 export type ClipTable = InferModel<typeof clip>;
 
@@ -207,7 +207,8 @@ export const processingEvent = createTable("processing_event", {
   }),
   clipId: uuid("clip_id").references(() => clip.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 256 }).notNull(),
-  createdAt: timestamp("created_at").notNull(),
-  finishedAt: timestamp("finished_at"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  startProcessingAt: timestamp("start_processing_at", { withTimezone: true }),
   error: text("error"),
 });
