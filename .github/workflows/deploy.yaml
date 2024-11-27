@@ -21,7 +21,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Install Sam
+      - name: Deploy stack to cloudformation
         run: |
           #sudo apt-get update;
           #sudo apt-get install -y unzip;
@@ -29,10 +29,15 @@ jobs:
           #sudo unzip aws-sam-cli-linux-x86_64.zip -d sam-installation;
           #sudo ./sam-installation/install;
           sam --version;
-      - name: Deploy stack to cloudformation
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          name: Stack-${{ steps.commit_hash.outputs.hash }}
-          template: ./cloudformation/parent.yml
-          capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
-          parameter-overrides: "ECRUri=${{ env.ECR_URI }}, DatabaseUrl=${{ secrets.DATABASE_URL }}, OpenApiKey=${{ secrets.OPEN_API_KEY }}"
+          sam deploy \
+            --template-file cloudformation/parent.yml \
+            --stack-name youtube-clipper \
+            --capabilities CAPABILITY_IAM \
+            --parameter-overrides ECRUri=${env.ECR_URI} DatabaseUrl=${secrets.DATABASE_URL} OpenApiKey=${secrets.OPEN_API_KEY}
+#      - name: Deploy stack to cloudformation
+#        uses: aws-actions/aws-cloudformation-github-deploy@v1
+#        with:
+#          name: Stack-${{ steps.commit_hash.outputs.hash }}
+#          template: ./cloudformation/parent.yml
+#          capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+#          parameter-overrides: "ECRUri=${{ env.ECR_URI }}, DatabaseUrl=${{ secrets.DATABASE_URL }}, OpenApiKey=${{ secrets.OPEN_API_KEY }}"
