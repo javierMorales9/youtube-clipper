@@ -24,7 +24,7 @@ jobs:
       - name: Deploy stack to cloudformation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: ${{ steps.commit_hash.outputs.hash }}
+          name: Stack-${{ steps.commit_hash.outputs.hash }}
           template: ./cloudformation/parent.yml
           capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
           parameter-overrides: "ECRUri=${{ env.ECR_URI }}, DatabaseUrl=${{ secrets.DATABASE_URL }}, OpenApiKey=${{ secrets.OPEN_API_KEY }}"
