@@ -53,6 +53,14 @@ COPY package.json package-lock.json ./
 
 RUN npm install
 
+# Test
+FROM base AS test
+COPY --from=dependencies /app/node_modules ./node_modules
+
+COPY . .
+
+CMD ["npm", "test"]
+
 # Build
 FROM base AS build
 
@@ -67,7 +75,7 @@ ENV SKIP_ENV_VALIDATION=true
 RUN npm run build
 
 # Run
-FROM base AS run
+FROM base AS prod
 
 ENV NODE_ENV=production
 ENV PORT=$PORT

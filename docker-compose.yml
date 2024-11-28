@@ -9,23 +9,24 @@ services:
       - POSTGRES_PASSWORD=pass
       - POSTGRES_USER=user
       - POSTGRES_DB=db
-#  app:
-#    image: app
-#    network_mode: "host"
-#    build:
-#      context: .
-#    ports:
-#      - 3000:3000
-#    environment:
-#      - NODE_ENV=production
-#      - HLS=true
-#      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
-#      - AWS_REGION=eu-west-1
-#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-#      - SOURCE_BUCKET=${SOURCE_BUCKET}
-#    depends_on:
-#      - db
+  app:
+    image: app
+    network_mode: "host"
+    build:
+      context: .
+      target: test
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - HLS=true
+      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
+      - AWS_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - SOURCE_BUCKET=${SOURCE_BUCKET}
+    depends_on:
+      - db
 #  processor:
 #    image: processor
 #    network_mode: "host"
