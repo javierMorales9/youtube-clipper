@@ -1,0 +1,19 @@
+services:
+  processor:
+    image: processor
+    network_mode: "host"
+    build:
+      context: .
+      target: test
+    environment:
+      - ENV=prod
+      - FILES_PATH=/tmp
+      - FONTS_PATH=./processor/public/fonts
+      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AWS_REGION=eu-west-1
+      - SOURCE_BUCKET=${SOURCE_BUCKET}
+      - HOST_NAME=0.0.0.0
+      - PORT=23336
+    extra_hosts:
+      - "internal:host-gateway"

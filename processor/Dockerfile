@@ -1,4 +1,4 @@
-FROM ubuntu:rolling
+FROM ubuntu:rolling AS base
 #
 # Update and upgrade the system
 #
@@ -68,4 +68,10 @@ RUN python -m poetry install --no-root
 
 COPY . .
 
+# To stages, onr for running the tests and one for the final image
+FROM base AS test
+CMD ["python", "-m", "poetry", "run", "python3", "-m", "pytest"]
+
+FROM base AS final
+EXPOSE $PORT
 CMD ["python", "-m", "poetry", "run", "python3", "processor/main.py"]
