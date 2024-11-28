@@ -21,6 +21,14 @@ Parameters:
   OpenApiKey:
     Type: String
     Description: The OpenAI API key
+  ProcessorHostName:
+    Type: String
+    Description: The hostname of the processor service
+    Default: 0.0.0.0
+  ProcessorPort:
+    Type: String
+    Description: The port of the processor service
+    Default: 23336
 
 Resources:
   Service:
@@ -36,12 +44,10 @@ Resources:
           ImageIdentifier: !Sub '${ECRUri}/processor:latest'
           ImageRepositoryType: ECR
           ImageConfiguration:
-            #Port: 3000
+            Port: !Ref ProcessorPort
             RuntimeEnvironmentVariables:
               - Name: ENV
                 Value: prod
-              - Name: HOSTNAME
-                Value: '0.0.0.0'
               - Name: AWS_REGION
                 Value: !Ref 'AWS::Region'
               - Name: SOURCE_BUCKET
@@ -54,6 +60,10 @@ Resources:
                 Value: ./processor/public/fonts
               - Name: OPEN_API_KEY
                 Value: !Ref OpenApiKey
+              - Name: HOSTNAME
+                Value: !Ref ProcessorHostName
+              - Name: PORT
+                Value: !Ref ProcessorPort
       InstanceConfiguration:
         InstanceRoleArn: !GetAtt InstanceRole.Arn
 

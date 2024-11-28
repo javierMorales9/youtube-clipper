@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import os
 from pathlib import Path
 from typing import Optional
@@ -19,6 +19,7 @@ from createSuggestions import createSuggestions
 from addSubtitlestoClip import addSubtitlestoClip
 from extractWordsFromFile import extractWordsFromFile
 from clip.Clip import Clip
+from flask_server import flask_server
 from utils import newDate
 from source.eventRepository import saveEvent
 from source.Source import Source
@@ -31,7 +32,6 @@ from source.sourceRepository import (
     saveSource,
     saveTranscription,
 )
-
 
 class EventType(str, Enum):
     SOURCE_UPLOADED = "source_uploaded"
@@ -164,6 +164,7 @@ def handleEvent(
 
         finishClipProcessing(session, clip.id)
 
+
 def createTranscriptionFinishedEvent(session, sourceId: str):
     print(newDate(), newDate() + timedelta(minutes=1))
     checkTranscriptionEvent = ProcessingEvent(
@@ -176,27 +177,32 @@ def createTranscriptionFinishedEvent(session, sourceId: str):
     )
     saveEvent(session, checkTranscriptionEvent)
 
-if env == "prod":
-    loop()
-else:
-    print("Dev mode")
-    with Session(engine) as session:
-        clipId = "c5e37d43-28d0-43a4-a3fc-2b2da8d147de"
-        clip = findClipById(session, clipId)
-        if not clip:
-            raise Exception("Clip not found")
 
-        source = findSourceById(session, clip.sourceId)
-        if not source:
-            raise Exception("Source not found")
+#We start a new thread for a server that will just return a status ok
+flask_server()
 
-        path = f"../public/files/{source.id}"
+#We start the main loop that will handling the events
+loop()
 
-        # words = extractWords(path)
-        # saveTranscription(session, source.id, words)
-
-        words = getClipWords(session, clip.range, source.id)
-
-        generateClip(clip, source, path)
-        addSubtitlestoClip(path, clip, words)
-        session.commit()
+#if env == "prod":
+#    flask_server()
+#    loop()
+#else:
+#    print("Dev mode")
+#    with Session(engine) as session:
+#        clipId = "c5e37d43-28d0-43a4-a3fc-2b2da8d147de"
+#        clip = findClipById(session, clipId)
+#        if not clip:
+#            raise Exception("Clip not found")
+#
+#        source = findSourceById(session, clip.sourceId)
+#        if not source:
+#            raise Exception("Source not found")
+#
+#        path = f"../public/files/{source.id}"
+#
+#        words = getClipWords(session, clip.range, source.id)
+#
+#        generateClip(clip, source, path)
+#        addSubtitlestoClip(path, clip, words)
+#        session.commit()
