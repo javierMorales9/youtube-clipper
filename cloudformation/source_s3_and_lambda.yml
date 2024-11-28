@@ -30,15 +30,15 @@ Resources:
               - "*"
             ExposedHeaders:
               - "ETag"
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: .srt
-            Function: !GetAtt AfterUploadLambdaFunction.Arn
+#      NotificationConfiguration:
+#        LambdaConfigurations:
+#          - Event: s3:ObjectCreated:*
+#            Filter:
+#              S3Key:
+#                Rules:
+#                  - Name: suffix
+#                    Value: .srt
+#            Function: !GetAtt AfterUploadLambdaFunction.Arn
 
   CloudfrontOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -105,17 +105,17 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::909166668781:distribution/${CloudFrontDistribution}"
 
-  AfterUploadInvokePermission:
-    Type: AWS::Lambda::Permission
-    DependsOn: [AfterUploadLambdaFunction]
-    Properties:
-      FunctionName: !GetAtt AfterUploadLambdaFunction.Arn
-      Action: lambda:InvokeFunction
-      Principal: s3.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
-      # We create the arn manually to avoid circular dependencies. See
-      # https://repost.aws/knowledge-center/unable-validate-circular-dependency-cloudformation
-      SourceArn: !Sub "arn:aws:s3:::${S3BucketName}"
+#  AfterUploadInvokePermission:
+#    Type: AWS::Lambda::Permission
+#    DependsOn: [AfterUploadLambdaFunction]
+#    Properties:
+#      FunctionName: !GetAtt AfterUploadLambdaFunction.Arn
+#      Action: lambda:InvokeFunction
+#      Principal: s3.amazonaws.com
+#      SourceAccount: !Ref AWS::AccountId
+#      # We create the arn manually to avoid circular dependencies. See
+#      # https://repost.aws/knowledge-center/unable-validate-circular-dependency-cloudformation
+#      SourceArn: !Sub "arn:aws:s3:::${S3BucketName}"
 
   ProcessingLambdaExecutionRole:
     Type: AWS::IAM::Role
