@@ -35,7 +35,7 @@ jobs:
         run: |
           docker buildx create --name mybuilder --use
 
-      - name: Build test stage
+      - name: Build app test stage
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -61,6 +61,22 @@ jobs:
           builder: mybuilder
           cache-from: type=registry,ref=${{ env.ECR_URI }}/app:cache
           cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/app:cache
+
+      - name: Build processor test stage
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          tags: test-processor
+          target: test
+          builder: mybuilder
+          cache-from: type=registry,ref=${{ env.ECR_URI }}/processor:test-cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/processor:test-cache
+
+      - name: Test processor
+        run: |
+          docker run --rm test-processor
 
       - name: Build and push processor
         uses: docker/build-push-action@v5
