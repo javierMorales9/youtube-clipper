@@ -65,8 +65,8 @@ jobs:
       - name: Build processor test stage
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: processor
+          file: ./processor/Dockerfile
           load: true
           tags: test-processor
           target: test
