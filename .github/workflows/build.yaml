@@ -49,7 +49,7 @@ jobs:
 
       - name: Test app
         run: |
-          docker run -rm test-app
+          docker run --rm test-app
 
       - name: Build and push app
         uses: docker/build-push-action@v5
