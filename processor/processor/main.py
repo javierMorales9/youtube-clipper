@@ -166,14 +166,14 @@ def handleEvent(
 
 
 def createTranscriptionFinishedEvent(session, sourceId: str):
-    print(newDate(), newDate() + timedelta(minutes=1))
+    print(newDate(), newDate() + timedelta(minutes=8))
     checkTranscriptionEvent = ProcessingEvent(
         id=str(uuid4()),
         sourceId=sourceId,
         clipId=None,
         type=EventType.TRANSCRIPTION_FINISHED,
         createdAt=newDate(),
-        startProcessingAt=newDate() + timedelta(minutes=1),
+        startProcessingAt=newDate() + timedelta(minutes=8),
     )
     saveEvent(session, checkTranscriptionEvent)
 
