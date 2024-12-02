@@ -117,65 +117,65 @@ Resources:
 #      # https://repost.aws/knowledge-center/unable-validate-circular-dependency-cloudformation
 #      SourceArn: !Sub "arn:aws:s3:::${S3BucketName}"
 
-  ProcessingLambdaExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-        - PolicyName: allowLogging
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Action:
-              - logs:*
-              Resource: arn:aws:logs:*:*:*
-        - PolicyName: getAndDeleteObjects
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Action:
-                - s3:GetObject
-                - s3:DeleteObject
-                - s3:PutObject
-                - transcribe:*
-              Resource: '*'
-        - PolicyName: allowBatch
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Action:
-                - "batch:*"
-                - "cloudwatch:GetMetricStatistics"
-                - "ec2:DescribeSubnets"
-                - "ec2:DescribeSecurityGroups"
-                - "ec2:DescribeKeyPairs"
-                - "ec2:DescribeVpcs"
-                - "ec2:DescribeImages"
-                - "ec2:DescribeLaunchTemplates"
-                - "ec2:DescribeLaunchTemplateVersions"
-                - "ecs:DescribeClusters"
-                - "ecs:Describe*"
-                - "ecs:List*"
-                - "eks:DescribeCluster"
-                - "eks:ListClusters"
-                - "logs:Describe*"
-                - "logs:Get*"
-                - "logs:TestMetricFilter"
-                - "logs:FilterLogEvents"
-                - "iam:ListInstanceProfiles"
-                - "iam:ListRoles"
-              Resource: '*'
+#  ProcessingLambdaExecutionRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      AssumeRolePolicyDocument:
+#        Version: '2012-10-17'
+#        Statement:
+#        - Effect: Allow
+#          Principal:
+#            Service:
+#            - lambda.amazonaws.com
+#          Action:
+#          - sts:AssumeRole
+#      Policies:
+#        - PolicyName: allowLogging
+#          PolicyDocument:
+#            Version: '2012-10-17'
+#            Statement:
+#            - Effect: Allow
+#              Action:
+#              - logs:*
+#              Resource: arn:aws:logs:*:*:*
+#        - PolicyName: getAndDeleteObjects
+#          PolicyDocument:
+#            Version: '2012-10-17'
+#            Statement:
+#            - Effect: Allow
+#              Action:
+#                - s3:GetObject
+#                - s3:DeleteObject
+#                - s3:PutObject
+#                - transcribe:*
+#              Resource: '*'
+#        - PolicyName: allowBatch
+#          PolicyDocument:
+#            Version: '2012-10-17'
+#            Statement:
+#            - Effect: Allow
+#              Action:
+#                - "batch:*"
+#                - "cloudwatch:GetMetricStatistics"
+#                - "ec2:DescribeSubnets"
+#                - "ec2:DescribeSecurityGroups"
+#                - "ec2:DescribeKeyPairs"
+#                - "ec2:DescribeVpcs"
+#                - "ec2:DescribeImages"
+#                - "ec2:DescribeLaunchTemplates"
+#                - "ec2:DescribeLaunchTemplateVersions"
+#                - "ecs:DescribeClusters"
+#                - "ecs:Describe*"
+#                - "ecs:List*"
+#                - "eks:DescribeCluster"
+#                - "eks:ListClusters"
+#                - "logs:Describe*"
+#                - "logs:Get*"
+#                - "logs:TestMetricFilter"
+#                - "logs:FilterLogEvents"
+#                - "iam:ListInstanceProfiles"
+#                - "iam:ListRoles"
+#              Resource: '*'
 
 #  AfterUploadLambdaFunction:
 #    Type: AWS::Lambda::Function

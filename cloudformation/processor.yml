@@ -105,6 +105,7 @@ Resources:
                 - s3:ListBucketMultipartUploads # needed?
                 - s3:ListBucketVersions         # needed?
                 - batch:SubmitJob
+                - transcribe:*
               Resource: '*'       # TODO reference our S3 BUCKET ARN
             - Effect: Allow
               Action:
