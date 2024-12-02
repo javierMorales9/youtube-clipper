@@ -1,14 +1,14 @@
 import _ from "lodash";
 import { env } from "@/env";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3, UploadPartCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3, UploadPartCommand } from "@aws-sdk/client-s3";
 
 export const S3Store = {
   getSignedUrls: async function (key: string) {
     return {
-      manifest: `https://d20lwp9ni0p7dk.cloudfront.net/${key}/adaptive.m3u8`,
-      timeline : `https://d20lwp9ni0p7dk.cloudfront.net/${key}/timeline.png`,
-      snapshot : `https://d20lwp9ni0p7dk.cloudfront.net/${key}/snapshot.png`,
+      manifest: `${env.CLOUDFRONT_URL}/${key}/adaptive.m3u8`,
+      timeline : `${env.CLOUDFRONT_URL}/${key}/timeline.png`,
+      snapshot : `${env.CLOUDFRONT_URL}/${key}/snapshot.png`,
     };
     /*
     const s3 = new S3({ region: env.AWS_REGION });

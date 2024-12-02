@@ -20,6 +20,7 @@ export const env = createEnv({
     JOB_QUEUE: z.string().optional(),
     AFTER_CLIP_JOB_DEFINITION: z.string().optional(),
     HLS: z.boolean({coerce: true}).optional().default(false),
+    CLOUDFRONT_URL: z.string().optional(),
   },
 
   /**
@@ -46,6 +47,7 @@ export const env = createEnv({
     JOB_QUEUE: process.env.JOB_QUEUE,
     AFTER_CLIP_JOB_DEFINITION: process.env.AFTER_CLIP_JOB_DEFINITION,
     HLS: process.env.HLS,
+    CLOUDFRONT_URL: process.env.CLOUDFRONT_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

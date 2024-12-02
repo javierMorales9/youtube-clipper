@@ -18,33 +18,33 @@ Parameters:
     Description: The OpenAI API key
 
 Resources:
-  VpcStack:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: vpc.yml
-
-  AppStack:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: app.yml
-      Parameters:
-        ECRUri: !Ref ECRUri 
-        VpcId: !GetAtt VpcStack.Outputs.VpcId
-        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
-        SourceBucket: !Ref SourceBucketName
-        DatabaseUrl: !Ref DatabaseUrl
-
-  ProcessorStack:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: processor.yml
-      Parameters:
-        ECRUri: !Ref ECRUri 
-        VpcId: !GetAtt VpcStack.Outputs.VpcId
-        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
-        SourceBucket: !Ref SourceBucketName
-        DatabaseUrl: !Ref DatabaseUrl
-        OpenApiKey: !Ref OpenApiKey
+#  VpcStack:
+#    Type: AWS::Serverless::Application
+#    Properties:
+#      Location: vpc.yml
+#
+#  AppStack:
+#    Type: AWS::Serverless::Application
+#    Properties:
+#      Location: app.yml
+#      Parameters:
+#        ECRUri: !Ref ECRUri 
+#        VpcId: !GetAtt VpcStack.Outputs.VpcId
+#        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
+#        SourceBucket: !Ref SourceBucketName
+#        DatabaseUrl: !Ref DatabaseUrl
+#
+#  ProcessorStack:
+#    Type: AWS::Serverless::Application
+#    Properties:
+#      Location: processor.yml
+#      Parameters:
+#        ECRUri: !Ref ECRUri 
+#        VpcId: !GetAtt VpcStack.Outputs.VpcId
+#        PublicSubnetIds: !GetAtt VpcStack.Outputs.PublicSubnetIds
+#        SourceBucket: !Ref SourceBucketName
+#        DatabaseUrl: !Ref DatabaseUrl
+#        OpenApiKey: !Ref OpenApiKey
 
   S3Stack:
     Type : AWS::Serverless::Application

@@ -6,7 +6,7 @@ on:
 #      - main
 
 env:
-  ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  #ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
   CACHE_TO_META: mode=max,image-manifest=true,oci-mediatypes=true
 
 jobs:
