@@ -25,6 +25,7 @@ clipDurationRanges = {
 
 
 def createSuggestions(source: Source, words: list[Word]):
+    print("Creating suggestions")
     env = os.environ["ENV"]
 
     if env == "dev":

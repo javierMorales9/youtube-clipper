@@ -14,6 +14,7 @@ def processSource(path: str):
 
 
 def generateHls(path: str):
+    print("Generating HLS")
     subprocess.run(
         [
             "ffmpeg",
@@ -29,11 +30,13 @@ def generateHls(path: str):
             "0",
             f"{path}/adaptive.m3u8",
             "-y",
-        ]
+        ],
+        capture_output=True,
     )
 
 
 def getVideoDuration(path: str):
+    print("Getting video duration")
     aso = subprocess.run(
         [
             "ffprobe",
@@ -54,6 +57,7 @@ def getVideoDuration(path: str):
 
 
 def getVideoResolution(path: str):
+    print("Getting video resolution")
     process = subprocess.run(
         [
             "ffprobe",
@@ -87,7 +91,8 @@ def createTimelineAndSnapshot(path: str, duration: float):
             f"select=not(mod(n\\,30)),scale=240:-1,tile=1x{intDuration}",
             f"{path}/timeline.png",
             "-y",
-        ]
+        ],
+        capture_output=True,
     )
 
     print("Creating snapshot")
@@ -104,5 +109,6 @@ def createTimelineAndSnapshot(path: str, duration: float):
             "1",
             f"{path}/snapshot.png",
             "-y",
-        ]
+        ],
+        capture_output=True,
     )

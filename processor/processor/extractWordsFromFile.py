@@ -8,6 +8,7 @@ class Word(TypedDict):
     end: int
 
 def extractWordsFromFile(path: str):
+    print("Extracting words from transcription file")
     f = open(f"{path}/transcription.json", "r")
     data = json.load(f)
     results = data["results"]["items"]
