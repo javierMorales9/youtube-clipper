@@ -60,7 +60,7 @@ Resources:
                 Value: ./processor/public/fonts
               - Name: OPEN_API_KEY
                 Value: !Ref OpenApiKey
-              - Name: HOSTNAME
+              - Name: HOST_NAME
                 Value: !Ref ProcessorHostName
               - Name: PORT
                 Value: !Ref ProcessorPort

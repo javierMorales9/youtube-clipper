@@ -4,7 +4,7 @@ services:
     network_mode: "host"
     build:
       context: .
-      target: test
+      target: final
     environment:
       - ENV=prod
       - FILES_PATH=/tmp
