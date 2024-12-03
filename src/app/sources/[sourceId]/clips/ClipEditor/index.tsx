@@ -42,7 +42,7 @@ export default function ClipEditor({
 }) {
   const { start, end } = clip.range;
   const menuViews = ["Display", "Translations", "Theme"] as const;
-  const [menuView, setMenuView] = useState<typeof menuViews[number]>(menuViews[2]);
+  const [menuView, setMenuView] = useState<typeof menuViews[number]>(menuViews[0]);
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
 

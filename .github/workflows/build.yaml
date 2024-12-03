@@ -1,4 +1,4 @@
-name: Push the Docker image to AWS ECR Repo
+name: Build app and processor containers and run tests
 on:
   workflow_dispatch:
 #  push:
@@ -6,7 +6,9 @@ on:
 #      - main
 
 env:
-  #ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  #REGISTRY_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
+  REGISTRY_URI: ghcr.io/${{ github.actor }} 
+  USERNAME: ${{ github.actor }}
   CACHE_TO_META: mode=max,image-manifest=true,oci-mediatypes=true
 
 jobs:
@@ -24,9 +26,12 @@ jobs:
       - name: Login to ECR
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.ECR_URI }}
-          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: A ver
+        run: echo ${{ github.actor }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -44,8 +49,8 @@ jobs:
           tags: test-app
           target: test
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.ECR_URI }}/app:test-cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/app:test-cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:test-cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:test-cache
 
       - name: Test app
         run: |
@@ -57,10 +62,10 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ env.ECR_URI }}/app:latest
+          tags: ${{ env.REGISTRY_URI }}/app:latest
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.ECR_URI }}/app:cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/app:cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:cache
 
       - name: Build processor test stage
         uses: docker/build-push-action@v5
@@ -71,8 +76,8 @@ jobs:
           tags: test-processor
           target: test
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.ECR_URI }}/processor:test-cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/processor:test-cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:test-cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:test-cache
 
       - name: Test processor
         run: |
@@ -84,7 +89,7 @@ jobs:
           context: processor
           file: ./processor/Dockerfile
           push: true
-          tags: ${{ env.ECR_URI }}/processor:latest
+          tags: ${{ env.REGISTRY_URI }}/processor:latest
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.ECR_URI }}/processor:cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.ECR_URI }}/processor:cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:cache
