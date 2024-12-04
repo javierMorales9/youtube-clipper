@@ -148,6 +148,20 @@
       "when": 1732727194376,
       "tag": "0020_add_startProcessingAt_field_to_processing_event",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1733215506986,
+      "tag": "0021_create_company_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1733219097732,
+      "tag": "0022_make_the_email_unique",
+      "breakpoints": true
     }
   ]
 }

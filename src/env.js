@@ -11,6 +11,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    SECRET: z.string(),
     AWS_REGION: z.string().default('eu-west-1'),
     SOURCE_BUCKET: z.string().optional(),
     AWS_ACCESS_KEY_ID: z.string().optional(),
@@ -38,6 +39,7 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
+    SECRET: process.env.SECRET,
     AWS_REGION: process.env.AWS_REGION,
     SOURCE_BUCKET: process.env.SOURCE_BUCKET,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,

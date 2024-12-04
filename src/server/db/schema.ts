@@ -14,12 +14,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import {
-  ThemeFont,
-  ThemeShadow,
-  ThemeStroke,
-  defaultTheme,
-} from "../api/clips/ClipSchema";
+import { defaultTheme, } from "../api/clips/ClipSchema";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -28,6 +23,16 @@ import {
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = pgTableCreator((name) => `${name}`);
+
+export const company = createTable("company", {
+  id: uuid("id").primaryKey().notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  email: varchar("email", { length: 256 }).notNull().unique(),
+  password: varchar("password", { length: 256 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export type Company = InferModel<typeof company>;
 
 export const source = createTable("source", {
   id: uuid("id").primaryKey().notNull(),

@@ -2,6 +2,7 @@ import { sourceRouter } from "@/server/api/sources/router";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { clipRouter } from "./clips/router";
 import { suggestionRouter } from "./suggestion/router";
+import { companyRouter } from "./company/router";
 
 /**
  * This is the primary router for your server.
@@ -9,6 +10,7 @@ import { suggestionRouter } from "./suggestion/router";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
+  company: companyRouter,
   source: sourceRouter,
   clip: clipRouter,
   suggestion: suggestionRouter,
