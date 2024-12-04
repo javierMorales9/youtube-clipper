@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { suggestion } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const suggestionRouter = createTRPCRouter({
-  fromSource: publicProcedure
+  fromSource: protectedProcedure
     .input(z.object({ sourceId: z.string() }))
     .query(async ({ ctx, input }) => {
       const sourceId = input.sourceId;

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   ClipTable,
   clip,
@@ -26,7 +26,7 @@ import { Db } from "@/server/db";
 import { newDate } from "@/utils/newDate";
 
 export const clipRouter = createTRPCRouter({
-  find: publicProcedure
+  find: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const theClip = await ctx.db.query.clip.findFirst({
@@ -37,7 +37,7 @@ export const clipRouter = createTRPCRouter({
 
       return await completeClip(ctx.db, theClip);
     }),
-  fromSource: publicProcedure
+  fromSource: protectedProcedure
     .input(z.object({ sourceId: z.string() }))
     .query(async ({ ctx, input }) => {
       const clips = await ctx.db.query.clip.findMany({
@@ -52,7 +52,7 @@ export const clipRouter = createTRPCRouter({
 
       return realClips;
     }),
-  createNew: publicProcedure
+  createNew: protectedProcedure
     .input(
       z.object({
         sourceId: z.string(),
@@ -86,7 +86,7 @@ export const clipRouter = createTRPCRouter({
 
       return clip;
     }),
-  create: publicProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
+  create: protectedProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
     console.log("Saving clip", JSON.stringify(input, null, 2));
     input.id = input.id || uuidv4();
     await saveClip(ctx.db, input);
@@ -101,7 +101,7 @@ export const clipRouter = createTRPCRouter({
       .insert(processingEvent)
       .values(createClipUpdatedEvent(input.id, input.sourceId));
   }),
-  finishProcessing: publicProcedure
+  finishProcessing: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { id } = input;

@@ -30,7 +30,6 @@ export default async function RootLayout({
 }) {
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
-  console.log('token', token);
 
   let company: CompanyType | null = null
 

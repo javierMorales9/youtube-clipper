@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   processingEvent,
   source,
@@ -16,7 +16,7 @@ import { Word } from "./Word";
 import { newDate } from "@/utils/newDate";
 
 export const sourceRouter = createTRPCRouter({
-  all: publicProcedure.input(z.object({})).query(async ({ ctx }) => {
+  all: protectedProcedure.input(z.object({})).query(async ({ ctx }) => {
     const sources = await ctx.db.query.source.findMany();
 
     return Promise.all(
@@ -33,7 +33,7 @@ export const sourceRouter = createTRPCRouter({
       }),
     );
   }),
-  find: publicProcedure
+  find: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const { manifest, timeline } = await Store().getSignedUrls(input.id);
@@ -46,7 +46,7 @@ export const sourceRouter = createTRPCRouter({
 
       return { ...theSource, url: manifest, timelineUrl: timeline };
     }),
-  finishProcessing: publicProcedure
+  finishProcessing: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -84,7 +84,7 @@ export const sourceRouter = createTRPCRouter({
       }));
       await ctx.db.insert(suggestion).values(suggestionObjs);
     }),
-  initiateUpload: publicProcedure
+  initiateUpload: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -128,7 +128,7 @@ export const sourceRouter = createTRPCRouter({
 
       return { parts, id };
     }),
-  completeUpload: publicProcedure
+  completeUpload: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -162,7 +162,7 @@ export const sourceRouter = createTRPCRouter({
         .insert(processingEvent)
         .values(createSourceUploadedEvent(id));
     }),
-  getClipWords: publicProcedure
+  getClipWords: protectedProcedure
     .input(
       z.object({
         sourceId: z.string(),

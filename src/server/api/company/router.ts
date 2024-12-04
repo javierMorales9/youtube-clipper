@@ -4,9 +4,8 @@ import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 import z from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { env } from "@/env";
-import jwt from "jsonwebtoken";
 import { newDate } from "@/utils/newDate";
+import { issueJwt, verifyjwt } from "@/utils/jwt";
 
 export const companyRouter = createTRPCRouter({
   create: publicProcedure
@@ -70,11 +69,3 @@ export const companyRouter = createTRPCRouter({
       return theC;
     }),
 });
-
-function issueJwt(id: string): string {
-  return jwt.sign(id, env.SECRET);
-}
-
-function verifyjwt(token: string): string {
-  return jwt.verify(token, env.SECRET) as string;
-}

@@ -11,6 +11,11 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "@/server/db";
+import repo from "@/server/api/company/";
+import { CompanyType } from "./company/CompanySchema";
+import { company } from "../db/schema";
+import { eq } from "drizzle-orm";
+import { TRPCClientError } from "@trpc/client";
 
 /**
  * 1. CONTEXT
@@ -24,11 +29,34 @@ import { db } from "@/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
-  return {
-    db,
-    ...opts,
-  };
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  id?: string;
+}) => {
+  try {
+    let c: CompanyType | null = null;
+
+    const id = opts.id;
+    console.log('id', id);
+    if (id) {
+      c =
+        (await db.query.company.findFirst({
+          where: eq(company.id, id),
+        })) || null;
+    }
+
+    return {
+      db,
+      company: c,
+      headers: opts.headers,
+    };
+  } catch (error) {
+    console.error("Error creating TRPC context:");
+    return {
+      db,
+      headers: opts.headers,
+    };
+  }
 };
 
 /**
@@ -81,3 +109,26 @@ export const createTRPCRouter = t.router;
  * are logged in.
  */
 export const publicProcedure = t.procedure;
+
+/**
+ * Protected (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
+ * the session is valid and guarantees `ctx.session.user` is not null.
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+  if (!ctx.company) {
+    throw new TRPCClientError('UNAUTHORIZED');
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+    },
+  });
+});
+
+export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
