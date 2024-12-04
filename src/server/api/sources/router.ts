@@ -79,6 +79,7 @@ export const sourceRouter = createTRPCRouter({
 
       const suggestionObjs = input.suggestions.map((suggestion) => ({
         id: uuidv4(),
+        companyId: ctx.company.id,
         ...suggestion,
         sourceId: id,
       }));
@@ -108,6 +109,7 @@ export const sourceRouter = createTRPCRouter({
         console.log("input", input);
         await t.insert(source).values({
           id,
+          companyId: ctx.company.id,
           name: input.name,
           processing: true,
           externalId: fileId,
@@ -160,7 +162,7 @@ export const sourceRouter = createTRPCRouter({
 
       await ctx.db
         .insert(processingEvent)
-        .values(createSourceUploadedEvent(id));
+        .values(createSourceUploadedEvent(id, ctx.company.id));
     }),
   getClipWords: protectedProcedure
     .input(

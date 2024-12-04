@@ -17,7 +17,8 @@ export const suggestionRouter = createTRPCRouter({
 
       return result.map(el => ({
         id: el.id,
-        sourceid: el.sourceId,
+        sourceId: el.sourceId,
+        companyId: el.companyId,
         name: el.name,
         description: el.description,
         range: {

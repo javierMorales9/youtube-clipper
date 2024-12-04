@@ -36,6 +36,7 @@ export type Company = InferModel<typeof company>;
 
 export const source = createTable("source", {
   id: uuid("id").primaryKey().notNull(),
+  companyId: uuid("company_id").notNull(),
   externalId: varchar("external_id", { length: 256 }).notNull(),
   name: varchar("name", { length: 256 }).notNull(),
   processing: boolean("processing")
@@ -81,6 +82,7 @@ export type SourceTranscription = InferModel<typeof sourceTranscription>;
 
 export const suggestion = createTable("suggestion", {
   id: uuid("id").primaryKey(),
+  companyId: uuid("company_id").notNull(),
   sourceId: uuid("source_id")
     .references(() => source.id, { onDelete: "cascade" })
     .notNull(),
@@ -97,6 +99,7 @@ export const clip = createTable("clip", {
   sourceId: uuid("source_id")
     .references(() => source.id, { onDelete: "cascade" })
     .notNull(),
+  companyId: uuid("company_id").notNull(),
   name: varchar("name", { length: 256 })
     .notNull()
     .default(sql`''`),
@@ -210,6 +213,7 @@ export const processingEvent = createTable("processing_event", {
   sourceId: uuid("source_id").references(() => source.id, {
     onDelete: "cascade",
   }),
+  companyId: uuid("company_id").notNull(),
   clipId: uuid("clip_id").references(() => clip.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 256 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),

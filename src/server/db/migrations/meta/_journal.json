@@ -162,6 +162,13 @@
       "when": 1733219097732,
       "tag": "0022_make_the_email_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1733308024415,
+      "tag": "0023_add_companyId_field_to_source_clips_and_suggestions",
+      "breakpoints": true
     }
   ]
 }

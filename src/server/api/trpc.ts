@@ -10,7 +10,7 @@ import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { db } from "@/server/db";
+import { Db, db } from "@/server/db";
 import repo from "@/server/api/company/";
 import { CompanyType } from "./company/CompanySchema";
 import { company } from "../db/schema";
@@ -37,7 +37,7 @@ export const createTRPCContext = async (opts: {
     let c: CompanyType | null = null;
 
     const id = opts.id;
-    console.log('id', id);
+    console.log("id", id);
     if (id) {
       c =
         (await db.query.company.findFirst({
@@ -118,17 +118,25 @@ export const publicProcedure = t.procedure;
  *
  * @see https://trpc.io/docs/procedures
  */
-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+type Protected = {
+  db: Db;
+  company: CompanyType;
+  headers: Headers;
+}
+
+const enforceUserIsAuthed = t.middleware<Protected>(({ ctx, next }) => {
   if (!ctx.company) {
-    throw new TRPCClientError('UNAUTHORIZED');
+    throw new TRPCClientError("UNAUTHORIZED");
   }
 
+  const newCtx = {
+    db: ctx.db,
+    compnay: ctx.company,
+    headers: ctx.headers,
+  };
   return next({
-    ctx: {
-      ...ctx,
-    },
+    ctx: newCtx,
   });
 });
 
-export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
-
+export const protectedProcedure = t.procedure.use<Protected>(enforceUserIsAuthed);

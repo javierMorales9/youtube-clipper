@@ -1,5 +1,6 @@
 import { newDate } from "@/utils/newDate";
 import { randomUUID } from "crypto";
+import { Source } from "./db/schema";
 
 export const ProcessingEvent = {
   SOURCE_UPLOADED: "source_uploaded",
@@ -17,19 +18,21 @@ export function createTranscriptionFinishedEvent(sourceId: string) {
   };
 }
 
-export function createSourceUploadedEvent(sourceId: string) {
+export function createSourceUploadedEvent(sourceId: string, companyId: string) {
   return {
     id: randomUUID(),
-    sourceId,
+    companyId: companyId,
+    sourceId: sourceId,
     type: ProcessingEvent.SOURCE_UPLOADED,
     createdAt: newDate(),
   };
 }
 
-export function createClipUpdatedEvent(clipId: string, sourceId: string) {
+export function createClipUpdatedEvent(clipId: string, sourceId: string, companyId: string) {
   return {
     id: randomUUID(),
     sourceId,
+    companyId,
     clipId,
     type: ProcessingEvent.CLIP_UPDATED,
     createdAt: newDate(),

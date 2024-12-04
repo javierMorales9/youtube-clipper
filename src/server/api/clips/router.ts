@@ -82,25 +82,27 @@ export const clipRouter = createTRPCRouter({
         theme: defaultTheme,
       };
 
-      await saveClip(ctx.db, clip);
+      await saveClip(ctx.db, ctx.company.id, clip);
 
       return clip;
     }),
-  create: protectedProcedure.input(ClipSchema).mutation(async ({ ctx, input }) => {
-    console.log("Saving clip", JSON.stringify(input, null, 2));
-    input.id = input.id || uuidv4();
-    await saveClip(ctx.db, input);
+  create: protectedProcedure
+    .input(ClipSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log("Saving clip", JSON.stringify(input, null, 2));
+      input.id = input.id || uuidv4();
+      await saveClip(ctx.db, ctx.company.id, input);
 
-    const theSource = await ctx.db.query.source.findFirst({
-      where: eq(source.id, input.sourceId),
-    });
+      const theSource = await ctx.db.query.source.findFirst({
+        where: eq(source.id, input.sourceId),
+      });
 
-    if (!theSource) throw new Error("Source not found");
+      if (!theSource) throw new Error("Source not found");
 
-    await ctx.db
-      .insert(processingEvent)
-      .values(createClipUpdatedEvent(input.id, input.sourceId));
-  }),
+      await ctx.db
+        .insert(processingEvent)
+        .values(createClipUpdatedEvent(input.id, input.sourceId, ctx.company.id));
+    }),
   finishProcessing: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -171,7 +173,7 @@ async function completeClip(db: Db, theClip: ClipTable): Promise<Clip> {
   });
 }
 
-async function saveClip(db: Db, data: Clip) {
+async function saveClip(db: Db, companyId: string, data: Clip) {
   const { id, name, range, width, height, sourceId, sections } = data;
 
   if (!id) throw new Error("No id provided");
@@ -183,6 +185,7 @@ async function saveClip(db: Db, data: Clip) {
         id,
         name,
         sourceId,
+        companyId,
         width: width.toString(),
         height: height.toString(),
         ...data.theme,
