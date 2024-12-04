@@ -1,6 +1,7 @@
 import { api } from "@/trpc/server";
 import ClipEditor from "../ClipEditor";
 import { DisplayKey, Displays } from "../Displays";
+import TopBar from "@/app/_components/TopBar";
 
 export default async function EditClip({
   params: { sourceId, clipId },
@@ -22,22 +23,25 @@ export default async function EditClip({
   const clipWords = await api.source.getClipWords({ sourceId, range: clip.range });
 
   return (
-    <div className="">
-      <ClipEditor
-        source={source}
-        timelineUrl={source.timelineUrl}
-        clip={{
-          ...clip,
-          sections: clip.sections.map((section) => ({
-            start: section.start,
-            end: section.end,
-            display: Displays[section.display as DisplayKey],
-            fragments: section.fragments,
-          })),
-        }}
-        words={clipWords}
-      />
-    </div>
+    <>
+      <TopBar page="sources" />
+      <div className="">
+        <ClipEditor
+          source={source}
+          timelineUrl={source.timelineUrl}
+          clip={{
+            ...clip,
+            sections: clip.sections.map((section) => ({
+              start: section.start,
+              end: section.end,
+              display: Displays[section.display as DisplayKey],
+              fragments: section.fragments,
+            })),
+          }}
+          words={clipWords}
+        />
+      </div>
+    </>
   );
 }
 

@@ -1,8 +1,7 @@
 import { api } from "@/trpc/server";
 import Source from "./Source";
-import { SuggestionType } from "@/server/api/suggestion/Suggestion";
 import { env } from "@/env";
-import { randomUUID } from "crypto";
+import TopBar from "@/app/_components/TopBar";
 
 export default async function Sources({
   params: { sourceId },
@@ -19,14 +18,17 @@ export default async function Sources({
   const suggestions = await api.suggestion.fromSource({ sourceId });
 
   return (
-    <div className="px-6"> 
-      <Source
-        source={source}
-        clips={clips}
-        suggestions={suggestions}
-        timelineUrl={source.timelineUrl}
-        hls={env.HLS}
-      />
-    </div>
+    <>
+      <TopBar page="sources" />
+      <div className="px-6">
+        <Source
+          source={source}
+          clips={clips}
+          suggestions={suggestions}
+          timelineUrl={source.timelineUrl}
+          hls={env.HLS}
+        />
+      </div>
+    </>
   );
 }
