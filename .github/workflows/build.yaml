@@ -1,12 +1,11 @@
 name: Build app and processor containers and run tests
 on:
   workflow_dispatch:
-#  push:
-#    branches:
-#      - main
+  push:
+    branches:
+      - staging
 
 env:
-  #REGISTRY_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com
   REGISTRY_URI: ghcr.io/javiermorales9
   USERNAME: javiermorales9
   CACHE_TO_META: mode=max,image-manifest=true,oci-mediatypes=true
