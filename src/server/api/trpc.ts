@@ -11,7 +11,6 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { Db, db } from "@/server/db";
-import repo from "@/server/api/company/";
 import { CompanyType } from "./company/CompanySchema";
 import { company } from "../db/schema";
 import { eq } from "drizzle-orm";

@@ -1,4 +1,4 @@
-name: Build app, test it and push to staging
+name: Build app, test it and push to main
 on:
   workflow_dispatch:
   push:

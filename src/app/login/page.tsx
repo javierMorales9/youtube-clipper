@@ -37,8 +37,8 @@ export default function Login() {
 
       cookies.set('token', company.token);
       router.push('/');
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError((e as Error).message);
       setLoading(false);
     }
   };
@@ -65,7 +65,7 @@ export default function Login() {
         {!loading ? 'Login' : <Loader />}
       </Button>
       <span className="text-sm text-gray-500">
-        Don't have an account? <Link href="/signup" className="text-blue-500">Sign up</Link>
+        {"Don't have an account?"} <Link href="/signup" className="text-blue-500">Sign up</Link>
       </span>
     </div>
   );
