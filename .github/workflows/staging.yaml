@@ -1,4 +1,4 @@
-name: Build app and processor containers and run tests
+name: Build app, test it and push to staging
 on:
   workflow_dispatch:
   push:
@@ -22,7 +22,7 @@ jobs:
         id: commit_hash
         run: echo "::set-output name=hash::$(echo $GITHUB_SHA | cut -c1-7)"
 
-      - name: Login to ECR
+      - name: Login to Github registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -58,10 +58,10 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ env.REGISTRY_URI }}/app:latest
+          tags: ${{ env.REGISTRY_URI }}/app:staging
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:cache-staging
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:cache-staging
 
       - name: Build processor test stage
         uses: docker/build-push-action@v5
@@ -85,7 +85,7 @@ jobs:
           context: processor
           file: ./processor/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY_URI }}/processor:latest
+          tags: ${{ env.REGISTRY_URI }}/processor:staging
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:cache-staging
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:cache-staging
