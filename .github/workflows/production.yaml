@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - staging
+      - main
 
 env:
   REGISTRY_URI: ghcr.io/javiermorales9
