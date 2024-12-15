@@ -53,6 +53,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
           url: getBaseUrl() + "/api/trpc",
           headers: () => {
             const headers = new Headers();
+            console.log("Pinche pendejo");
             headers.set("x-trpc-source", "nextjs-react");
             return headers;
           },

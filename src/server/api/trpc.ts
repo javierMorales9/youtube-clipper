@@ -36,7 +36,6 @@ export const createTRPCContext = async (opts: {
     let c: CompanyType | null = null;
 
     const id = opts.id;
-    console.log("id", id);
     if (id) {
       c =
         (await db.query.company.findFirst({
