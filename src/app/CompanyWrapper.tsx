@@ -2,19 +2,23 @@
 
 import { CompanyType } from "@/server/api/company/CompanySchema";
 import { createContext, useContext, useState } from "react";
+import Cookies from 'universal-cookie';
+import { useRouter } from 'next/navigation'
 
 const CompanyContext = createContext<{
+  data: CompanyType,
   update: (data: CompanyType) => void,
-  data: CompanyType
+  signOut: () => void,
 }
 >({
-  update: () => { },
   data: {
     id: "",
     name: "",
     email: "",
     createdAt: new Date(),
-  }
+  },
+  update: () => { },
+  signOut: () => { },
 });
 
 export function CompanyProvider({
@@ -24,12 +28,21 @@ export function CompanyProvider({
   children: React.ReactNode;
   company: CompanyType;
 }) {
+  const router = useRouter();
   const [companyData, setCompanyData] = useState<CompanyType>(company);
+
+  const signOut = () => {
+    const cookies = new Cookies(null, { path: '/' });
+
+    cookies.remove("token");
+    router.push('/login');
+  };
 
   return (
     <CompanyContext.Provider value={{
       data: companyData,
-      update: (data: CompanyType) => setCompanyData(data)
+      update: (data: CompanyType) => setCompanyData(data),
+      signOut,
     }}>
       {children}
     </CompanyContext.Provider>

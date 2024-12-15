@@ -50,13 +50,11 @@ export default function TopBar({
             label="Sources"
             isActive={page === 'sources'}
           />
-          {/*
           <TopBarLink
             route={'/settings'}
             label="Settings"
             isActive={page === 'settings'}
           />
-          */}
         </div>
         <div></div>
       </div>
