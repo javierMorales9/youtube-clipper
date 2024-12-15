@@ -93,6 +93,7 @@ class Clip:
     def __init__(
         self,
         id: str,
+        companyId: str,
         sourceId: str,
         name: str,
         url: Optional[str],
@@ -106,6 +107,7 @@ class Clip:
         theme: Theme,
     ):
         self.id: str = id
+        self.companyId: str = companyId
         self.sourceId: str = sourceId
         self.name: str = name
         self.url: Optional[str] = url

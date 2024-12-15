@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
@@ -6,6 +5,7 @@ class Suggestion:
     def __init__ (
         self,
         id: Optional[str],
+        companyId: str,
         sourceId: str,
         name: str,
         description: Optional[str],
@@ -13,6 +13,7 @@ class Suggestion:
         end: int,
     ):
         self.id = id if id is not None else str(uuid4())
+        self.companyId = companyId
         self.sourceId = sourceId
         self.name = name
         self.description = description

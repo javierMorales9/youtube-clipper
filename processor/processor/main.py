@@ -128,11 +128,11 @@ def handleEvent(
         print(f"New source {source.id}")
         startTranscription(source)
 
-        createTranscriptionFinishedEvent(session, source.id)
+        createTranscriptionFinishedEvent(session, source)
     if event.type == EventType.TRANSCRIPTION_FINISHED:
         print(f"Processing source after transcription {source.id}")
         if not Path(f"{path}/transcription.json").exists():
-            createTranscriptionFinishedEvent(session, source.id)
+            createTranscriptionFinishedEvent(session, source)
         else:
             duration, resolution = processSource(path)
 
@@ -165,11 +165,11 @@ def handleEvent(
         finishClipProcessing(session, clip.id)
 
 
-def createTranscriptionFinishedEvent(session, sourceId: str):
-    print(newDate(), newDate() + timedelta(minutes=8))
+def createTranscriptionFinishedEvent(session, source: Source):
     checkTranscriptionEvent = ProcessingEvent(
-        id=str(uuid4()),
-        sourceId=sourceId,
+        id=str(uuid4()), 
+        companyId=source.companyId,
+        sourceId=source.id,
         clipId=None,
         type=EventType.TRANSCRIPTION_FINISHED,
         createdAt=newDate(),

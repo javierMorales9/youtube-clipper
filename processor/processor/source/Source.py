@@ -5,6 +5,7 @@ class Source:
     def __init__ (
         self,
         id: str,
+        companyId: str,
         externalId: str,
         name: str,
         processing: bool,
@@ -21,6 +22,7 @@ class Source:
         updatedAt: datetime,
     ):
         self.id = id
+        self.companyId = companyId
         self.externalId = externalId
         self.name = name
         self.processing = processing

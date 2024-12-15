@@ -220,6 +220,7 @@ def createSuggestions(source: Source, words: list[Word]):
             Suggestion(
                 id=None,
                 sourceId=source.id,
+                companyId=source.companyId,
                 name=selectedSuggestions.iloc[i]["name"],
                 description=selectedSuggestions.iloc[i]["description"],
                 start=int(selectedSuggestions.iloc[i]["start"] / 1000),

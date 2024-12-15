@@ -9,10 +9,39 @@ class Base(DeclarativeBase):
     pass
 
 
+"""
+export const company = createTable("company", {
+  id: uuid("id").primaryKey().notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  email: varchar("email", { length: 256 }).notNull().unique(),
+  password: varchar("password", { length: 256 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+"""
+
+
+class Company(Base):
+    __tablename__ = "company"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    name: Mapped[str] = mapped_column(String(256), nullable=False)
+    email: Mapped[str] = mapped_column(String(256), nullable=False, unique=True)
+    password: Mapped[str] = mapped_column(String(256), nullable=False)
+    createdAt: Mapped[datetime] = mapped_column(
+        DateTime, name="created_at", nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"Company(id={self.id!r}, name={self.name!r}, email={self.email!r})"
+
+
 class Source(Base):
     __tablename__ = "source"
 
     id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    companyId: Mapped[str] = mapped_column(
+        ForeignKey("company.id"), name="company_id", nullable=False
+    )
     externalId: Mapped[str] = mapped_column(String(256), name="external_id")
     name: Mapped[str] = mapped_column(String(256))
     processing: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -64,6 +93,9 @@ class Suggestion(Base):
     __tablename__ = "suggestion"
 
     id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    companyId: Mapped[str] = mapped_column(
+        ForeignKey("company.id"), name="company_id", nullable=False
+    )
     sourceId: Mapped[str] = mapped_column(
         ForeignKey("source.id"), name="source_id", nullable=False
     )
@@ -77,6 +109,9 @@ class Clip(Base):
     __tablename__ = "clip"
 
     id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    companyId: Mapped[str] = mapped_column(
+        ForeignKey("company.id"), name="company_id", nullable=False
+    )
     sourceId: Mapped[str] = mapped_column(
         ForeignKey("source.id"), name="source_id", nullable=False
     )
@@ -152,6 +187,9 @@ class ProcessingEvent(Base):
     __tablename__ = "processing_event"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    companyId: Mapped[str] = mapped_column(
+        ForeignKey("company.id"), name="company_id", nullable=False
+    )
     sourceId: Mapped[Optional[str]] = mapped_column(
         ForeignKey("source.id"), name="source_id"
     )

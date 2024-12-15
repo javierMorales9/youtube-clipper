@@ -29,6 +29,7 @@ def findSourceById(session: Session, sourceId: str):
 def saveSource(session: Session, source: Source):
     sourceModel = SourceModal(
         id=source.id,
+        companyId=source.companyId,
         externalId=source.externalId,
         name=source.name,
         processing=source.processing,
@@ -99,6 +100,7 @@ def getClipWords(session: Session, clipRange: Range, sourceId: str):
 def parseSource(sourceModel: SourceModal, tags: list[SourceTagModal]):
     return Source(
         id=str(sourceModel.id),
+        companyId=sourceModel.companyId,
         externalId=sourceModel.externalId,
         name=sourceModel.name,
         processing=sourceModel.processing,

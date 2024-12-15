@@ -94,6 +94,7 @@ def parseClip(
 
     return Clip(
         id=clipModel.id,
+        companyId=clipModel.companyId,
         sourceId=clipModel.sourceId,
         name=clipModel.name,
         url=clipModel.url,
