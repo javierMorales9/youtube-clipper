@@ -8,8 +8,8 @@ from models import (
     SourceTag as SourceTagModal,
     SourceTranscription,
 )
-from extractWordsFromFile import Word
 from clip.Clip import Range
+from source.Word import Word
 from source.Source import Source
 
 

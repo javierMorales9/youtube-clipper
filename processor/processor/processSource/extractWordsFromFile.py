@@ -1,11 +1,6 @@
 import json
-from typing import TypedDict
-from typing import TypedDict
 
-class Word(TypedDict):
-    word: str
-    start: int
-    end: int
+from source.Word import Word
 
 def extractWordsFromFile(path: str):
     print("Extracting words from transcription file")

@@ -1,8 +1,7 @@
 from typing import TypedDict
 from typing import TypedDict
 
-from extractWordsFromFile import  Word
-
+from source.Word import Word
 
 class Line(TypedDict):
     text: str

@@ -1,7 +1,31 @@
+import os
+from pathlib import Path
 import subprocess
 
+from sqlalchemy.orm import Session
+from event.Event import Event, createTranscriptionFinishedEvent
+from event.eventRepository import saveEvent
+from processSource.createSuggestions import createSuggestions
+from processSource.extractWordsFromFile import extractWordsFromFile
 
-def processSource(path: str):
+from source.sourceRepository import findSourceById, saveSource, saveTranscription
+from suggestion.suggestionRepository import saveSuggestions
+
+
+def processSource(session: Session, event: Event):
+    source = findSourceById(session, event.sourceId)
+    if source is None:
+        return
+
+    print(f"Processing source after transcription {source.id}")
+
+    path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
+
+    if not Path(f"{path}/transcription.json").exists():
+        newEv = createTranscriptionFinishedEvent(source)
+        saveEvent(session, newEv)
+        return
+
     generateHls(path)
 
     duration = getVideoDuration(path)
@@ -10,7 +34,25 @@ def processSource(path: str):
     createTimelineAndSnapshot(path, duration)
 
     print("Finish processing source", duration, resolution)
-    return (duration, resolution)
+
+    source.processing = False
+    source.duration = duration
+
+    # Resolution format is "1920x1080"
+    resolution = resolution.split("x")
+    if len(resolution) != 2:
+        print("Invalid resolution")
+    else:
+        source.width = int(resolution[0])
+        source.height = int(resolution[1])
+
+    saveSource(session, source)
+
+    words = extractWordsFromFile(path)
+    saveTranscription(session, source.id, words)
+
+    suggestions = createSuggestions(source, words)
+    saveSuggestions(session, suggestions)
 
 
 def generateHls(path: str):

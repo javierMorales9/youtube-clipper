@@ -2,7 +2,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from models import ProcessingEvent
-from source.Event import Event
+from event.Event import Event
 
 def saveEvent(session: Session, event: Event):
     processing_event = ProcessingEvent(

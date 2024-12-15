@@ -1,8 +1,8 @@
 import os
 
 from pydantic import BaseModel
-from extractInterventions import extractLines
-from extractWordsFromFile import Word
+from generateClip.extractInterventions import extractLines
+from source.Word import Word
 from suggestion.Suggestion import Suggestion
 from source.Source import Source
 import math

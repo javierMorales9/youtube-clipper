@@ -1,16 +1,46 @@
 import os
+from typing import Optional
+
+from sqlalchemy.orm import Session
 from clip.Clip import Clip, Section
 import subprocess
 
 from math import floor
+from clip.clipRepository import findClipById, finishClipProcessing
+from event.Event import Event
+from generateClip.addSubtitlestoClip import addSubtitlestoClip
+from source.sourceRepository import findSourceById, getClipWords
 
 from source.Source import Source
+
+def generateClip(session: Session, event: Event):
+    source = findSourceById(session, event.sourceId)
+    if source is None:
+        return
+
+    clip: Optional[Clip] = None
+    if event.clipId is not None:
+        clip = findClipById(session, event.clipId)
+
+    if clip is None:
+        return
+
+    path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
+
+    print(f"Processing clip {event.clipId}")
+
+    generateClipFile(clip, source, path)
+
+    words = getClipWords(session, clip.range, source.id)
+    addSubtitlestoClip(path, clip, words)
+
+    finishClipProcessing(session, clip.id)
 
 
 # Generate a clip from a source video.
 # The clip is divided into sections, each section is divided into fragments.
 # We generate a video for each section, and then concatenate them.
-def generateClip(clip: Clip, source: Source, path: str):
+def generateClipFile(clip: Clip, source: Source, path: str):
     sects = len(clip.sections)
 
     for i in range(sects):
