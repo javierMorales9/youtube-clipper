@@ -8,18 +8,6 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 class Base(DeclarativeBase):
     pass
 
-
-"""
-export const company = createTable("company", {
-  id: uuid("id").primaryKey().notNull(),
-  name: varchar("name", { length: 256 }).notNull(),
-  email: varchar("email", { length: 256 }).notNull().unique(),
-  password: varchar("password", { length: 256 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-});
-"""
-
-
 class Company(Base):
     __tablename__ = "company"
 
@@ -190,8 +178,8 @@ class ProcessingEvent(Base):
     companyId: Mapped[str] = mapped_column(
         ForeignKey("company.id"), name="company_id", nullable=False
     )
-    sourceId: Mapped[Optional[str]] = mapped_column(
-        ForeignKey("source.id"), name="source_id"
+    sourceId: Mapped[str] = mapped_column(
+        ForeignKey("source.id"), name="source_id", nullable=False
     )
     clipId: Mapped[Optional[str]] = mapped_column(ForeignKey("clip.id"), name="clip_id")
     type: Mapped[str] = mapped_column(String(256), nullable=False)

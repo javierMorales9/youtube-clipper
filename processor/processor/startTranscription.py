@@ -9,7 +9,13 @@ def startTranscription(source: Source):
         path = f'{basePath}/{str(source.id)}'
         print(f"We don't generate a transcription in dev mode. Paste the file here {path}")
         return
+    else:
+        callTranscribe(source)
 
+    createTranscriptionFinishedEvent(session, source)
+
+
+def callTranscribe(source: Source):
     bucket = os.environ["SOURCE_BUCKET"]
     aws_region = os.environ["AWS_REGION"]
 
@@ -31,4 +37,3 @@ def startTranscription(source: Source):
         )
     except Exception as e:
         print("Error starting transcription job", e)
-

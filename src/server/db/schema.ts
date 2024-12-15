@@ -212,7 +212,7 @@ export const processingEvent = createTable("processing_event", {
   id: uuid("id").primaryKey(),
   sourceId: uuid("source_id").references(() => source.id, {
     onDelete: "cascade",
-  }),
+  }).notNull(),
   companyId: uuid("company_id").notNull(),
   clipId: uuid("clip_id").references(() => clip.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 256 }).notNull(),
