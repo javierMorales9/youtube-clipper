@@ -2,7 +2,6 @@ from enum import Enum
 from datetime import datetime
 from typing import Optional
 import uuid
-from utils import newDate
 from entities.source.Source import Source
 from datetime import timedelta
 
@@ -12,15 +11,15 @@ class EventType(str, Enum):
     TRANSCRIPTION_FINISHED = "transcription_finished"
     CLIP_UPDATED = "clip_updated"
 
-def createTranscriptionFinishedEvent(source: Source):
+def createTranscriptionFinishedEvent(source: Source, date: datetime):
     return Event(
         id=None,
         companyId=source.companyId,
         sourceId=source.id,
         clipId=None,
         type=EventType.TRANSCRIPTION_FINISHED,
-        createdAt=newDate(),
-        startProcessingAt=newDate() + timedelta(minutes=8),
+        createdAt=date,
+        startProcessingAt=date + timedelta(minutes=8),
     )
 
 

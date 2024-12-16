@@ -23,6 +23,7 @@ from entities.shared.prodSystem import ProdSystem
 from application.generateClip.generateClip import generateClip
 from application.processSource.processSource import processSource
 from application.startTranscription.startTranscription import startTranscription
+from entities.shared.prodDateCreator import ProdDateCreator
 
 
 def main():
@@ -53,14 +54,21 @@ def main():
                     transcriptionHandler = S3TranscriptionHandler(
                         prodSystem, event.sourceId
                     )
+                    dateCreator = ProdDateCreator()
 
                     startTranscription(
-                        eventRepo, sourceRepo, prodSystem, transcriptionHandler, event
+                        eventRepo,
+                        sourceRepo,
+                        prodSystem,
+                        transcriptionHandler,
+                        dateCreator,
+                        event,
                     )
                 elif event.type == EventType.TRANSCRIPTION_FINISHED:
                     prodSystem = ProdSystem(event.sourceId)
                     fileHandler = S3FileHandler(prodSystem, event.sourceId)
                     suggestionModel = OpenAiModel(prodSystem)
+                    dateCreator = ProdDateCreator()
 
                     processSource(
                         sourceRepo,
@@ -69,6 +77,7 @@ def main():
                         prodSystem,
                         fileHandler,
                         suggestionModel,
+                        dateCreator,
                         event,
                     )
                 elif event.type == EventType.CLIP_UPDATED:

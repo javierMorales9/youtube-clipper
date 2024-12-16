@@ -10,6 +10,7 @@ from entities.shared.fileHandler import FileHandler
 from entities.shared.aiModel import AIModel
 
 from entities.shared.system import System
+from entities.shared.dateCreator import DateCreator
 
 
 def processSource(
@@ -19,6 +20,7 @@ def processSource(
     sys: System,
     fileHandler: FileHandler,
     suggestionModel: AIModel,
+    dateCreator: DateCreator,
     event: Event,
 ):
     fileHandler.downloadFiles()
@@ -30,7 +32,7 @@ def processSource(
     print(f"Processing source after transcription {source.id}")
 
     if not sys.fileExist("transcription.json"):
-        newEv = createTranscriptionFinishedEvent(source)
+        newEv = createTranscriptionFinishedEvent(source, dateCreator.newDate())
         eventRepo.saveEvent(newEv)
         return
 

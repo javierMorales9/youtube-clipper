@@ -3,6 +3,7 @@ from entities.event.eventRepository import EventRepository
 from entities.source.sourceRepository import SourceRepository
 from entities.shared.transcriptionHandler import TranscriptionHandler
 from entities.shared.system import System
+from entities.shared.dateCreator import DateCreator
 
 
 def startTranscription(
@@ -10,6 +11,7 @@ def startTranscription(
     sourceRepo: SourceRepository,
     sys: System,
     transcriptionHandler: TranscriptionHandler,
+    dateCreator: DateCreator,
     event: Event,
 ):
     if sys.env("ENV") == "dev":
@@ -26,8 +28,6 @@ def startTranscription(
 
     transcriptionHandler.callTranscribe()
 
-    createTranscriptionFinishedEvent(source)
-
-    newEv = createTranscriptionFinishedEvent(source)
+    newEv = createTranscriptionFinishedEvent(source, dateCreator.newDate())
     eventRepo.saveEvent(newEv)
 
