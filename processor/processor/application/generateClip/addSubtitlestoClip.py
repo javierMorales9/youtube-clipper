@@ -1,12 +1,10 @@
-import os
-import subprocess
-
 from entities.clip.Clip import Clip, Theme, ThemeShadow, ThemeStroke
 from application.generateClip.extractInterventions import extractLines, Line
 from entities.source.Word import Word
+from system import System
 
-def addSubtitlestoClip(path: str, clip: Clip, words: list[Word]):
-    fontPath = os.environ["FONTS_PATH"]
+def addSubtitlestoClip(clip: Clip, words: list[Word], sys: System):
+    fontPath = sys.env("FONTS_PATH")
     lines = extractLines(words)
 
     # Extract the ones that are in the clip. We multiply by 1000 to compare in millis
@@ -20,37 +18,34 @@ def addSubtitlestoClip(path: str, clip: Clip, words: list[Word]):
 
     assFile = generateAssFile(clip, linelevel_subtitles)
 
-    with open(f"{path}/{clip.id}.ass", "w") as file:
+    with open(sys.path(clip.id + '.ass'), "w") as file:
         file.write(assFile)
 
     try:
-        os.unlink(f"{path}/{clip.id}_temp.mp4")
+        sys.rm(f"{clip.id}_temp.mp4")
     except:
-        print(f"File: {path}/{clip.id}_temp.mp4 don't exist")
+        print(f"File: {sys.path(clip.id + '_temp.mp4')} don't exist")
 
     arguments = [
         "ffmpeg",
         "-i",
-        f"{path}/{clip.id}.mp4",
+        sys.path(f"{clip.id}.mp4"),
         "-vf",
-        f"ass={path}/{clip.id}.ass:fontsdir={fontPath}",
-        f"{path}/{clip.id}_temp.mp4",
+        f"ass={sys.path(clip.id + ".ass")}:fontsdir={fontPath}",
+        f"{sys.path(clip.id + "_temp.mp4")}",
     ]
     print("arguments", " ".join(arguments))
 
-    result = subprocess.run(arguments, capture_output=True, text=True)
-    result.stdout
+    result = sys.run(arguments)
+    result[0]
 
-    if result.returncode != 0:
-        print("Error", result.stderr)
-        raise Exception("Error adding subtitles", result.stderr)
+    if result[2] != 0:
+        print("Error", result[1])
+        raise Exception("Error adding subtitles", result[1])
 
     # Remove the original video and rename the new one
-    os.unlink(f"{path}/{clip.id}.mp4")
-    os.rename(
-        f"{path}/{clip.id}_temp.mp4",
-        f"{path}/{clip.id}.mp4",
-    )
+    sys.rm(f"{clip.id}.mp4")
+    sys.rename(f"{clip.id}_temp.mp4", f"{clip.id}.mp4")
 
 fonts = {
     "Arial": "Komika Axis",

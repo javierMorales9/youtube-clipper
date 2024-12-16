@@ -1,45 +1,43 @@
-import os
-from pathlib import Path
-import subprocess
-
 from entities.event.Event import Event, createTranscriptionFinishedEvent
-from entities.event.eventRepository import EventRepository
+
 from application.processSource.createSuggestions import createSuggestions
 from application.processSource.extractWordsFromFile import extractWordsFromFile
 
-from entities.source.sourceRepository import (
-    SourceRepository,
-)
-from entities.suggestion.suggestionRepository import (
-    SuggestionRepository,
-)
+from entities.event.eventRepository import EventRepository
+from entities.source.sourceRepository import SourceRepository
+from entities.suggestion.suggestionRepository import SuggestionRepository
+from fileHandler import FileHandler
+
+from system import System
 
 
 def processSource(
     sourceRepo: SourceRepository,
     eventRepo: EventRepository,
     suggestionRepo: SuggestionRepository,
+    sys: System,
+    fileHandler: FileHandler,
     event: Event,
 ):
+    fileHandler.downloadFiles()
+
     source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
         return
 
     print(f"Processing source after transcription {source.id}")
 
-    path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
-
-    if not Path(f"{path}/transcription.json").exists():
+    if not sys.fileExist("transcription.json"):
         newEv = createTranscriptionFinishedEvent(source)
         eventRepo.saveEvent(newEv)
         return
 
-    generateHls(path)
+    generateHls(sys)
 
-    duration = getVideoDuration(path)
-    resolution = getVideoResolution(path)
+    duration = getVideoDuration(sys)
+    resolution = getVideoResolution(sys)
 
-    createTimelineAndSnapshot(path, duration)
+    createTimelineAndSnapshot(sys, duration)
 
     print("Finish processing source", duration, resolution)
 
@@ -56,20 +54,22 @@ def processSource(
 
     sourceRepo.saveSource(source)
 
-    words = extractWordsFromFile(path)
+    words = extractWordsFromFile(sys)
     sourceRepo.saveTranscription(source.id, words)
 
-    suggestions = createSuggestions(source, words)
+    suggestions = createSuggestions(sys, source, words)
     suggestionRepo.saveSuggestions(suggestions)
 
+    fileHandler.saveFiles()
 
-def generateHls(path: str):
+
+def generateHls(sys: System):
     print("Generating HLS")
-    subprocess.run(
+    sys.run(
         [
             "ffmpeg",
             "-i",
-            f"{path}/original.mp4",
+            sys.path("original.mp4"),
             "-f",
             "hls",
             "-codec",
@@ -78,16 +78,15 @@ def generateHls(path: str):
             "10",
             "-hls_list_size",
             "0",
-            f"{path}/adaptive.m3u8",
+            sys.path("adaptive.m3u8"),
             "-y",
-        ],
-        capture_output=True,
+        ]
     )
 
 
-def getVideoDuration(path: str):
+def getVideoDuration(sys: System):
     print("Getting video duration")
-    aso = subprocess.run(
+    aso = sys.run(
         [
             "ffprobe",
             "-v",
@@ -96,19 +95,18 @@ def getVideoDuration(path: str):
             "format=duration",
             "-of",
             "default=noprint_wrappers=1:nokey=1",
-            f"{path}/original.mp4",
+            sys.path("original.mp4"),
         ],
-        capture_output=True,
-        text=True,
     )
-    duration = float(aso.stdout)
+    stdout = aso[0]
+    duration = float(stdout)
 
     return duration
 
 
-def getVideoResolution(path: str):
+def getVideoResolution(sys: System):
     print("Getting video resolution")
-    process = subprocess.run(
+    return sys.run(
         [
             "ffprobe",
             "-v",
@@ -119,46 +117,40 @@ def getVideoResolution(path: str):
             "stream=width,height",
             "-of",
             "csv=s=x:p=0",
-            f"{path}/original.mp4",
+            sys.path("original.mp4"),
         ],
-        capture_output=True,
-        text=True,
-    )
-
-    return process.stdout
+    )[0]
 
 
-def createTimelineAndSnapshot(path: str, duration: float):
+def createTimelineAndSnapshot(sys: System, duration: float):
     intDuration = int(duration)
 
     print("Creating timeline. Duration:", duration)
-    subprocess.run(
+    sys.run(
         [
             "ffmpeg",
             "-i",
-            f"{path}/original.mp4",
+            sys.path("original.mp4"),
             "-vf",
             f"select=not(mod(n\\,30)),scale=240:-1,tile=1x{intDuration}",
-            f"{path}/timeline.png",
+            sys.path("timeline.png"),
             "-y",
         ],
-        capture_output=True,
     )
 
     print("Creating snapshot")
-    subprocess.run(
+    sys.run(
         [
             "ffmpeg",
             "-ss",
             str(duration / 2),
             "-i",
-            f"{path}/original.mp4",
+            sys.path("original.mp4"),
             "-frames:v",
             "1",
             "-q:v",
             "1",
-            f"{path}/snapshot.png",
+            sys.path("snapshot.png"),
             "-y",
         ],
-        capture_output=True,
     )

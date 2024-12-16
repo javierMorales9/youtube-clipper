@@ -1,8 +1,6 @@
-import os
 from typing import Optional
 
 from entities.clip.Clip import Clip, Section
-import subprocess
 
 from math import floor
 from entities.clip.clipRepository import ClipRepository
@@ -11,8 +9,19 @@ from application.generateClip.addSubtitlestoClip import addSubtitlestoClip
 from entities.source.sourceRepository import SourceRepository
 
 from entities.source.Source import Source
+from fileHandler import FileHandler
+from system import System
 
-def generateClip(sourceRepo: SourceRepository, clipRepo: ClipRepository, event: Event):
+
+def generateClip(
+    sourceRepo: SourceRepository,
+    clipRepo: ClipRepository,
+    sys: System,
+    fileHandler: FileHandler,
+    event: Event,
+):
+    fileHandler.downloadFiles()
+
     source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
         return
@@ -24,22 +33,22 @@ def generateClip(sourceRepo: SourceRepository, clipRepo: ClipRepository, event: 
     if clip is None:
         return
 
-    path = f"{os.environ["FILES_PATH"]}/{str(source.id)}"
-
     print(f"Processing clip {event.clipId}")
 
-    generateClipFile(clip, source, path)
+    generateClipFile(clip, source, sys)
 
     words = sourceRepo.getClipWords(clip.range, source.id)
-    addSubtitlestoClip(path, clip, words)
+    addSubtitlestoClip(clip, words, sys)
 
     clipRepo.finishClipProcessing(clip.id)
+    
+    fileHandler.saveFiles()
 
 
 # Generate a clip from a source video.
 # The clip is divided into sections, each section is divided into fragments.
 # We generate a video for each section, and then concatenate them.
-def generateClipFile(clip: Clip, source: Source, path: str):
+def generateClipFile(clip: Clip, source: Source, sys: System):
     sects = len(clip.sections)
 
     for i in range(sects):
@@ -47,7 +56,7 @@ def generateClipFile(clip: Clip, source: Source, path: str):
         # Generate the video for each section
         # We first trim the video to the section range with -ss and -to
         # so that we only process the necessary part of the video (30s - 3min)
-        # 
+        #
         # Then, we apply the filter_complex to create the vertical video composed
         # of the fragments. (See sectionFilter)
         #
@@ -56,7 +65,7 @@ def generateClipFile(clip: Clip, source: Source, path: str):
         arguments = [
             "ffmpeg",
             "-i",
-            f"{path}/original.mp4",
+            sys.path("original.mp4"),
             "-ss",
             str(clip.range.start + section.start),
             "-to",
@@ -68,14 +77,14 @@ def generateClipFile(clip: Clip, source: Source, path: str):
             "-map",
             "0:a?",
             "-y",
-            f"{path}/{clip.id}_{i}.mp4",
+            sys.path(f"{clip.id}_{i}.mp4"),
         ]
 
-        result = subprocess.run(arguments, capture_output=True, text=True)
+        result = sys.run(arguments)
 
-        if result.returncode != 0:
-            print("Error", result.stderr)
-            raise Exception(f"Error generating section {i}", result.stderr)
+        if result[2] != 0:
+            print("Error", result[1])
+            raise Exception(f"Error generating section {i}", result[1])
 
     # Concatenate sections videos
     arguments = [
@@ -87,7 +96,7 @@ def generateClipFile(clip: Clip, source: Source, path: str):
         arguments.extend(
             [
                 "-i",
-                f"{path}/{clip.id}_{i}.mp4",
+                sys.path(f"{clip.id}_{i}.mp4"),
             ]
         )
 
@@ -102,19 +111,20 @@ def generateClipFile(clip: Clip, source: Source, path: str):
             "-map",
             "[a]",
             "-y",
-            f"{path}/{clip.id}.mp4",
+            sys.path(f"{clip.id}.mp4"),
         ]
     )
 
-    result = subprocess.run(arguments, capture_output=True, text=True)
+    result = sys.run(arguments)
 
-    if result.returncode != 0:
-        print("Error", result.stderr)
-        raise Exception("Error generating clip", result.stderr)
+    if result[2] != 0:
+        print("Error", result[1])
+        raise Exception("Error generating clip", result[1])
 
     # Remove section videos
     for i in range(sects):
-        os.unlink(f"{path}/{clip.id}_{i}.mp4")
+        sys.rm(sys.path(f"{clip.id}_{i}.mp4"))
+        # os.unlink(sys.path(f"{clip.id}_{i}.mp4"))
 
 
 # It generates the filter for a section.

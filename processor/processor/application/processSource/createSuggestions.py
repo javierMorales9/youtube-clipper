@@ -13,6 +13,8 @@ import tiktoken
 import numpy as np
 import pandas as pd
 
+from system import System
+
 clipDurationRanges = {
     "<30s": [0, 30000],
     "30s-1m": [30000, 60000],
@@ -24,15 +26,13 @@ clipDurationRanges = {
 }
 
 
-def createSuggestions(source: Source, words: list[Word]):
+def createSuggestions(sys: System, source: Source, words: list[Word]):
     print("Creating suggestions")
-    env = os.environ["ENV"]
+    env = sys.env("ENV")
 
     if env == "dev":
-        useCache = bool(os.environ["CACHE_FROM_FS"])
-        path = os.environ["FILES_PATH"] if not useCache else f"../public/test"
+        useCache = bool(sys.env("CACHE_FROM_FS"))
     else:
-        path = f"/tmp/{source.id}"
         useCache = False
 
     lines = extractLines(words)

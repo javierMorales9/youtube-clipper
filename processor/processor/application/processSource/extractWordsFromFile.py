@@ -1,11 +1,9 @@
-import json
-
 from entities.source.Word import Word
+from system import System
 
-def extractWordsFromFile(path: str):
+def extractWordsFromFile(sys: System):
     print("Extracting words from transcription file")
-    f = open(f"{path}/transcription.json", "r")
-    data = json.load(f)
+    data = sys.readFile("transcription.json")
     results = data["results"]["items"]
 
     words: list[Word] = []
