@@ -2,18 +2,26 @@ import os
 from pathlib import Path
 import subprocess
 
-from sqlalchemy.orm import Session
 from entities.event.Event import Event, createTranscriptionFinishedEvent
-from entities.event.eventRepository import saveEvent
+from entities.event.eventRepository import EventRepository
 from application.processSource.createSuggestions import createSuggestions
 from application.processSource.extractWordsFromFile import extractWordsFromFile
 
-from entities.source.sourceRepository import findSourceById, saveSource, saveTranscription
-from entities.suggestion.suggestionRepository import saveSuggestions
+from entities.source.sourceRepository import (
+    SourceRepository,
+)
+from entities.suggestion.suggestionRepository import (
+    SuggestionRepository,
+)
 
 
-def processSource(session: Session, event: Event):
-    source = findSourceById(session, event.sourceId)
+def processSource(
+    sourceRepo: SourceRepository,
+    eventRepo: EventRepository,
+    suggestionRepo: SuggestionRepository,
+    event: Event,
+):
+    source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
         return
 
@@ -23,7 +31,7 @@ def processSource(session: Session, event: Event):
 
     if not Path(f"{path}/transcription.json").exists():
         newEv = createTranscriptionFinishedEvent(source)
-        saveEvent(session, newEv)
+        eventRepo.saveEvent(newEv)
         return
 
     generateHls(path)
@@ -46,13 +54,13 @@ def processSource(session: Session, event: Event):
         source.width = int(resolution[0])
         source.height = int(resolution[1])
 
-    saveSource(session, source)
+    sourceRepo.saveSource(source)
 
     words = extractWordsFromFile(path)
-    saveTranscription(session, source.id, words)
+    sourceRepo.saveTranscription(source.id, words)
 
     suggestions = createSuggestions(source, words)
-    saveSuggestions(session, suggestions)
+    suggestionRepo.saveSuggestions(suggestions)
 
 
 def generateHls(path: str):

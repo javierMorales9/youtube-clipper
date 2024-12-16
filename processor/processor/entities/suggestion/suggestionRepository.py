@@ -1,20 +1,7 @@
-from sqlalchemy.orm import Session
+from typing import Protocol
 
-from models import Suggestion as SuggestionModel
 from entities.suggestion.Suggestion import Suggestion
 
-def saveSuggestion(session: Session, suggestion: Suggestion):
-    suggestionModel = SuggestionModel(
-        id=suggestion.id,
-        companyId=suggestion.companyId,
-        sourceId=suggestion.sourceId,
-        name=suggestion.name,
-        description=suggestion.description,
-        start=suggestion.start,
-        end=suggestion.end,
-    )
-    session.merge(suggestionModel)
-
-def saveSuggestions(session: Session, suggestions: list[Suggestion]):
-    for suggestion in suggestions:
-        saveSuggestion(session, suggestion)
+class SuggestionRepository(Protocol):
+    def saveSuggestion(self, suggestion: Suggestion): ...
+    def saveSuggestions(self, suggestions: list[Suggestion]): ...

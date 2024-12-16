@@ -1,26 +1,25 @@
 import os
 from typing import Optional
 
-from sqlalchemy.orm import Session
 from entities.clip.Clip import Clip, Section
 import subprocess
 
 from math import floor
-from entities.clip.clipRepository import findClipById, finishClipProcessing
+from entities.clip.clipRepository import ClipRepository
 from entities.event.Event import Event
 from application.generateClip.addSubtitlestoClip import addSubtitlestoClip
-from entities.source.sourceRepository import findSourceById, getClipWords
+from entities.source.sourceRepository import SourceRepository
 
 from entities.source.Source import Source
 
-def generateClip(session: Session, event: Event):
-    source = findSourceById(session, event.sourceId)
+def generateClip(sourceRepo: SourceRepository, clipRepo: ClipRepository, event: Event):
+    source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
         return
 
     clip: Optional[Clip] = None
     if event.clipId is not None:
-        clip = findClipById(session, event.clipId)
+        clip = clipRepo.findClipById(event.clipId)
 
     if clip is None:
         return
@@ -31,10 +30,10 @@ def generateClip(session: Session, event: Event):
 
     generateClipFile(clip, source, path)
 
-    words = getClipWords(session, clip.range, source.id)
+    words = sourceRepo.getClipWords(clip.range, source.id)
     addSubtitlestoClip(path, clip, words)
 
-    finishClipProcessing(session, clip.id)
+    clipRepo.finishClipProcessing(clip.id)
 
 
 # Generate a clip from a source video.

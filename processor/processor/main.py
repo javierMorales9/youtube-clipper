@@ -5,9 +5,14 @@ from dotenv import load_dotenv
 from time import sleep
 
 from flask_server import flask_server
-from entities.event.Event import EventType
-from entities.event.eventRepository import getNextEvent
 from s3FileHandlers import downloadFromS3, saveToS3
+
+from entities.event.Event import EventType
+
+from entities.event.postgresEventRepository import PostgresEventRepository
+from entities.source.postgresSourceRepository import PostgresSourceRepository
+from entities.clip.postgresClipRepository import PostgresClipRepository
+from entities.suggestion.postgresSuggestionRepository import PostgresSuggestionRepository
 
 from application.generateClip.generateClip import generateClip
 from application.processSource.processSource import processSource
@@ -25,22 +30,28 @@ def main():
     # We start a new thread for a server that will just return a status ok
     flask_server()
 
+
     # We will keep polling the database for new events to process
     while True:
         with Session(engine) as session:
             print("Fetching event to process")
-            event = getNextEvent(session)
+            eventRepo = PostgresEventRepository(session)
+            sourceRepo = PostgresSourceRepository(session)
+            suggestionRepo = PostgresSuggestionRepository(session)
+            clipRepo = PostgresClipRepository(session)
+
+            event = eventRepo.getNextEvent()
 
             if event is not None:
                 path = f"{os.environ["FILES_PATH"]}/{str(event.sourceId)}"
 
                 if event.type == EventType.SOURCE_UPLOADED:
-                    startTranscription(session, event)
+                    startTranscription(eventRepo, sourceRepo, event)
                 elif event.type == EventType.TRANSCRIPTION_FINISHED:
                     if env == "prod":
                         downloadFromS3(event.sourceId, path)
 
-                    processSource(session, event)
+                    processSource(sourceRepo, eventRepo, suggestionRepo, event)
 
                     if env == "prod":
                         saveToS3(event.sourceId, path)
@@ -48,7 +59,7 @@ def main():
                     if env == "prod":
                         downloadFromS3(event.sourceId, path)
 
-                    generateClip(session, event)
+                    generateClip(sourceRepo, clipRepo, event)
 
                     if env == "prod":
                         saveToS3(event.sourceId, path)

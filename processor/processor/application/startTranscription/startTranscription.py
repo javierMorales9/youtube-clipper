@@ -1,13 +1,15 @@
 import boto3
 import os
 
-from sqlalchemy.orm import Session
 from entities.event.Event import Event, createTranscriptionFinishedEvent
-from entities.event.eventRepository import saveEvent
-from entities.source.sourceRepository import findSourceById
+from entities.event.eventRepository import EventRepository
+from entities.source.sourceRepository import SourceRepository
 from entities.source.Source import Source
 
-def startTranscription(session: Session, event: Event):
+
+def startTranscription(
+    eventRepo: EventRepository, sourceRepo: SourceRepository, event: Event
+):
     env = os.environ["ENV"]
     if env == "dev":
         basePath = os.environ["FILES_PATH"]
@@ -17,7 +19,7 @@ def startTranscription(session: Session, event: Event):
         )
         return
 
-    source = findSourceById(session, event.sourceId)
+    source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
         return
 
@@ -28,7 +30,7 @@ def startTranscription(session: Session, event: Event):
     createTranscriptionFinishedEvent(source)
 
     newEv = createTranscriptionFinishedEvent(source)
-    saveEvent(session, newEv)
+    eventRepo.saveEvent(newEv)
 
 
 def callTranscribe(source: Source):
