@@ -1,9 +1,9 @@
 import os
 import subprocess
 
-from clip.Clip import Clip, Theme, ThemeShadow, ThemeStroke
-from generateClip.extractInterventions import extractLines, Line
-from source.Word import Word
+from entities.clip.Clip import Clip, Theme, ThemeShadow, ThemeStroke
+from application.generateClip.extractInterventions import extractLines, Line
+from entities.source.Word import Word
 
 def addSubtitlestoClip(path: str, clip: Clip, words: list[Word]):
     fontPath = os.environ["FONTS_PATH"]

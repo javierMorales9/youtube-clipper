@@ -2,16 +2,16 @@ import os
 from typing import Optional
 
 from sqlalchemy.orm import Session
-from clip.Clip import Clip, Section
+from entities.clip.Clip import Clip, Section
 import subprocess
 
 from math import floor
-from clip.clipRepository import findClipById, finishClipProcessing
-from event.Event import Event
-from generateClip.addSubtitlestoClip import addSubtitlestoClip
-from source.sourceRepository import findSourceById, getClipWords
+from entities.clip.clipRepository import findClipById, finishClipProcessing
+from entities.event.Event import Event
+from application.generateClip.addSubtitlestoClip import addSubtitlestoClip
+from entities.source.sourceRepository import findSourceById, getClipWords
 
-from source.Source import Source
+from entities.source.Source import Source
 
 def generateClip(session: Session, event: Event):
     source = findSourceById(session, event.sourceId)

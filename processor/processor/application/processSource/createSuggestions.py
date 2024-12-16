@@ -1,10 +1,10 @@
 import os
 
 from pydantic import BaseModel
-from generateClip.extractInterventions import extractLines
-from source.Word import Word
-from suggestion.Suggestion import Suggestion
-from source.Source import Source
+from application.generateClip.extractInterventions import extractLines
+from entities.source.Word import Word
+from entities.suggestion.Suggestion import Suggestion
+from entities.source.Source import Source
 import math
 from typing import List
 from openai import OpenAI

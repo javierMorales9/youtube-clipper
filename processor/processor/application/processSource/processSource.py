@@ -3,13 +3,13 @@ from pathlib import Path
 import subprocess
 
 from sqlalchemy.orm import Session
-from event.Event import Event, createTranscriptionFinishedEvent
-from event.eventRepository import saveEvent
-from processSource.createSuggestions import createSuggestions
-from processSource.extractWordsFromFile import extractWordsFromFile
+from entities.event.Event import Event, createTranscriptionFinishedEvent
+from entities.event.eventRepository import saveEvent
+from application.processSource.createSuggestions import createSuggestions
+from application.processSource.extractWordsFromFile import extractWordsFromFile
 
-from source.sourceRepository import findSourceById, saveSource, saveTranscription
-from suggestion.suggestionRepository import saveSuggestions
+from entities.source.sourceRepository import findSourceById, saveSource, saveTranscription
+from entities.suggestion.suggestionRepository import saveSuggestions
 
 
 def processSource(session: Session, event: Event):

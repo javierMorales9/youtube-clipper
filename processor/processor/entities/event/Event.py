@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 import uuid
 from utils import newDate
-from source.Source import Source
+from entities.source.Source import Source
 from datetime import timedelta
 
 

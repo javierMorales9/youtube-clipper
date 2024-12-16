@@ -1,6 +1,6 @@
 import json
 
-from source.Word import Word
+from entities.source.Word import Word
 
 def extractWordsFromFile(path: str):
     print("Extracting words from transcription file")

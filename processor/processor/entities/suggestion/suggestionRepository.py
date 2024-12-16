@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from models import Suggestion as SuggestionModel
-from suggestion.Suggestion import Suggestion
+from entities.suggestion.Suggestion import Suggestion
 
 def saveSuggestion(session: Session, suggestion: Suggestion):
     suggestionModel = SuggestionModel(

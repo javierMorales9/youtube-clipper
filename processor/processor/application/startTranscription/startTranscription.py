@@ -2,10 +2,10 @@ import boto3
 import os
 
 from sqlalchemy.orm import Session
-from event.Event import Event, createTranscriptionFinishedEvent
-from event.eventRepository import saveEvent
-from source.sourceRepository import findSourceById
-from source.Source import Source
+from entities.event.Event import Event, createTranscriptionFinishedEvent
+from entities.event.eventRepository import saveEvent
+from entities.source.sourceRepository import findSourceById
+from entities.source.Source import Source
 
 def startTranscription(session: Session, event: Event):
     env = os.environ["ENV"]

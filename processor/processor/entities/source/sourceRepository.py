@@ -8,9 +8,9 @@ from models import (
     SourceTag as SourceTagModal,
     SourceTranscription,
 )
-from clip.Clip import Range
-from source.Word import Word
-from source.Source import Source
+from entities.clip.Clip import Range
+from entities.source.Word import Word
+from entities.source.Source import Source
 
 
 def findSourceById(session: Session, sourceId: str):

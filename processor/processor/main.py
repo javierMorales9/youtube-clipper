@@ -5,13 +5,13 @@ from dotenv import load_dotenv
 from time import sleep
 
 from flask_server import flask_server
-from event.Event import EventType
-from event.eventRepository import getNextEvent
+from entities.event.Event import EventType
+from entities.event.eventRepository import getNextEvent
 from s3FileHandlers import downloadFromS3, saveToS3
 
-from generateClip.generateClip import generateClip
-from processSource.processSource import processSource
-from startTranscription.startTranscription import startTranscription
+from application.generateClip.generateClip import generateClip
+from application.processSource.processSource import processSource
+from application.startTranscription.startTranscription import startTranscription
 
 
 def main():
