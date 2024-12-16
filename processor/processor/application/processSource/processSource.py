@@ -7,6 +7,7 @@ from entities.event.eventRepository import EventRepository
 from entities.source.sourceRepository import SourceRepository
 from entities.suggestion.suggestionRepository import SuggestionRepository
 from fileHandler import FileHandler
+from aiModel import AIModel
 
 from system import System
 
@@ -17,6 +18,7 @@ def processSource(
     suggestionRepo: SuggestionRepository,
     sys: System,
     fileHandler: FileHandler,
+    suggestionModel: AIModel,
     event: Event,
 ):
     fileHandler.downloadFiles()
@@ -57,7 +59,7 @@ def processSource(
     words = extractWordsFromFile(sys)
     sourceRepo.saveTranscription(source.id, words)
 
-    suggestions = createSuggestions(sys, source, words)
+    suggestions = createSuggestions(suggestionModel, source, words)
     suggestionRepo.saveSuggestions(suggestions)
 
     fileHandler.saveFiles()

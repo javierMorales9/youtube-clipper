@@ -6,6 +6,7 @@ from time import sleep
 
 from flask_server import flask_server
 from fileHandler import S3FileHandler
+from openAiModel import OpenAiModel
 from system import ProdSystem
 
 from entities.event.Event import EventType
@@ -58,6 +59,7 @@ def main():
                 elif event.type == EventType.TRANSCRIPTION_FINISHED:
                     prodSystem = ProdSystem(event.sourceId)
                     fileHandler = S3FileHandler(prodSystem, event.sourceId)
+                    suggestionModel = OpenAiModel(prodSystem)
 
                     processSource(
                         sourceRepo,
@@ -65,6 +67,7 @@ def main():
                         suggestionRepo,
                         prodSystem,
                         fileHandler,
+                        suggestionModel,
                         event,
                     )
                 elif event.type == EventType.CLIP_UPDATED:

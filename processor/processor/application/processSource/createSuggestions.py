@@ -1,19 +1,11 @@
-import os
-
 from pydantic import BaseModel
 from application.generateClip.extractInterventions import extractLines
 from entities.source.Word import Word
 from entities.suggestion.Suggestion import Suggestion
 from entities.source.Source import Source
-import math
-from typing import List
-from openai import OpenAI
-from openai.types.embedding import Embedding
-import tiktoken
 import numpy as np
 import pandas as pd
-
-from system import System
+from aiModel import AIModel
 
 clipDurationRanges = {
     "<30s": [0, 30000],
@@ -26,15 +18,9 @@ clipDurationRanges = {
 }
 
 
-def createSuggestions(sys: System, source: Source, words: list[Word]):
-    print("Creating suggestions")
-    env = sys.env("ENV")
-
-    if env == "dev":
-        useCache = bool(sys.env("CACHE_FROM_FS"))
-    else:
-        useCache = False
-
+def createSuggestions(
+    suggestionModel: AIModel, source: Source, words: list[Word]
+):
     lines = extractLines(words)
 
     #
@@ -60,12 +46,11 @@ def createSuggestions(sys: System, source: Source, words: list[Word]):
 
     phrases = pd.DataFrame(phrasesArr)
 
-    if useCache:
-        phrases = pd.read_json(f"../public/test/phrases.json")
-    else:
-        addEmbeddingsToDf(phrases)
+    phrases["embedding"] = suggestionModel.generateEmbeddingsFromDf(
+        phrases["text"].to_list()
+    )
 
-    queryEmb = generateQueryEmedding(source)
+    queryEmb = generateQueryEmedding(source, suggestionModel)
 
     phrases["similarities"] = phrases["embedding"].apply(
         lambda x: cosineSimilarity(x, queryEmb)
@@ -95,7 +80,7 @@ def createSuggestions(sys: System, source: Source, words: list[Word]):
         while takePrev or takeNext:
             if takePrev:
                 withPrev = phrases.loc[start - 1]["text"] + current
-                newEmb = generateEmbedding(withPrev)
+                newEmb = suggestionModel.generateEmbedding(withPrev)
                 withPrevSim = cosineSimilarity(newEmb, queryEmb)
 
                 lineStart = phrases.loc[start - 1]["start"]
@@ -110,7 +95,7 @@ def createSuggestions(sys: System, source: Source, words: list[Word]):
 
             if takeNext:
                 withNext = current + phrases.loc[start + length]["text"]
-                newEmb = generateEmbedding(withNext)
+                newEmb = suggestionModel.generateEmbedding(withNext)
                 withNextSim = cosineSimilarity(newEmb, queryEmb)
 
                 lineStart = phrases.loc[start]["start"]
@@ -129,7 +114,7 @@ def createSuggestions(sys: System, source: Source, words: list[Word]):
                     + current
                     + phrases.loc[start + length]["text"]
                 )
-                newEmb = generateEmbedding(withBoth)
+                newEmb = suggestionModel.generateEmbedding(withBoth)
                 withBothSim = cosineSimilarity(newEmb, queryEmb)
 
                 lineStart = phrases.loc[start - 1]["start"]
@@ -141,13 +126,6 @@ def createSuggestions(sys: System, source: Source, words: list[Word]):
                 millisEnd = lines[lineEnd]["end"]
 
                 withBothDuration = millisEnd - millisStart
-
-            #                print(
-            #                    f"""start: {start} length: {length} p: {'t' if takePrev else 'f'} n: {'t' if takeNext else 'f'}
-            # sim(C, P, N, B): {"{:.4f}".format(currentSim)} {"{:.4f}".format(withPrevSim)} {"{:.4f}".format(withNextSim)} {"{:.4f}".format(withNextSim)}
-            # dur(P, N, B): {withPrevDuration} {withNextDuration} {withBothDuration}
-            # """
-            #                )
 
             if withBothSim > withPrevSim and withBothSim > withNextSim:
                 if withBothSim < currentSim and withBothDuration > clipLengthRange[0]:
@@ -210,7 +188,7 @@ def createSuggestions(sys: System, source: Source, words: list[Word]):
     ).head(5)
     print(selectedSuggestions)
 
-    addNameAndDescription(selectedSuggestions, source)
+    addNameAndDescription(selectedSuggestions, suggestionModel, source)
 
     selectedSuggestions.to_dict(orient="records")
 
@@ -235,7 +213,7 @@ def cosineSimilarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 
-def generateQueryEmedding(source: Source):
+def generateQueryEmedding(source: Source, suggestionModel: AIModel):
     name = source.name
     genre = source.genre
     tags = source.tags
@@ -248,90 +226,7 @@ The clips should be {clipLength} long.
     """
     query = " ".join(map(lambda x: x.strip(), queryText.split("\n")))
 
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
-    result = client.embeddings.create(
-        input=query,
-        model="text-embedding-3-small",
-        encoding_format="float",
-    )
-
-    return result.data[0].embedding
-
-
-def addEmbeddingsToDf(df: pd.DataFrame):
-    embeddings = generateEmbeddingsFromDf(df)
-    df["embedding"] = [embedding.embedding for embedding in embeddings]
-
-
-def updateRowEmbeddings(df: pd.DataFrame, row: int):
-    embeddings = generateRowEmbedding(df, row)
-    df.at[row, "embedding"] = embeddings
-
-
-def generateEmbeddingsFromDf(df: pd.DataFrame):
-    fullTranscript = "".join(df["text"].to_list())
-    encoding = tiktoken.get_encoding("cl100k_base")
-    numTokens = len(encoding.encode(fullTranscript))
-
-    maxTokens = 2048
-
-    lines = len(df)
-    numBatches = math.ceil(numTokens / (maxTokens / 2))
-    batchSize = lines // numBatches
-
-    batches = []
-    for i in range(numBatches):
-        start = i * batchSize
-        end = (i + 1) * batchSize
-        if i == numBatches - 1:
-            end = lines
-        batch = df["text"][start:end]
-        batches.append(batch)
-
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
-
-    embeddings: List[Embedding] = []
-    for batch in batches:
-        result = client.embeddings.create(
-            input=batch,
-            model="text-embedding-3-small",
-            encoding_format="float",
-        )
-        embeddings.extend(result.data)
-
-    return embeddings
-
-
-def generateRowEmbedding(df: pd.DataFrame, row: int):
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
-
-    result = client.embeddings.create(
-        input=df.at[row, "text"],
-        model="text-embedding-3-small",
-        encoding_format="float",
-    )
-
-    return result.data[0].embedding
-
-
-def generateEmbedding(text: str):
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
-
-    result = client.embeddings.create(
-        input=text,
-        model="text-embedding-3-small",
-        encoding_format="float",
-    )
-
-    return result.data[0].embedding
+    return suggestionModel.generateEmbedding(query)
 
 
 class SuggestionData(BaseModel):
@@ -339,36 +234,24 @@ class SuggestionData(BaseModel):
     description: str
 
 
-def addNameAndDescription(df: pd.DataFrame, source: Source):
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
-
+def addNameAndDescription(
+    df: pd.DataFrame, suggestionModel: AIModel, source: Source
+):
     names = []
     descriptions = []
     for i in range(0, len(df)):
         text = df.iloc[i]["text"]
-        result = client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"You are an editor for a famous podcast. \
+        data = suggestionModel.jsonCall(
+            roleText=f"You are an editor for a famous podcast. \
 You have already selected a clip from a new video. \
 The transcription of the clip is {text}. \
 The video from which the clip was taken is of the {source.genre} genre and has the following tags: {source.tags}.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Can you generate a name and a description for the clip. \
+            userText=f"Can you generate a name and a description for the clip. \
 The name should be short, under 60 words. The description should be a bit longer, under 100 words \
 and very direct with few adjectives.",
-                },
-            ],
-            response_format=SuggestionData,
+            format=SuggestionData,
         )
 
-        data = result.choices[0].message.parsed
         if data is None:
             continue
 
