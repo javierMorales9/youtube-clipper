@@ -1,15 +1,8 @@
 import os
-from typing import Protocol
 
 import boto3
 
-from system import System
-
-
-class FileHandler(Protocol):
-    def downloadFiles(self): ...
-    def saveFiles(self): ...
-
+from entities.shared.system import System
 
 class S3FileHandler:
     def __init__(self, sys: System, sourceId: str):

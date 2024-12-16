@@ -1,5 +1,5 @@
 from entities.source.Word import Word
-from system import System
+from entities.shared.system import System
 
 def extractWordsFromFile(sys: System):
     print("Extracting words from transcription file")

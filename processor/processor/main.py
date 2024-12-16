@@ -5,9 +5,6 @@ from dotenv import load_dotenv
 from time import sleep
 
 from flask_server import flask_server
-from fileHandler import S3FileHandler
-from openAiModel import OpenAiModel
-from system import ProdSystem
 
 from entities.event.Event import EventType
 
@@ -18,10 +15,14 @@ from entities.suggestion.postgresSuggestionRepository import (
     PostgresSuggestionRepository,
 )
 
+from entities.shared.s3TranscriptionHandler import S3TranscriptionHandler
+from entities.shared.s3FileHandler import S3FileHandler
+from entities.shared.openAiModel import OpenAiModel
+from entities.shared.prodSystem import ProdSystem
+
 from application.generateClip.generateClip import generateClip
 from application.processSource.processSource import processSource
 from application.startTranscription.startTranscription import startTranscription
-from transcriptionHandler import S3TranscriptionHandler
 
 
 def main():

@@ -5,7 +5,7 @@ from entities.suggestion.Suggestion import Suggestion
 from entities.source.Source import Source
 import numpy as np
 import pandas as pd
-from aiModel import AIModel
+from entities.shared.aiModel import AIModel
 
 clipDurationRanges = {
     "<30s": [0, 30000],

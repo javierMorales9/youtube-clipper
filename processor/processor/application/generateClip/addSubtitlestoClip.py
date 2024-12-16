@@ -1,7 +1,7 @@
 from entities.clip.Clip import Clip, Theme, ThemeShadow, ThemeStroke
 from application.generateClip.extractInterventions import extractLines, Line
 from entities.source.Word import Word
-from system import System
+from entities.shared.system import System
 
 def addSubtitlestoClip(clip: Clip, words: list[Word], sys: System):
     fontPath = sys.env("FONTS_PATH")

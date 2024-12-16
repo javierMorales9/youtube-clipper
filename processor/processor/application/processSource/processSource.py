@@ -6,10 +6,10 @@ from application.processSource.extractWordsFromFile import extractWordsFromFile
 from entities.event.eventRepository import EventRepository
 from entities.source.sourceRepository import SourceRepository
 from entities.suggestion.suggestionRepository import SuggestionRepository
-from fileHandler import FileHandler
-from aiModel import AIModel
+from entities.shared.fileHandler import FileHandler
+from entities.shared.aiModel import AIModel
 
-from system import System
+from entities.shared.system import System
 
 
 def processSource(

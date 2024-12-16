@@ -1,13 +1,6 @@
-from typing import Protocol
-
 import boto3
 
-from system import System
-
-
-class TranscriptionHandler(Protocol):
-    def callTranscribe(self): ...
-
+from entities.shared.system import System
 
 class S3TranscriptionHandler:
     def __init__(self, sys: System, sourceId: str):
@@ -36,3 +29,4 @@ class S3TranscriptionHandler:
             )
         except Exception as e:
             print("Error starting transcription job", e)
+

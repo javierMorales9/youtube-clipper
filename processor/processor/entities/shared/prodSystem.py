@@ -1,18 +1,6 @@
 import os
 import json
 import subprocess
-from typing import Any, Protocol
-
-
-class System(Protocol):
-    def fileExist(self, path: str) -> bool: ...
-    def path(self, path: str) -> str: ...
-    def run(self, command: list[str]) -> tuple[str, str, int]: ...
-    def readFile(self, path: str) -> Any: ...
-    def rm(self, path: str): ...
-    def rename(self, old: str, new: str): ...
-    def env(self, key: str) -> str: ...
-
 
 class ProdSystem:
     def __init__(self, sourceId: str):
@@ -41,3 +29,4 @@ class ProdSystem:
 
     def env(self, key: str) -> str:
         return os.environ[key]
+

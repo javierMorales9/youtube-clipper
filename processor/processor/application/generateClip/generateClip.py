@@ -9,8 +9,8 @@ from application.generateClip.addSubtitlestoClip import addSubtitlestoClip
 from entities.source.sourceRepository import SourceRepository
 
 from entities.source.Source import Source
-from fileHandler import FileHandler
-from system import System
+from entities.shared.fileHandler import FileHandler
+from entities.shared.system import System
 
 
 def generateClip(

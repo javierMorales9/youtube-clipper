@@ -1,8 +1,8 @@
 from entities.event.Event import Event, createTranscriptionFinishedEvent
 from entities.event.eventRepository import EventRepository
 from entities.source.sourceRepository import SourceRepository
-from transcriptionHandler import TranscriptionHandler
-from system import System
+from entities.shared.transcriptionHandler import TranscriptionHandler
+from entities.shared.system import System
 
 
 def startTranscription(
