@@ -58,7 +58,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ env.REGISTRY_URI }}/app:staging,${{ steps.commit_hash.outputs.hash }}
+          #tags: ${{ env.REGISTRY_URI }}/app:staging,${{ steps.commit_hash.outputs.hash }}
+          tags: ${{ env.REGISTRY_URI }}/app:staging
           builder: mybuilder
           cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:cache-staging
           cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:cache-staging
@@ -85,7 +86,8 @@ jobs:
           context: processor
           file: ./processor/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY_URI }}/processor:staging,${{ steps.commit_hash.outputs.hash }}
+          #tags: ${{ env.REGISTRY_URI }}/processor:staging,${{ steps.commit_hash.outputs.hash }}
+          tags: ${{ env.REGISTRY_URI }}/processor:staging
           builder: mybuilder
           cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:cache-staging
           cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:cache-staging
