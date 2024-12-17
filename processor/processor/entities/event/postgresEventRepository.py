@@ -27,7 +27,9 @@ class PostgresEventRepository():
     def getNextEvent(self):
         # In order to support concurrency polling and not having everyone waiting,
         # we use postgresql's SKIP LOCKED feature.
-        # See https://www.2ndquadrant.com/en/blog/what-is-select-skip-locked-for-in-postgresql-9-5/
+        # See
+        #   https://www.postgresql.org/docs/17/sql-select.html#:~:text=such%20a%20case.-,The,-Locking%20Clause
+        #   https://leontrolski.github.io/postgres-as-queue.html
         exec = self.session.execute(
             text(
                 """

@@ -27,6 +27,9 @@ class ProdSystem:
     def rename(self, old: str, new: str):
         os.rename(self.path(old), self.path(new))
 
-    def env(self, key: str) -> str:
-        return os.environ[key]
+    def env(self, key: str) -> (str | None):
+        try :
+            return os.environ[key]
+        except KeyError:
+            return None
 

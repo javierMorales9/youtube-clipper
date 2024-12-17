@@ -40,7 +40,6 @@ def main():
     # We will keep polling the database for new events to process
     while True:
         with Session(engine) as session:
-            print("Fetching event to process")
             eventRepo = PostgresEventRepository(session)
             sourceRepo = PostgresSourceRepository(session)
             suggestionRepo = PostgresSuggestionRepository(session)
@@ -85,8 +84,7 @@ def main():
                     fileHandler = S3FileHandler(prodSystem, event.sourceId)
 
                     generateClip(sourceRepo, clipRepo, prodSystem, fileHandler, event)
-            else:
-                print("No events to process")
+
             session.commit()
 
         sleep(10)
