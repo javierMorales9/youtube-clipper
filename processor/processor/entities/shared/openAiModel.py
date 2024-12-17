@@ -25,7 +25,7 @@ class OpenAiModel:
 
         return result.data[0].embedding
 
-    def generateEmbeddingsFromDf(self, lines: List[str]):
+    def generateEmbeddingsFromList(self, lines: List[str]):
         if bool(self.sys.env("CACHE_FROM_FS")):
             return self.fromFs()
 

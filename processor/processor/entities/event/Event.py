@@ -19,7 +19,7 @@ def createTranscriptionFinishedEvent(source: Source, date: datetime):
         clipId=None,
         type=EventType.TRANSCRIPTION_FINISHED,
         createdAt=date,
-        startProcessingAt=date + timedelta(minutes=8),
+        startProcessingAt=date + timedelta(minutes=5),
     )
 
 

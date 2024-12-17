@@ -46,7 +46,7 @@ def createSuggestions(
 
     phrases = pd.DataFrame(phrasesArr)
 
-    phrases["embedding"] = suggestionModel.generateEmbeddingsFromDf(
+    phrases["embedding"] = suggestionModel.generateEmbeddingsFromList(
         phrases["text"].to_list()
     )
 
@@ -56,7 +56,7 @@ def createSuggestions(
         lambda x: cosineSimilarity(x, queryEmb)
     )
     topPhrases = phrases.sort_values(by="similarities", ascending=False).head(10)
-    print(topPhrases)
+    print("top phrases", topPhrases)
 
     selections = pd.DataFrame(
         columns=np.array(["start", "end", "text", "similarities"])
