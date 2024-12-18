@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Cross from "../../../../../public/images/Cross.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
-import { SuggestionType } from "@/server/api/suggestion/Suggestion";
+import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 
 export default function RangeSelection({
   clips,

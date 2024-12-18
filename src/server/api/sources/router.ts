@@ -1,15 +1,11 @@
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import {
-  processingEvent,
-  suggestion,
-} from "@/server/db/schema";
 import { storeFactory } from "@/server/entities/source/infrastructure/storeFactory";
-import { createSourceUploadedEvent } from "@/server/processingEvent";
 import { Source } from "@/server/entities/source/domain/Source";
 import { PgSourceRepository } from "@/server/entities/source/infrastructure/PgSourceRepository";
+import { Event } from "@/server/entities/event/domain/Event";
+import { PgEventRepository } from "@/server/entities/event/infrastructure/PgEventRepository";
 
 export const sourceRouter = createTRPCRouter({
   all: protectedProcedure.input(z.object({})).query(async ({ ctx }) => {
@@ -41,47 +37,11 @@ export const sourceRouter = createTRPCRouter({
       if (!theSource) return null;
 
       const { manifest, timeline } = await store.getSignedUrls(input.id);
-      return { ...theSource.toPrimitives(), url: manifest, timelineUrl: timeline };
-    }),
-  finishProcessing: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        resolution: z.string(),
-        duration: z.number(),
-        suggestions: z.array(
-          z.object({
-            name: z.string(),
-            description: z.string(),
-            start: z.number(),
-            end: z.number(),
-          }),
-        ),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const repo = new PgSourceRepository(ctx.db);
-
-      const { id, resolution } = input;
-      const res = resolution.slice(0, -1).split("x").map(Number);
-
-      const theSource = await repo.getSource(id);
-
-      if (!theSource) {
-        throw new Error("Source not found");
-      }
-
-      theSource.finishProcessing(res[0]!, res[1]!, input.duration);
-
-      await repo.saveSource(theSource);
-
-      const suggestionObjs = input.suggestions.map((suggestion) => ({
-        id: uuidv4(),
-        companyId: ctx.company.id,
-        ...suggestion,
-        sourceId: id,
-      }));
-      await ctx.db.insert(suggestion).values(suggestionObjs);
+      return {
+        ...theSource.toPrimitives(),
+        url: manifest,
+        timelineUrl: timeline,
+      };
     }),
   initiateUpload: protectedProcedure
     .input(
@@ -108,7 +68,10 @@ export const sourceRouter = createTRPCRouter({
       });
 
       const store = storeFactory();
-      const { fileId, parts } = await store.initiateUpload(theSource.id, input.parts);
+      const { fileId, parts } = await store.initiateUpload(
+        theSource.id,
+        input.parts,
+      );
 
       if (!fileId) {
         throw new Error("Failed to initiate upload");
@@ -127,25 +90,22 @@ export const sourceRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const repo = new PgSourceRepository(ctx.db);
+      const eventRepo = new PgEventRepository(ctx.db);
+
       const store = storeFactory();
 
       const { id, parts } = input;
-      
+
       const theSource = await repo.getSource(id);
 
       if (!theSource || !theSource.externalId) {
         throw new Error("Video not found");
       }
 
-      await store.completeUpload(
-        theSource.externalId,
-        theSource.id,
-        parts,
-      );
+      await store.completeUpload(theSource.externalId, theSource.id, parts);
 
-      await ctx.db
-        .insert(processingEvent)
-        .values(createSourceUploadedEvent(id, ctx.company.id));
+      const event = Event.createSourceUploadedEvent(id, ctx.company.id);
+      await eventRepo.saveEvent(event);
     }),
   getClipWords: protectedProcedure
     .input(

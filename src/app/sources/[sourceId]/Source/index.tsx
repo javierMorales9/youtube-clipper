@@ -15,7 +15,7 @@ import { toReadableTime } from "@/app/utils";
 import Download from "../../../../../public/images/Download.svg";
 import Loading from "../../../../../public/images/Loading.svg";
 import { Clip } from "@/server/api/clips/ClipSchema";
-import { SuggestionType } from "@/server/api/suggestion/Suggestion";
+import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 import MP4Reproducer from "./MP4Reproducer";
 
 function usePanels(inputClips: Clip[], inputSuggestions: SuggestionType[]) {

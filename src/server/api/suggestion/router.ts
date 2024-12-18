@@ -1,30 +1,18 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { suggestion } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { PgSuggestionRepository } from "@/server/entities/suggestion/infrastructure/PgSuggestionRepository";
 
 export const suggestionRouter = createTRPCRouter({
   fromSource: protectedProcedure
     .input(z.object({ sourceId: z.string() }))
     .query(async ({ ctx, input }) => {
+      const repo = new PgSuggestionRepository(ctx.db);
+
       const sourceId = input.sourceId;
 
-      const result = await ctx.db
-        .select()
-        .from(suggestion)
-        .where(eq(suggestion.sourceId, sourceId));
+      const result = await repo.getSourceSuggestions(sourceId);
 
-      return result.map(el => ({
-        id: el.id,
-        sourceId: el.sourceId,
-        companyId: el.companyId,
-        name: el.name,
-        description: el.description,
-        range: {
-          start: el.start,
-          end: el.end,
-        },
-      }));
+      return result.map(r => r.toPrimitives());
     }),
 });

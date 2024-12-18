@@ -116,14 +116,6 @@ export class Source {
     };
   }
 
-  finishProcessing(width: number, height: number, duration: number) {
-    this.processing = false;
-    this.width = width;
-    this.height = height;
-    this.duration = duration;
-    this.updatedAt = new Date();
-  }
-
   static newSource({
     companyId,
     name,

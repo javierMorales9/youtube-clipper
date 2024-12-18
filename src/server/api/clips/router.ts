@@ -21,9 +21,10 @@ import {
   defaultTheme,
   defaultWidth,
 } from "./ClipSchema";
-import { createClipUpdatedEvent } from "@/server/processingEvent";
 import { Db } from "@/server/db";
 import { newDate } from "@/utils/newDate";
+import { Event } from "@/server/entities/event/domain/Event";
+import { PgEventRepository } from "@/server/entities/event/infrastructure/PgEventRepository";
 
 export const clipRouter = createTRPCRouter({
   find: protectedProcedure
@@ -89,7 +90,10 @@ export const clipRouter = createTRPCRouter({
   create: protectedProcedure
     .input(ClipSchema)
     .mutation(async ({ ctx, input }) => {
+      const eventRepo = new PgEventRepository(ctx.db);
+
       console.log("Saving clip", JSON.stringify(input, null, 2));
+
       input.id = input.id || uuidv4();
       await saveClip(ctx.db, ctx.company.id, input);
 
@@ -99,9 +103,8 @@ export const clipRouter = createTRPCRouter({
 
       if (!theSource) throw new Error("Source not found");
 
-      await ctx.db
-        .insert(processingEvent)
-        .values(createClipUpdatedEvent(input.id, input.sourceId, ctx.company.id));
+      const event = Event.createClipUpdatedEvent(input.id, input.sourceId, ctx.company.id);
+      await eventRepo.saveEvent(event);
     }),
   finishProcessing: protectedProcedure
     .input(z.object({ id: z.string() }))

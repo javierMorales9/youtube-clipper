@@ -93,6 +93,7 @@ export const suggestion = createTable("suggestion", {
   start: integer("start").notNull(),
   end: integer("end").notNull(),
 });
+export type SuggestionModel = InferModel<typeof suggestion>;
 
 export const clip = createTable("clip", {
   id: uuid("id").primaryKey(),
