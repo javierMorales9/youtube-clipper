@@ -1,6 +1,5 @@
 import { newDate } from "@/utils/newDate";
 import { randomUUID } from "crypto";
-import { Source } from "./db/schema";
 
 export const ProcessingEvent = {
   SOURCE_UPLOADED: "source_uploaded",

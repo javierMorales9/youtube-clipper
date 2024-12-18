@@ -1,6 +1,6 @@
 'use client';
 import { toReadableTime } from '@/app/utils';
-import { Source } from '@/server/db/schema';
+import { SourceType } from '@/server/entities/source/domain/Source';
 import { useState, MouseEvent, WheelEvent, useRef, useEffect, useMemo } from 'react';
 
 const NUMBER_OF_MARKS = 6;
@@ -18,7 +18,7 @@ export default function Timeline({
 }: {
   length: number,
   imageUrl: string,
-  source: Source,
+  source: SourceType,
   currentSeconds: number,
   setCurrentTime: (time: number) => void,
   offset?: number,

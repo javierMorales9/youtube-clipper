@@ -9,7 +9,7 @@ import Back from "../../../../../public/images/Back.svg";
 import Play from "../../../../../public/images/MaterialSymbolsPlayArrow.svg";
 import Pause from "../../../../../public/images/Pause.svg";
 import HLSReproducer from "./HLSReproducer";
-import { Source } from "@/server/db/schema";
+import { SourceType } from "@/server/entities/source/domain/Source";
 import { useRouter } from "next/navigation";
 import { toReadableTime } from "@/app/utils";
 import Download from "../../../../../public/images/Download.svg";
@@ -217,7 +217,7 @@ export default function SourceEditor({
   timelineUrl,
   hls,
 }: {
-  source: Source,
+  source: SourceType,
   clips: Clip[],
   suggestions: SuggestionType[],
   timelineUrl: string,

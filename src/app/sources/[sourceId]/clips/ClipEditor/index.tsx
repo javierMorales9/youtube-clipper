@@ -5,7 +5,7 @@ import { Timer, useTimer } from "../../useTimer";
 import { useForm, FormProvider, UseFormReturn, useFormContext } from "react-hook-form";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
-import { Source } from "@/server/db/schema";
+import { SourceType } from "@/server/entities/source/domain/Source";
 import Konva from "konva";
 import { api } from "@/trpc/react";
 import { Clip, Display, SectionFront } from "../Clip";
@@ -20,7 +20,7 @@ import { Line, toReadableTime, wordsIntoLines } from "@/app/utils";
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';
-import { Word } from "@/server/api/sources/Word";
+import { Word } from "@/server/entities/source/Source";
 import { Label } from "@/app/_components/Label";
 import { NewInput } from "@/app/_components/NewInput";
 import { ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/api/clips/ClipSchema";
@@ -35,7 +35,7 @@ export default function ClipEditor({
   clip,
   words,
 }: {
-  source: Source,
+  source: SourceType,
   timelineUrl: string,
   clip: Clip,
   words: Word[]
@@ -891,7 +891,7 @@ function Preview({
   lines,
 }: {
   section?: SectionFront,
-  source: Source,
+  source: SourceType,
   timer: Timer,
   startTime: number
   dimensions: [number, number],

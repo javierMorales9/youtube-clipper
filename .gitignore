@@ -62,3 +62,5 @@ __pycache__/
 *.zip
 
 processor/processor/test.py
+
+.pytest_cache/

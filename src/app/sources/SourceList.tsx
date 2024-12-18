@@ -4,9 +4,9 @@ import Link from "next/link";
 import SourceModal from "./SourceModal";
 import PlayButton from "../../../public/images/MaterialSymbolsPlayArrow.svg";
 import { useState } from "react";
-import { Source } from "@/server/db/schema";
+import { SourceType } from "@/server/entities/source/domain/Source";
 
-type SourceListElement = Source & { snapshotUrl: string };
+type SourceListElement = SourceType & { snapshotUrl: string };
 export function SourceList({
   sources: initialSources,
 }: {

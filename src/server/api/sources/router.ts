@@ -4,28 +4,26 @@ import { v4 as uuidv4 } from "uuid";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   processingEvent,
-  source,
-  sourceTag,
-  sourceTranscription,
   suggestion,
 } from "@/server/db/schema";
-import { Store } from "./Store";
-import { eq, sql } from "drizzle-orm";
+import { storeFactory } from "@/server/entities/source/infrastructure/storeFactory";
 import { createSourceUploadedEvent } from "@/server/processingEvent";
-import { Word } from "./Word";
-import { newDate } from "@/utils/newDate";
+import { Source } from "@/server/entities/source/domain/Source";
+import { PgSourceRepository } from "@/server/entities/source/infrastructure/PgSourceRepository";
 
 export const sourceRouter = createTRPCRouter({
   all: protectedProcedure.input(z.object({})).query(async ({ ctx }) => {
-    const sources = await ctx.db.query.source.findMany();
+    const repo = new PgSourceRepository(ctx.db);
+    const store = storeFactory();
 
+    const sources = await repo.getSources(ctx.company.id);
     return Promise.all(
       sources.map(async (source) => {
-        const { manifest, timeline, snapshot } = await Store().getSignedUrls(
+        const { manifest, timeline, snapshot } = await store.getSignedUrls(
           source.id,
         );
         return {
-          ...source,
+          ...source.toPrimitives(),
           url: manifest,
           timelineUrl: timeline,
           snapshotUrl: snapshot,
@@ -36,15 +34,14 @@ export const sourceRouter = createTRPCRouter({
   find: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const { manifest, timeline } = await Store().getSignedUrls(input.id);
+      const repo = new PgSourceRepository(ctx.db);
+      const store = storeFactory();
 
-      const theSource = await ctx.db.query.source.findFirst({
-        where: eq(source.id, input.id),
-      });
-
+      const theSource = await repo.getSource(input.id);
       if (!theSource) return null;
 
-      return { ...theSource, url: manifest, timelineUrl: timeline };
+      const { manifest, timeline } = await store.getSignedUrls(input.id);
+      return { ...theSource.toPrimitives(), url: manifest, timelineUrl: timeline };
     }),
   finishProcessing: protectedProcedure
     .input(
@@ -63,19 +60,20 @@ export const sourceRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const repo = new PgSourceRepository(ctx.db);
+
       const { id, resolution } = input;
       const res = resolution.slice(0, -1).split("x").map(Number);
 
-      await ctx.db
-        .update(source)
-        .set({
-          processing: false,
-          updatedAt: newDate(),
-          width: res[0],
-          height: res[1],
-          duration: input.duration,
-        })
-        .where(eq(source.id, id));
+      const theSource = await repo.getSource(id);
+
+      if (!theSource) {
+        throw new Error("Source not found");
+      }
+
+      theSource.finishProcessing(res[0]!, res[1]!, input.duration);
+
+      await repo.saveSource(theSource);
 
       const suggestionObjs = input.suggestions.map((suggestion) => ({
         id: uuidv4(),
@@ -97,38 +95,28 @@ export const sourceRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const id = uuidv4();
+      const repo = new PgSourceRepository(ctx.db);
 
-      const { fileId, parts } = await Store().initiateUpload(id, input.parts);
+      const theSource = Source.newSource({
+        companyId: ctx.company.id,
+        name: input.name,
+        externalId: "",
+        genre: input.genre,
+        clipLength: input.clipLength,
+        processingRange: input.range as [number, number],
+        tags: input.tags,
+      });
+
+      const store = storeFactory();
+      const { fileId, parts } = await store.initiateUpload(theSource.id, input.parts);
 
       if (!fileId) {
         throw new Error("Failed to initiate upload");
       }
 
-      await ctx.db.transaction(async (t) => {
-        console.log("input", input);
-        await t.insert(source).values({
-          id,
-          companyId: ctx.company.id,
-          name: input.name,
-          processing: true,
-          externalId: fileId,
-          genre: input.genre,
-          clipLength: input.clipLength,
-          processingRangeStart: Math.floor(input.range[0]!),
-          processingRangeEnd: Math.floor(input.range[1]!),
-          createdAt: newDate(),
-          updatedAt: newDate(),
-        });
+      await repo.saveSource(theSource);
 
-        if (input.tags.length > 0) {
-          await t
-            .insert(sourceTag)
-            .values(input.tags.map((tag) => ({ sourceId: id, tag })));
-        }
-      });
-
-      return { parts, id };
+      return { parts, id: theSource.id };
     }),
   completeUpload: protectedProcedure
     .input(
@@ -138,27 +126,22 @@ export const sourceRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const repo = new PgSourceRepository(ctx.db);
+      const store = storeFactory();
+
       const { id, parts } = input;
-      const video = await ctx.db.query.source.findFirst({
-        where: eq(source.id, id),
-      });
-      if (!video || !video.externalId) {
+      
+      const theSource = await repo.getSource(id);
+
+      if (!theSource || !theSource.externalId) {
         throw new Error("Video not found");
       }
 
-      const location = await Store().completeUpload(
-        video.externalId,
-        video.id,
+      await store.completeUpload(
+        theSource.externalId,
+        theSource.id,
         parts,
       );
-
-      await ctx.db
-        .update(source)
-        .set({
-          url: location,
-          updatedAt: newDate(),
-        })
-        .where(eq(source.id, id));
 
       await ctx.db
         .insert(processingEvent)
@@ -172,33 +155,8 @@ export const sourceRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      // The words are in the SourceTranscription table. In a jsonb field called transcription
-      // The jsonb field has the following structure:
-      // [
-      //     { "word": "This", "start": 0, "end": 100 },
-      //     { "word": "is", "start": 100, "end": 200 },
-      //     ...
-      // ]
-      // Apply a query similar to this one
-      //
-      // SELECT word -> 'word', word -> 'start', word -> 'end'
-      // FROM source_transcription, jsonb_array_elements(source_transcription.transcription) AS word
-      // WHERE
-      //   source_transcription.source_id = sourceId
-      //   AND CAST((word -> 'start') AS INTEGER) > range.start
-      //   AND CAST((word -> 'end') AS INTEGER) < range.end
-      //;
-      //
-      // See the following link for more info about jsonb arrays and how to query them
-      // https://hevodata.com/learn/query-jsonb-array-of-objects/
-      return (await ctx.db.execute(sql`
-        SELECT word -> 'word' as word, word -> 'start' as start, word -> 'end' as end
-        FROM ${sourceTranscription}, jsonb_array_elements(${sourceTranscription.transcription}) AS word
-        WHERE
-          ${sourceTranscription.sourceId} = ${input.sourceId}
-          AND CAST((word -> 'start') AS INTEGER) > ${input.range.start * 1000}
-          AND CAST((word -> 'end') AS INTEGER) < ${input.range.end * 1000}
-        ;
-      `)) as Word[];
+      const repo = new PgSourceRepository(ctx.db);
+
+      return await repo.getClipWords(input.sourceId, input.range);
     }),
 });

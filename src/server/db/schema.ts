@@ -53,7 +53,7 @@ export const source = createTable("source", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).notNull(),
 });
-export type Source = InferModel<typeof source>;
+export type SourceModel = InferModel<typeof source>;
 
 export const sourceTag = createTable(
   "source_tag",

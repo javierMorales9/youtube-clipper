@@ -10,17 +10,6 @@ export const S3Store = {
       timeline : `${env.CLOUDFRONT_URL}/${key}/timeline.png`,
       snapshot : `${env.CLOUDFRONT_URL}/${key}/snapshot.png`,
     };
-    /*
-    const s3 = new S3({ region: env.AWS_REGION });
-
-    return getSignedUrl(
-      s3,
-      new GetObjectCommand({
-        Bucket: env.SOURCE_BUCKET,
-        Key: `${key}/adaptive.m3u8`,
-      }),
-    );
-    */
   },
   initiateUpload: async function (name: string, parts: number) {
     const s3 = new S3({ region: env.AWS_REGION });
