@@ -14,7 +14,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import { defaultTheme, } from "../api/clips/ClipSchema";
+import { defaultTheme } from "@/server/entities/clip/domain/Clip";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -145,8 +145,8 @@ export const clip = createTable("clip", {
   themeEmojiPosition: varchar("theme_emoji_position", { length: 20 })
     .notNull()
     .default(defaultTheme.themeEmojiPosition),
-  createdAt: timestamp("created_at", { withTimezone: true }),
-  updatedAt: timestamp("updatedAt", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).notNull(),
 });
 export type ClipTable = InferModel<typeof clip>;
 

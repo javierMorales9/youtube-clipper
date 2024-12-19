@@ -1,4 +1,4 @@
-import { Section, Clip as ClipBack } from "@/server/api/clips/ClipSchema";
+import { SectionType, ClipType as ClipBack } from "@/server/entities/clip/domain/Clip";
 
 export type Display = {
   name: string;
@@ -10,5 +10,5 @@ export type Display = {
   }[];
 };
 
-export type SectionFront = Omit<Section, "display"> & { display?: Display };
+export type SectionFront = Omit<SectionType, "display"> & { display?: Display };
 export type Clip = Omit<ClipBack, "sections"> & { sections: SectionFront[] };

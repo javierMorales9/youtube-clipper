@@ -1,8 +1,8 @@
-import { sourceRouter } from "@/server/api/sources/router";
+import { sourceRouter } from "@/server/api/sources";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { clipRouter } from "./clips/router";
-import { suggestionRouter } from "./suggestion/router";
-import { companyRouter } from "./company/router";
+import { clipRouter } from "@/server/api/clips";
+import { suggestionRouter } from "@/server/api/suggestions";
+import { companyRouter } from "@/server/api/companies";
 
 /**
  * This is the primary router for your server.

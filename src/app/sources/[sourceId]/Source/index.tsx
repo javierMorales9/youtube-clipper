@@ -14,16 +14,16 @@ import { useRouter } from "next/navigation";
 import { toReadableTime } from "@/app/utils";
 import Download from "../../../../../public/images/Download.svg";
 import Loading from "../../../../../public/images/Loading.svg";
-import { Clip } from "@/server/api/clips/ClipSchema";
+import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 import MP4Reproducer from "./MP4Reproducer";
 
-function usePanels(inputClips: Clip[], inputSuggestions: SuggestionType[]) {
+function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionType[]) {
   const [selection, setSelection] = useState<
     { range: { start: number, end: number } | null, created: boolean }
   >({ range: null, created: false });
 
-  const [clips, setClips] = useState<Clip[]>(inputClips);
+  const [clips, setClips] = useState<ClipType[]>(inputClips);
   const [suggestions, setSuggestions] = useState<SuggestionType[]>(inputSuggestions);
 
   type SelectedPanel = {
@@ -218,7 +218,7 @@ export default function SourceEditor({
   hls,
 }: {
   source: SourceType,
-  clips: Clip[],
+  clips: ClipType[],
   suggestions: SuggestionType[],
   timelineUrl: string,
   hls: boolean,

@@ -20,10 +20,10 @@ import { Line, toReadableTime, wordsIntoLines } from "@/app/utils";
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';
-import { Word } from "@/server/entities/source/Source";
+import { Word } from "@/server/entities/source/domain/Source";
 import { Label } from "@/app/_components/Label";
 import { NewInput } from "@/app/_components/NewInput";
-import { ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/api/clips/ClipSchema";
+import { ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/entities/clip/domain/Clip";
 import { ColorPicker } from "@/app/_components/ColorPicker";
 import { SingleChoice } from "@/app/_components/SingleChoice";
 import { YesOrNo } from "@/app/_components/YesOrNo";
@@ -46,7 +46,7 @@ export default function ClipEditor({
   const timer = useTimer(end - start);
   const [showModal, setShowModal] = useState(false);
 
-  const { mutateAsync: createClip } = api.clip.create.useMutation();
+  const { mutateAsync: createClip } = api.clip.save.useMutation();
 
   const form = useForm<Clip>({
     defaultValues: clip,
@@ -85,9 +85,10 @@ export default function ClipEditor({
     const data = form.getValues();
 
     await createClip({
-      name: data.name,
-      sourceId: source.id,
       id: clip.id,
+      sourceId: source.id,
+      companyId: clip.companyId,
+      name: data.name,
       range: data.range,
       width: data.width,
       height: data.height,

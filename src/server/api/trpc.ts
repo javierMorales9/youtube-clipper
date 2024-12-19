@@ -12,8 +12,6 @@ import { ZodError } from "zod";
 
 import { Db, db } from "@/server/db";
 import { Company } from "@/server/entities/company/domain/Company";
-import { company } from "../db/schema";
-import { eq } from "drizzle-orm";
 import { TRPCClientError } from "@trpc/client";
 import { PgCompanyRepository } from "../entities/company/infrastructure/PgCompanyRepository";
 
