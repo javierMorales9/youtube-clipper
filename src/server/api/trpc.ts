@@ -11,10 +11,11 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { Db, db } from "@/server/db";
-import { CompanyType } from "./company/CompanySchema";
+import { Company } from "@/server/entities/company/domain/Company";
 import { company } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCClientError } from "@trpc/client";
+import { PgCompanyRepository } from "../entities/company/infrastructure/PgCompanyRepository";
 
 /**
  * 1. CONTEXT
@@ -33,14 +34,12 @@ export const createTRPCContext = async (opts: {
   id?: string;
 }) => {
   try {
-    let c: CompanyType | null = null;
+    const companyRepo = new PgCompanyRepository(db);
+    let c: Company | null = null;
 
     const id = opts.id;
     if (id) {
-      c =
-        (await db.query.company.findFirst({
-          where: eq(company.id, id),
-        })) || null;
+      c = await companyRepo.getCompany(id);
     }
 
     return {
@@ -118,7 +117,7 @@ export const publicProcedure = t.procedure;
  */
 type Protected = {
   db: Db;
-  company: CompanyType;
+  company: Company;
   headers: Headers;
 }
 

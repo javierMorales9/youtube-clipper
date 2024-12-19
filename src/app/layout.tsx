@@ -6,7 +6,7 @@ import { TRPCReactProvider } from "@/trpc/react";
 
 import { cookies, headers } from 'next/headers'
 import { api } from "@/trpc/server";
-import { CompanyType } from "@/server/api/company/CompanySchema";
+import { FrontendCompanyType } from "@/server/entities/company/domain/Company";
 
 import { CompanyProvider } from "./CompanyWrapper";
 
@@ -31,7 +31,7 @@ export default async function RootLayout({
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
 
-  let company: CompanyType | null = null
+  let company: FrontendCompanyType | null = null
 
   try {
     if (token) {

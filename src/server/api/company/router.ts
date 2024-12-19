@@ -1,11 +1,8 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { company } from "@/server/db/schema";
-import bcrypt from "bcrypt";
-import { eq } from "drizzle-orm";
 import z from "zod";
-import { v4 as uuidv4 } from "uuid";
-import { newDate } from "@/utils/newDate";
 import { issueJwt, verifyjwt } from "@/utils/jwt";
+import { Company } from "@/server/entities/company/domain/Company";
+import { PgCompanyRepository } from "@/server/entities/company/infrastructure/PgCompanyRepository";
 
 export const companyRouter = createTRPCRouter({
   create: publicProcedure
@@ -13,59 +10,47 @@ export const companyRouter = createTRPCRouter({
       z.object({ name: z.string(), email: z.string(), password: z.string() }),
     )
     .mutation(async ({ ctx, input }) => {
-      const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash(input.password, salt);
+      const repo = new PgCompanyRepository(ctx.db);
 
-      const id = uuidv4();
+      const theC = await Company.newCompany(input);
 
-      const theC = {
-        id,
-        name: input.name,
-        email: input.email,
-        password: hashedPassword,
-        createdAt: newDate(),
-      };
+      await repo.saveCompany(theC);
 
-      await ctx.db.insert(company).values(theC);
-
-      return { ...theC, token: issueJwt(id) };
+      return { ...theC.publicPrimitives(), token: issueJwt(theC.id) };
     }),
   logIn: publicProcedure
     .input(z.object({ email: z.string(), password: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const theC = await ctx.db.query.company.findFirst({
-        where: eq(company.email, input.email),
-      });
+      const repo = new PgCompanyRepository(ctx.db);
+
+      const theC = await repo.getCompanyByEmail(input.email);
 
       if (!theC) {
         throw new Error("Invalid email, please try again");
       }
 
-      const passwordMatched = await bcrypt.compare(
-        input.password,
-        theC.password,
-      );
+      const passwordMatched = theC.comparePassword(input.password);
 
       if (!passwordMatched)
         throw new Error("Invalid password, please try again");
 
       const token = issueJwt(theC.id);
 
-      return { ...theC, token };
+      return { ...theC.publicPrimitives(), token };
     }),
   getFromToken: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ ctx, input }) => {
+      const repo = new PgCompanyRepository(ctx.db);
+
       const id = verifyjwt(input.token);
 
-      const theC = await ctx.db.query.company.findFirst({
-        where: eq(company.id, id),
-      });
+      const theC = await repo.getCompany(id);
 
       if (!theC) {
         return null;
       }
 
-      return theC;
+      return theC.publicPrimitives();
     }),
 });

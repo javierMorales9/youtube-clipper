@@ -32,7 +32,7 @@ export const company = createTable("company", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });
 
-export type Company = InferModel<typeof company>;
+export type CompanyModel = InferModel<typeof company>;
 
 export const source = createTable("source", {
   id: uuid("id").primaryKey().notNull(),

@@ -1,13 +1,13 @@
 'use client';
 
-import { CompanyType } from "@/server/api/company/CompanySchema";
+import { FrontendCompanyType } from "@/server/entities/company/domain/Company";
 import { createContext, useContext, useState } from "react";
 import Cookies from 'universal-cookie';
 import { useRouter } from 'next/navigation'
 
 const CompanyContext = createContext<{
-  data: CompanyType,
-  update: (data: CompanyType) => void,
+  data: FrontendCompanyType,
+  update: (data: FrontendCompanyType) => void,
   signOut: () => void,
 }
 >({
@@ -26,10 +26,10 @@ export function CompanyProvider({
   company,
 }: {
   children: React.ReactNode;
-  company: CompanyType;
+  company: FrontendCompanyType;
 }) {
   const router = useRouter();
-  const [companyData, setCompanyData] = useState<CompanyType>(company);
+  const [companyData, setCompanyData] = useState<FrontendCompanyType>(company);
 
   const signOut = () => {
     const cookies = new Cookies(null, { path: '/' });
@@ -41,7 +41,7 @@ export function CompanyProvider({
   return (
     <CompanyContext.Provider value={{
       data: companyData,
-      update: (data: CompanyType) => setCompanyData(data),
+      update: (data: FrontendCompanyType) => setCompanyData(data),
       signOut,
     }}>
       {children}

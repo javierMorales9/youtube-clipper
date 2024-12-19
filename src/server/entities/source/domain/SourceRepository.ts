@@ -1,4 +1,4 @@
-import { Company } from "@/server/db/schema";
+import { Company } from "../../company/domain/Company";
 import { Source, Word } from "./Source";
 
 interface SourceRepository {
