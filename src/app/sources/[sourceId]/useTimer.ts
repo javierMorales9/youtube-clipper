@@ -6,6 +6,7 @@ export function useTimer(duration?: number) {
   const [currentTime, setCurrentTime] = useState<
     [number, number, number, number]
   >([0, 0, 0, 0]);
+  const [currentSeconds, setCurrentSeconds] = useState(0);
   const [playing, setPlaying] = useState(false);
 
   const [restrictionRange, setRestrictionRange] = useState<{
@@ -33,6 +34,10 @@ export function useTimer(duration?: number) {
   function seek(time: number) {
     setCurrentTime(formatTime(time));
   }
+
+  useEffect(() => {
+    setCurrentSeconds(toSeconds(currentTime));
+  }, [currentTime]);
 
   function restrict(range?: { start: number; end: number }) {
     if (range) {
@@ -130,7 +135,7 @@ export function useTimer(duration?: number) {
     playing,
     togglePlay,
     restrict,
-    currentSeconds: toSeconds(currentTime),
+    currentSeconds,
   };
 }
 

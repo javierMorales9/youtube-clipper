@@ -282,7 +282,7 @@ export default function SourceEditor({
             <div className="flex flex-row gap-x-4">
               <button
                 className={`text-xl font-semibold ${view === 'clips' ? "text-blue-500" : "text-gray-400"}`}
-                onClick={() => setView("clips")}
+                onClick={() => { console.log("que pasa"); setView("clips") }}
               >
                 Clips
               </button>
@@ -307,7 +307,7 @@ export default function SourceEditor({
                       }
                     `}
                     onClick={() => setPanel("clip", clip.id)}
-                    //disabled={clip.processing}
+                  //disabled={clip.processing}
                   >
                     <div className="flex flex-col">
                       <span className="flex justify-start">

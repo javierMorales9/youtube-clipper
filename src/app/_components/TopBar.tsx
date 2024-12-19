@@ -37,13 +37,7 @@ export default function TopBar({
   return (
     <>
       <div className="px-10 relative flex h-[58px] items-center justify-between border-b border-gray-200 bg-[#fdfdfd]">
-        <Link
-          href={'/campaigns'}
-          legacyBehavior
-          className="left-14 flex items-center cursor-pointer"
-        >
-          <Logo className="w-10 cursor-pointer" />
-        </Link>
+        <Logo className="w-10 cursor-pointer" />
         <div className="flex items-center justify-center gap-x-4">
           <TopBarLink
             route={'/sources'}
