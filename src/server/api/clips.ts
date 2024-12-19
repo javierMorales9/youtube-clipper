@@ -1,47 +1,31 @@
-import { z } from "zod";
-
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { ClipSchema, Clip } from "@/server/entities/clip/domain/Clip";
-import { Event } from "@/server/entities/event/domain/Event";
+import { ClipSchema } from "@/server/entities/clip/domain/Clip";
 import { PgEventRepository } from "@/server/entities/event/infrastructure/PgEventRepository";
 import { PgClipRepository } from "@/server/entities/clip/infrastructure/PgClipRepository";
+import * as clipCrud from "@/server/entities/clip/application/clipCrud";
+import * as clipProcessing from "@/server/entities/clip/application/clipProcessing";
 
 export const clipRouter = createTRPCRouter({
   find: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(clipCrud.FindInputSchema)
     .query(async ({ ctx, input }) => {
       const repo = new PgClipRepository(ctx.db);
 
-      const theClip = await repo.find(input.id);
-
-      if (!theClip) return null;
-
-      return theClip.toPrimitives();
+      return await clipCrud.find(repo, input);
     }),
   fromSource: protectedProcedure
-    .input(z.object({ sourceId: z.string() }))
+    .input(clipCrud.FromSourceInputSchema)
     .query(async ({ ctx, input }) => {
       const repo = new PgClipRepository(ctx.db);
 
-      const clips = await repo.fromSource(input.sourceId);
-      return clips.map((clip) => clip.toPrimitives());
+      return await clipCrud.fromSource(repo, input);
     }),
   createNew: protectedProcedure
-    .input(
-      z.object({
-        sourceId: z.string(),
-        start: z.number(),
-        end: z.number(),
-      }),
-    )
+    .input(clipCrud.CreateNewInputSchema)
     .mutation(async ({ ctx, input }) => {
       const repo = new PgClipRepository(ctx.db);
 
-      const clip = Clip.new({ ...input, companyId: ctx.company.id });
-
-      repo.save(clip);
-
-      return clip.toPrimitives();
+      return await clipCrud.createNew(repo, ctx.company.id, input);
     }),
   save: protectedProcedure
     .input(ClipSchema)
@@ -49,34 +33,13 @@ export const clipRouter = createTRPCRouter({
       const repo = new PgClipRepository(ctx.db);
       const eventRepo = new PgEventRepository(ctx.db);
 
-      console.log("Saving clip", JSON.stringify(input, null, 2));
-
-      const clip = await repo.find(input.id);
-
-      if (!clip) {
-        throw new Error("Clip not found");
-      }
-
-      clip.update(input);
-      await repo.save(clip);
-
-      const event = Event.createClipUpdatedEvent(
-        input.id,
-        input.sourceId,
-        ctx.company.id,
-      );
-      await eventRepo.saveEvent(event);
+      return await clipCrud.save(repo, eventRepo, ctx.company.id, input);
     }),
   finishProcessing: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(clipProcessing.FinishProcessingInputSchema)
     .mutation(async ({ ctx, input }) => {
       const repo = new PgClipRepository(ctx.db);
 
-      const theC = await repo.find(input.id);
-      if (!theC) throw new Error("Clip not found");
-
-      theC.finishProcessing();
-
-      await repo.save(theC);
+      return await clipProcessing.finishProcessing(repo, input);
     }),
 });

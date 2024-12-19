@@ -7,8 +7,9 @@ import {
 } from "@/server/db/schema";
 import { Source, Word } from "../domain/Source";
 import { eq, sql } from "drizzle-orm";
+import { SourceRepository } from "../domain/SourceRepository";
 
-export class PgSourceRepository {
+export class PgSourceRepository implements SourceRepository {
   private db: Db;
 
   constructor(db: Db) {

@@ -15,6 +15,7 @@ export class PgClipRepository implements ClipRepository {
 
   constructor(db: Db) {
     this.db = db;
+    console.log("No me jodas", this.db);
   }
 
   async find(id: string): Promise<Clip | null> {
@@ -125,7 +126,11 @@ export class PgClipRepository implements ClipRepository {
   }
 
   private async completeClips(clips: ClipModel[]): Promise<Clip[]> {
-    return await Promise.all(clips.map(this.completeClip));
+    const result: Clip[] = [];
+    for(const clip of clips) {
+      result.push(await this.completeClip(clip));
+    }
+    return result;
   }
 
   private async completeClip(theClip: ClipModel): Promise<Clip> {
