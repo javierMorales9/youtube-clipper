@@ -24,7 +24,6 @@ export async function initiateUpload(
   const theSource = Source.newSource({
     companyId: companyId,
     name: input.name,
-    externalId: "",
     genre: input.genre,
     clipLength: input.clipLength,
     processingRange: input.range as [number, number],
@@ -39,6 +38,8 @@ export async function initiateUpload(
   if (!fileId) {
     throw new Error("Failed to initiate upload");
   }
+
+  theSource.setExternalId(fileId);
 
   await repo.saveSource(theSource);
 

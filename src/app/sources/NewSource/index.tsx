@@ -15,8 +15,10 @@ import {
 import { Label } from "@/app/_components/Label";
 import { Slider } from "@/app/_components/Slider";
 import { NewInput } from "@/app/_components/NewInput";
-import { Button } from "@/app/_components/Button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/Tabs";
+
 import { toReadableTime } from "@/app/utils";
+import { Button } from "@/app/_components/Button";
 
 const lengths = [
   "<30s",
@@ -55,31 +57,288 @@ export type SourceData = {
   range: number[];
 };
 
+const MAX_TAGS = 20;
+
 export default function NewSource({
   addSource,
 }: {
   addSource: (source: any) => void
 }) {
-  const [file, setFile] = useState<File | null>(null);
-  const [step, setStep] = useState<"drag-drop" | "uploading">("drag-drop");
-  const [videoName, setVideoName] = useState<string>("");
+  const [mode, setMode] = useState<"url" | "upload">("url");
+  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [step, setStep] = useState<"input" | "data" | "uploading">("input");
+
+  useEffect(() => {
+    if (mode === "url") {
+      if (videoUrl !== "") {
+        setStep("data");
+      } else {
+        setStep("input");
+      }
+    }
+    else {
+      if (videoFile !== null) {
+        setStep("data");
+      } else {
+        setStep("input");
+      }
+    }
+  }, [mode]);
+
   const [invalidError, setInvalidError] = useState<string | null>(null);
 
-  const { percentage, error, upload, onCancel, uploading }
-    = useUploader()({ file, setFile });
+  const [videoData, setVideoData] = useState<SourceData | null>(null);
 
+  const { percentage, error, upload, onCancel, uploading }
+    = useUploader()({ file: videoFile, setFile: setVideoFile });
+
+  useEffect(() => {
+    if (step === "uploading" && uploading === false) {
+      finishUpload()
+    }
+  }, [percentage, uploading]);
+
+  const fileInput = async (file: File, duration: number) => {
+    if (duration < 60 * 10) {
+      setInvalidError("Video should be grater than 10 minutes");
+    } else {
+      setVideoFile(file as File);
+      setVideoDuration(duration);
+      setInvalidError(null);
+      setStep("data");
+    }
+  };
+
+  const clearFileInput = () => {
+    setVideoFile(null);
+    setVideoDuration(0);
+    setStep("input");
+  }
+
+  const urlInput = async (file: string, duration: number) => {
+    if (duration < 60 * 10) {
+      setInvalidError("Video should be grater than 10 minutes");
+    } else {
+      setVideoUrl(file as string);
+      setVideoDuration(duration);
+      setInvalidError(null);
+      setStep("data");
+    }
+  }
+
+  const addData = (data: SourceData) => {
+    setVideoData(data);
+    setStep("uploading");
+
+    if (mode === "url") {
+      addSource({ name: videoData?.name, processing: true });
+    }
+    else {
+      upload(data);
+    }
+  }
+
+  const finishUpload = () => {
+    setVideoFile(null);
+    setStep("input");
+    addSource({ name: videoData?.name, processing: true });
+  }
+
+  return (
+    <div className="relative w-1/3 bg-white p-8 rounded-lg flex flex-col gap-y-4 shadow-sm">
+      <h1 className="text-2xl font-bold">Add Source</h1>
+      <Tabs
+        defaultValue="url"
+        className="w-[400px]"
+        onValueChange={(value) => setMode(value as "url" | "upload")}>
+        <TabsList>
+          <TabsTrigger value="url">Past an Url</TabsTrigger>
+          <TabsTrigger value="upload">Upload file</TabsTrigger>
+        </TabsList>
+        <TabsContent value="url">
+          <UrlNewSource
+            videoUrl={videoUrl}
+            finishInput={urlInput}
+            setInvalidError={setInvalidError}
+          />
+        </TabsContent>
+        <TabsContent value="upload">
+          <UploadNewSource
+            file={videoFile}
+            finishInput={fileInput}
+            clearFileInput={clearFileInput}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {invalidError && (
+        <Label className="text-red-500">
+          {invalidError}
+        </Label>
+      )}
+
+      {step === "data" && (
+        <MetadataInput
+          videoDuration={videoDuration}
+          addData={addData}
+        />
+      )}
+
+      {step === "uploading" && (
+        <>
+          {mode === "url" ? (
+            <>URL</>
+          ) : (
+            <div>
+              {error === null && (
+                <div>
+                  <div>{percentage}%</div>
+                  <button onClick={onCancel}>Cancel</button>
+                </div>
+              )}
+              {error && (
+                <div className="text-red-500">
+                  {error.message}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function MetadataInput({
+  videoDuration,
+  addData,
+}: {
+  videoDuration: number
+  addData: (data: SourceData) => void
+}) {
+  const [videoName, setVideoName] = useState<string>("");
   const [genre, setGenre] = useState<string>(genres[0]);
   const [clipLength, setClipLength] = useState<string>(lengths[0]);
-
-  const MAX_TAGS = 20;
   const { tags, handleAddTag, handleRemoveTag } = useTags(MAX_TAGS);
-
   const [range, setRange] = useState<number[]>([0, 0]);
   useEffect(() => {
     setRange([0, videoDuration]);
   }, [videoDuration]);
 
+  const addSourceData = () => {
+    const data: SourceData = {
+      name: videoName,
+      genre,
+      tags: tags ?? [],
+      clipLength,
+      range,
+    };
+
+    addData(data);
+  }
+
+  return (
+    <>
+      <div className="flex flex-col gap-y-3">
+        <Label htmlFor="file">Video name</Label>
+        <NewInput
+          type="text"
+          className="border border-gray-200 rounded-lg p-2"
+          onChange={(e) => setVideoName(e.target.value)}
+        />
+      </div>
+      <NewSelect
+        value={genres[0]}
+        options={genres.map((genre) => ({ value: genre, label: genre }))}
+        onSelect={(value) => setGenre(value)}
+        contentClassName="bg-white"
+        label="Genre"
+      />
+      <div>
+        <Label>Keywords</Label>
+        <TagField
+          tags={tags}
+          addTag={handleAddTag}
+          removeTag={handleRemoveTag}
+          maxTags={MAX_TAGS}
+        />
+      </div>
+      <div>
+        <Label>Clip Length</Label>
+        <Select
+          defaultValue="<30s"
+          onValueChange={(value) => setClipLength(value)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Duration" />
+          </SelectTrigger>
+          <SelectContent className="">
+            {lengths.map((theme) => (
+              <SelectItem className="rounded-xl flex items-center" key={theme} value={theme}>
+                {theme}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex flex-row gap-x-3">
+        <div className="rounded py-2 px-4 border border-gray-300">
+          {toReadableTime(range[0], { alwaysHours: true })}
+        </div>
+        <Slider
+          color="blue"
+          defaultValue={range}
+          max={videoDuration}
+          step={10}
+          onValueChange={(value) => setRange(value)}
+        />
+        <div className="rounded py-2 px-4 border border-gray-300">
+          {toReadableTime(range[1], { alwaysHours: true })}
+        </div>
+      </div>
+      <Button onClick={addSourceData}>
+        Add Source
+      </Button>
+    </>
+  );
+}
+
+function UrlNewSource({
+  videoUrl,
+  finishInput,
+  setInvalidError,
+}: {
+  videoUrl: string,
+  finishInput: (url: string, duration: number) => void,
+  setInvalidError: (error: string | null) => void
+}) {
+
+  const handleUrlChange = (url: string) => {
+    //finishInput(url, duration);
+  }
+
+  return (
+    <div className="flex flex-col gap-y-3">
+      <Label htmlFor="file">Video url</Label>
+      <NewInput
+        type="text"
+        className="border border-gray-200 rounded-lg p-2"
+        onChange={(e) => handleUrlChange(e.target.value)}
+      />
+    </div>);
+}
+
+function UploadNewSource({
+  file,
+  finishInput,
+  clearFileInput,
+}: {
+  file: File | null,
+  finishInput: (file: File, duration: number) => void,
+  clearFileInput: () => void
+}) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'video/mp4': ['.mp4'],
@@ -92,16 +351,7 @@ export default function NewSource({
         video.ondurationchange = function() {
           window.URL.revokeObjectURL(video.src);
           const duration = video.duration;
-
-          // if video is less than 10 minutes long
-          // we can't accept it
-          if (duration > 60 * 10) {
-            setFile(f);
-            setVideoDuration(duration);
-            setInvalidError(null);
-          } else {
-            setInvalidError("Video should be grater than 10 minutes");
-          }
+          finishInput(f, duration);
         }
 
         video.src = URL.createObjectURL(f);
@@ -109,173 +359,50 @@ export default function NewSource({
     }
   })
 
-  const nextStep = async () => {
-    const data: SourceData = {
-      name: videoName,
-      genre,
-      tags: tags ?? [],
-      clipLength,
-      range,
-    };
-    setStep("uploading");
-    upload(data)
-      .then(() => {
-        //setStep("drag-drop");
-      })
-      .catch((e) => {
-        setStep("drag-drop");
-      });
-  };
-
-  const handleChoseAnotherFile = () => {
-    setFile(null);
-    setInvalidError("");
-  }
-
-  useEffect(() => {
-    if (percentage === 100 && uploading === false) {
-      setFile(null);
-      setVideoName("");
-      setStep("drag-drop");
-      addSource({ name: videoName, processing: true });
-    }
-  }, [percentage, uploading]);
-
   return (
-    <div className="relative w-1/3 bg-white p-8 rounded-lg flex flex-col gap-y-4">
-      <h1 className="text-2xl font-bold">Add Source</h1>
-      {invalidError && (
-        <Label className="text-red-500">
-          {invalidError}
-        </Label>
-      )}
-
-      {step === "drag-drop" && (
-        <div className="flex flex-col gap-y-4">
-          {file === null && (
-            <div
-              {...getRootProps()}
-              className={`border ${isDragActive ? 'border-blue-200' : 'border-gray-200'} rounded-lg p-4`}
-            >
-              <input {...getInputProps()} />
-              {isDragActive ? (
-                <div className="flex flex-col justify-center items-center cursor-pointer">
-                  <Upload className="w-14 h-16 fill-blue-500" />
-                  <p>Drop it!</p>
-                </div>
-              ) : (
-                <div className="flex flex-col justify-center items-center cursor-pointer">
-                  <Upload className="w-14 h-16 fill-gray-500" />
-                  <p>Drag n drop some here, or click to select files</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {file && (
-            <div
-              className={`border  border-gray-200 rounded-lg p-4`}
-            >
+    <div className="">
+      <div className="flex flex-col gap-y-4">
+        {file === null && (
+          <div
+            {...getRootProps()}
+            className={`border ${isDragActive ? 'border-blue-200' : 'border-gray-200'} rounded-lg p-4`}
+          >
+            <input {...getInputProps()} />
+            {isDragActive ? (
               <div className="flex flex-col justify-center items-center cursor-pointer">
                 <Upload className="w-14 h-16 fill-blue-500" />
-                <p>
-                  Saved correctly
-                  <span
-                    className="text-blue-500"
-                    onClick={handleChoseAnotherFile}
-                  >
-                    {' '}Cancel
-                  </span>
-                </p>
+                <p>Drop it!</p>
               </div>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-y-3">
-            <Label htmlFor="file">Video name</Label>
-            <NewInput
-              type="text"
-              className="border border-gray-200 rounded-lg p-2"
-              onChange={(e) => setVideoName(e.target.value)}
-            />
+            ) : (
+              <div className="flex flex-col justify-center items-center cursor-pointer">
+                <Upload className="w-14 h-16 fill-gray-500" />
+                <p>Drag n drop some here, or click to select files</p>
+              </div>
+            )}
           </div>
+        )}
 
-          {file && videoName && (
-            <>
-              <NewSelect
-                value={genres[0]}
-                options={genres.map((genre) => ({ value: genre, label: genre }))}
-                onSelect={(value) => setGenre(value)}
-                contentClassName="bg-white"
-                label="Genre"
-              />
-              <div>
-                <Label>Keywords</Label>
-                <TagField
-                  tags={tags}
-                  addTag={handleAddTag}
-                  removeTag={handleRemoveTag}
-                  maxTags={MAX_TAGS}
-                />
-              </div>
-              <div>
-                <Label>Clip Length</Label>
-                <Select
-                  defaultValue="<30s"
-                  onValueChange={(value) => setClipLength(value)}
+        {file && (
+          <div
+            className={`border  border-gray-200 rounded-lg p-4`}
+          >
+            <div className="flex flex-col justify-center items-center cursor-pointer">
+              <Upload className="w-14 h-16 fill-blue-500" />
+              <p>
+                Saved correctly
+                <span
+                  className="text-blue-500"
+                  onClick={clearFileInput}
                 >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Duration" />
-                  </SelectTrigger>
-                  <SelectContent className="">
-                    {lengths.map((theme) => (
-                      <SelectItem className="rounded-xl flex items-center" key={theme} value={theme}>
-                        {theme}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-row gap-x-3">
-                <div className="rounded py-2 px-4 border border-gray-300">
-                  {toReadableTime(range[0], { alwaysHours: true })}
-                </div>
-                <Slider
-                  color="blue"
-                  defaultValue={range}
-                  max={videoDuration}
-                  step={10}
-                  onValueChange={(value) => setRange(value)}
-                />
-                <div className="rounded py-2 px-4 border border-gray-300">
-                  {toReadableTime(range[1], { alwaysHours: true })}
-                </div>
-              </div>
-              <Button onClick={nextStep} >
-                Upload
-              </Button>
-            </>
-          )}
-        </div>
-      )}
-      {
-        step === "uploading" && (
-          <div>
-            {error === null && (
-              <div>
-                <div>{percentage}%</div>
-                <button onClick={onCancel}>Cancel</button>
-              </div>
-            )}
-            {error && (
-              <div className="text-red-500">
-                {error.message}
-              </div>
-            )}
+                  {' '}Cancel
+                </span>
+              </p>
+            </div>
           </div>
-        )
-      }
-    </div >);
+        )}
+      </div>
+    </div>
+  );
 }
 
 interface iTag {

@@ -26,7 +26,7 @@ export type Word = { word: string; start: number; end: number };
 export class Source {
   readonly id: string;
   private companyId: string;
-  readonly externalId: string;
+  public externalId: string;
   private name: string;
   private processing: boolean;
   private url: string | null;
@@ -119,7 +119,6 @@ export class Source {
   static newSource({
     companyId,
     name,
-    externalId,
     genre,
     clipLength,
     processingRange,
@@ -127,7 +126,6 @@ export class Source {
   }: {
     companyId: string;
     name: string;
-    externalId: string;
     genre: string;
     clipLength: string;
     processingRange: [number, number];
@@ -140,7 +138,7 @@ export class Source {
       companyId: companyId,
       name: name,
       processing: true,
-      externalId: externalId,
+      externalId: "",
       genre: genre,
       clipLength: clipLength,
       processingRangeStart: Math.floor(processingRange[0]),
@@ -149,6 +147,10 @@ export class Source {
       updatedAt: newDate(),
       tags: tags,
     });
+  }
+
+  setExternalId(externalId: string) {
+    this.externalId = externalId;
   }
 
   updateUrl(url: string) {
