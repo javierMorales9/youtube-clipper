@@ -55,7 +55,7 @@ export type SourceData = {
   range: number[];
 };
 
-export default function SourceModal({
+export default function NewSource({
   addSource,
 }: {
   addSource: (source: any) => void

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import SourceModal from "./SourceModal";
+import NewSource from "./NewSource";
 import PlayButton from "../../../public/images/MaterialSymbolsPlayArrow.svg";
 import { useState } from "react";
 import { SourceType } from "@/server/entities/source/domain/Source";
@@ -21,7 +21,7 @@ export function SourceList({
   return (
     <div className="flex flex-col p-8">
       <div className="flex flex-row justify-center gap-x-3">
-        <SourceModal
+        <NewSource
           addSource={addSource}
         />
       </div>
