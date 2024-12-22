@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Source } from "@/server/entities/source/domain/Source";
+import { Source, SourceOrigin } from "@/server/entities/source/domain/Source";
 import { SourceRepository } from "@/server/entities/source/domain/SourceRepository";
 import { Store } from "@/server/entities/source/domain/Store";
 import { EventRepository } from "@/server/entities/event/domain/EventRepository";
@@ -27,6 +27,7 @@ export async function initiateUpload(
 ) {
   const theSource = Source.newSource({
     companyId: companyId,
+    origin: SourceOrigin.Upload,
     name: input.name,
     genre: input.genre,
     clipLength: input.clipLength,
@@ -100,6 +101,7 @@ export async function newUrlSource(
 ) {
   const theSource = Source.newSource({
     companyId: companyId,
+    origin: SourceOrigin.URL,
     url: input.url,
     name: input.name,
     genre: input.genre,

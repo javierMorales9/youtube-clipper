@@ -2,11 +2,17 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { newDate } from "@/utils/newDate";
 
+export enum SourceOrigin {
+  Upload = "upload",
+  URL = "url",
+}
+
 export const SourceSchema = z.object({
   id: z.string(),
   companyId: z.string(),
   externalId: z.string(),
   name: z.string(),
+  origin: z.nativeEnum(SourceOrigin),
   processing: z.boolean(),
   url: z.string().nullable(),
   width: z.number().nullable(),
@@ -27,6 +33,7 @@ export class Source {
   readonly id: string;
   private companyId: string;
   public externalId: string;
+  private origin: SourceOrigin;
   private name: string;
   private processing: boolean;
   private url: string | null;
@@ -46,6 +53,7 @@ export class Source {
     id,
     companyId,
     externalId,
+    origin,
     name,
     processing,
     url,
@@ -63,21 +71,23 @@ export class Source {
     id: string;
     companyId: string;
     externalId: string;
+    origin: SourceOrigin;
     name: string;
     processing: boolean;
     url?: string;
     width?: number;
     height?: number;
     duration?: number;
-    genre: string;
-    clipLength: string;
-    processingRangeStart: number;
-    processingRangeEnd: number;
+    genre?: string;
+    clipLength?: string;
+    processingRangeStart?: number;
+    processingRangeEnd?: number;
     tags?: string[];
     createdAt: Date;
     updatedAt: Date;
   }) {
     this.id = id;
+    this.origin = origin;
     this.companyId = companyId;
     this.externalId = externalId;
     this.name = name;
@@ -86,10 +96,10 @@ export class Source {
     this.width = width || null;
     this.height = height || null;
     this.duration = duration || null;
-    this.genre = genre;
-    this.clipLength = clipLength;
-    this.processingRangeStart = processingRangeStart;
-    this.processingRangeEnd = processingRangeEnd;
+    this.genre = genre || null;
+    this.clipLength = clipLength || null;
+    this.processingRangeStart = processingRangeStart || null;
+    this.processingRangeEnd = processingRangeEnd || null;
     this.tags = tags || [];
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -100,6 +110,7 @@ export class Source {
       id: this.id,
       companyId: this.companyId,
       externalId: this.externalId,
+      origin: this.origin,
       name: this.name,
       processing: this.processing,
       url: this.url,
@@ -118,6 +129,7 @@ export class Source {
 
   static newSource({
     companyId,
+    origin,
     url,
     name,
     genre,
@@ -126,6 +138,7 @@ export class Source {
     tags,
   }: {
     companyId: string;
+    origin: SourceOrigin;
     url?: string,
     name: string;
     genre: string;
@@ -138,6 +151,7 @@ export class Source {
     return new Source({
       id,
       companyId: companyId,
+      origin: origin,
       url: url || "",
       name: name,
       processing: true,

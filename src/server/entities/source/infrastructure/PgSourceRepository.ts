@@ -5,7 +5,7 @@ import {
   sourceTag,
   sourceTranscription,
 } from "@/server/db/schema";
-import { Source, Word } from "../domain/Source";
+import { Source, SourceOrigin, Word } from "../domain/Source";
 import { eq, sql } from "drizzle-orm";
 import { SourceRepository } from "../domain/SourceRepository";
 
@@ -44,6 +44,7 @@ export class PgSourceRepository implements SourceRepository {
         .insert(source)
         .values({
           id: data.id,
+          origin: data.origin,
           companyId: data.companyId,
           externalId: data.externalId,
           name: data.name,
@@ -124,16 +125,17 @@ function parseSource(source: SourceModel, tags?: string[]): Source {
     id: source.id,
     companyId: source.companyId,
     externalId: source.externalId,
+    origin: source.origin as SourceOrigin,
     name: source.name,
     processing: source.processing,
-    url: source.url,
-    width: source.width,
-    height: source.height,
-    duration: source.duration,
-    genre: source.genre,
-    clipLength: source.clipLength,
-    processingRangeStart: source.processingRangeStart,
-    processingRangeEnd: source.processingRangeEnd,
+    url: source.url ?? undefined,
+    width: source.width ?? undefined,
+    height: source.height ?? undefined,
+    duration: source.duration ?? undefined,
+    genre: source.genre ?? undefined,
+    clipLength: source.clipLength ?? undefined,
+    processingRangeStart: source.processingRangeStart ?? undefined,
+    processingRangeEnd: source.processingRangeEnd ?? undefined,
     createdAt: source.createdAt,
     updatedAt: source.updatedAt,
     tags: tags,

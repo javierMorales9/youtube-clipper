@@ -15,6 +15,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { defaultTheme } from "@/server/entities/clip/domain/Clip";
+import { SourceOrigin } from "../entities/source/domain/Source";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -38,11 +39,12 @@ export const source = createTable("source", {
   id: uuid("id").primaryKey().notNull(),
   companyId: uuid("company_id").notNull(),
   externalId: varchar("external_id", { length: 256 }).notNull(),
-  name: varchar("name", { length: 256 }).notNull(),
   processing: boolean("processing")
     .notNull()
     .default(sql`false`),
+  origin: varchar("origin", { length: 256 }).notNull().default(SourceOrigin.Upload),
   url: varchar("url", { length: 256 }),
+  name: varchar("name", { length: 256 }).notNull(),
   width: integer("width"),
   height: integer("height"),
   duration: numeric("duration").$type<number>(),
@@ -211,9 +213,11 @@ export type SectionFragment = InferModel<typeof sectionFragment>;
 
 export const processingEvent = createTable("processing_event", {
   id: uuid("id").primaryKey(),
-  sourceId: uuid("source_id").references(() => source.id, {
-    onDelete: "cascade",
-  }).notNull(),
+  sourceId: uuid("source_id")
+    .references(() => source.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
   companyId: uuid("company_id").notNull(),
   clipId: uuid("clip_id").references(() => clip.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 256 }).notNull(),
