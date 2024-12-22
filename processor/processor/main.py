@@ -24,6 +24,7 @@ from application.generateClip.generateClip import generateClip
 from application.processSource.processSource import processSource
 from application.startTranscription.startTranscription import startTranscription
 from entities.shared.prodDateCreator import ProdDateCreator
+from entities.shared.prodvideoDownloader import ProdVideoDownloader
 
 
 def main():
@@ -53,6 +54,7 @@ def main():
                     transcriptionHandler = S3TranscriptionHandler(
                         prodSystem, event.sourceId
                     )
+                    videoDownloader = ProdVideoDownloader(prodSystem)
                     dateCreator = ProdDateCreator()
 
                     startTranscription(
@@ -60,6 +62,7 @@ def main():
                         sourceRepo,
                         prodSystem,
                         transcriptionHandler,
+                        videoDownloader,
                         dateCreator,
                         event,
                     )

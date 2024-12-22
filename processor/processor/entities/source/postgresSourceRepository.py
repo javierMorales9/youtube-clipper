@@ -10,9 +10,10 @@ from models import (
 )
 from entities.clip.Clip import Range
 from entities.source.Word import Word
-from entities.source.Source import Source
+from entities.source.Source import Source, SourceOrigin
 
-class PostgresSourceRepository():
+
+class PostgresSourceRepository:
     def __init__(
         self,
         session: Session,
@@ -20,17 +21,20 @@ class PostgresSourceRepository():
         self.session = session
 
     def findSourceById(self, sourceId: str):
-        source = self.session.query(SourceModal).filter(SourceModal.id == sourceId).first()
+        source = (
+            self.session.query(SourceModal).filter(SourceModal.id == sourceId).first()
+        )
 
         if source is None:
             return None
 
         tags = (
-            self.session.query(SourceTagModal).filter(SourceTagModal.sourceId == source.id).all()
+            self.session.query(SourceTagModal)
+            .filter(SourceTagModal.sourceId == source.id)
+            .all()
         )
 
         return self.parseSource(source, tags)
-
 
     def saveSource(self, source: Source):
         sourceModel = SourceModal(
@@ -48,14 +52,12 @@ class PostgresSourceRepository():
         )
         self.session.merge(sourceModel)
 
-
     def saveTranscription(self, sourceId: str, words: list[Word]):
         transcription = SourceTranscription(
             sourceId=sourceId,
             transcription=json.dumps(words),
         )
         self.session.merge(transcription)
-
 
     def getClipWords(self, clipRange: Range, sourceId: str):
         # The words are in the SourceTranscription table. In a jsonb field called transcription
@@ -69,11 +71,11 @@ class PostgresSourceRepository():
         #
         # SELECT word -> 'word', word -> 'start', word -> 'end'
         # FROM source_transcription, jsonb_array_elements(source_transcription.transcription) AS word
-        # WHERE 
+        # WHERE
         #   source_transcription.source_id = sourceId
         #   AND CAST((word -> 'start') AS INTEGER) > range.start
         #   AND CAST((word -> 'end') AS INTEGER) < range.end
-        #;
+        # ;
         #
         # See the following link for more info about jsonb arrays and how to query them
         # https://hevodata.com/learn/query-jsonb-array-of-objects/
@@ -82,7 +84,9 @@ class PostgresSourceRepository():
             self.session.query(col["word"], col["start"], col["end"])
             .select_from(
                 SourceTranscription,
-                func.jsonb_array_elements(SourceTranscription.transcription).alias("col"),
+                func.jsonb_array_elements(SourceTranscription.transcription).alias(
+                    "col"
+                ),
             )
             .filter(
                 SourceTranscription.sourceId == sourceId,
@@ -108,6 +112,11 @@ class PostgresSourceRepository():
             id=str(sourceModel.id),
             companyId=sourceModel.companyId,
             externalId=sourceModel.externalId,
+            origin=(
+                SourceOrigin.URL
+                if sourceModel.origin == SourceOrigin.URL
+                else SourceOrigin.UPLOAD
+            ),
             name=sourceModel.name,
             processing=sourceModel.processing,
             url=sourceModel.url,

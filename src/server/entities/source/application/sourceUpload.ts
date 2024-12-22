@@ -96,6 +96,7 @@ export const NewUrlSourceInputSchema = SourceDataSchema.extend({
 type NewUrlSourceInput = z.infer<typeof NewUrlSourceInputSchema>;
 export async function newUrlSource(
   repo: SourceRepository,
+  eventRepo: EventRepository,
   companyId: string,
   input: NewUrlSourceInput,
 ) {
@@ -111,4 +112,7 @@ export async function newUrlSource(
   });
 
   await repo.saveSource(theSource);
+
+  const event = Event.createSourceUploadedEvent(theSource.id, companyId);
+  await eventRepo.saveEvent(event);
 }

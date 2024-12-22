@@ -46,9 +46,11 @@ export const sourceRouter = createTRPCRouter({
     .input(sourceUpload.NewUrlSourceInputSchema)
     .mutation(async ({ ctx, input }) => {
       const repo = new PgSourceRepository(ctx.db);
+      const eventRepo = new PgEventRepository(ctx.db);
 
       return await sourceUpload.newUrlSource(
         repo,
+        eventRepo,
         ctx.company.id,
         input,
       );

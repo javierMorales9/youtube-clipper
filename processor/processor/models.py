@@ -31,6 +31,7 @@ class Source(Base):
         ForeignKey("company.id"), name="company_id", nullable=False
     )
     externalId: Mapped[str] = mapped_column(String(256), name="external_id")
+    origin: Mapped[str] = mapped_column(String(256), nullable=False)
     name: Mapped[str] = mapped_column(String(256))
     processing: Mapped[bool] = mapped_column(Boolean, default=False)
     url: Mapped[Optional[str]] = mapped_column(String(256))

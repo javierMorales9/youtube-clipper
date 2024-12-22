@@ -1,12 +1,18 @@
+from enum import Enum
 from datetime import datetime
 from typing import Optional
 
+class SourceOrigin(str, Enum):
+    UPLOAD = "upload"
+    URL = "url"
+
 class Source:
-    def __init__ (
+    def __init__(
         self,
         id: str,
         companyId: str,
         externalId: str,
+        origin: SourceOrigin,
         name: str,
         processing: bool,
         url: Optional[str],
@@ -24,6 +30,7 @@ class Source:
         self.id = id
         self.companyId = companyId
         self.externalId = externalId
+        self.origin = origin
         self.name = name
         self.processing = processing
         self.url = url
@@ -39,4 +46,4 @@ class Source:
         self.updatedAt = updatedAt
 
     def __repr__(self):
-        return f"<Source(id={self.id}, name={self.name}, processing={self.processing}, url={self.url}, width={self.width}, height={self.height}, duration={self.duration}, genre={self.genre}, clipLength={self.clipLength}, processingRangeStart={self.processingRangeStart}, processingRangeEnd={self.processingRangeEnd}, tags={self.tags}, createdAt={self.createdAt}, updatedAt={self.updatedAt})>"
+        return f"<Source(id={self.id}, name={self.name}, origin={self.origin}, processing={self.processing}, url={self.url}, width={self.width}, height={self.height}, duration={self.duration}, genre={self.genre}, clipLength={self.clipLength}, processingRangeStart={self.processingRangeStart}, processingRangeEnd={self.processingRangeEnd}, tags={self.tags}, createdAt={self.createdAt}, updatedAt={self.updatedAt})>"
