@@ -6,12 +6,15 @@ import { EventRepository } from "@/server/entities/event/domain/EventRepository"
 import { Event } from "@/server/entities/event/domain/Event";
 import { VideoDownloader } from "../domain/VideoDownloader";
 
-export const UplaodInputSchema = z.object({
+export const SourceDataSchema = z.object({
   name: z.string().min(1),
   genre: z.string(),
   tags: z.array(z.string()),
   clipLength: z.string(),
   range: z.array(z.number()),
+});
+
+export const UplaodInputSchema = SourceDataSchema.extend({
   parts: z.number(),
 });
 type UploadInput = z.infer<typeof UplaodInputSchema>;
@@ -84,4 +87,26 @@ export async function getUrlVideoDuration(
   input: GetVideoDurationInput,
 ) {
   return await videoDownloader.getVideoDuration(input.url);
+}
+
+export const NewUrlSourceInputSchema = SourceDataSchema.extend({
+  url: z.string(),
+});
+type NewUrlSourceInput = z.infer<typeof NewUrlSourceInputSchema>;
+export async function newUrlSource(
+  repo: SourceRepository,
+  companyId: string,
+  input: NewUrlSourceInput,
+) {
+  const theSource = Source.newSource({
+    companyId: companyId,
+    url: input.url,
+    name: input.name,
+    genre: input.genre,
+    clipLength: input.clipLength,
+    processingRange: input.range as [number, number],
+    tags: input.tags,
+  });
+
+  await repo.saveSource(theSource);
 }

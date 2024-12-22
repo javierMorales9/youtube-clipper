@@ -31,13 +31,28 @@ export const sourceRouter = createTRPCRouter({
       return await sourceCrud.getClipWords(repo, input);
     }),
   getUrlVideoDuration: protectedProcedure
-  .input(sourceUpload.GetVideoDurationInputSchema)
-  .mutation(async ({ ctx, input }) => {
-    const repo = new PgSourceRepository(ctx.db);
-    const videoDownloader = new ProdVideoDownloader();
+    .input(sourceUpload.GetVideoDurationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const repo = new PgSourceRepository(ctx.db);
+      const videoDownloader = new ProdVideoDownloader();
 
-    return await sourceUpload.getUrlVideoDuration(repo, videoDownloader, input);
-  }),
+      return await sourceUpload.getUrlVideoDuration(
+        repo,
+        videoDownloader,
+        input,
+      );
+    }),
+  newUrlSource: protectedProcedure
+    .input(sourceUpload.NewUrlSourceInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const repo = new PgSourceRepository(ctx.db);
+
+      return await sourceUpload.newUrlSource(
+        repo,
+        ctx.company.id,
+        input,
+      );
+    }),
   initiateUpload: protectedProcedure
     .input(sourceUpload.UplaodInputSchema)
     .mutation(async ({ ctx, input }) => {

@@ -93,6 +93,8 @@ export default function NewSource({
   const { percentage, error, upload, onCancel, uploading }
     = useUploader()({ file: videoFile, setFile: setVideoFile });
 
+  const { mutateAsync: newUrlSource } = api.source.newUrlSource.useMutation();
+
   useEffect(() => {
     if (step === "uploading" && uploading === false) {
       finishUpload()
@@ -125,12 +127,14 @@ export default function NewSource({
 
   const addData = (data: SourceData) => {
     setVideoData(data);
-    setStep("uploading");
 
     if (mode === "url") {
-      addSource({ name: videoData?.name, processing: true });
+      newUrlSource({ url: videoUrl, ...data });
+      addSource({ name: data?.name, processing: true });
+      clearUrlInput();
     }
     else {
+      setStep("uploading");
       upload(data);
     }
   }
@@ -311,6 +315,8 @@ function UrlNewSource({
   const handleUrlChange = async (url: string) => {
     if (url === "") {
       clearUrlInput();
+      setUrl("");
+      setError(null);
       return;
     }
 

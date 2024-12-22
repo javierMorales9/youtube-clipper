@@ -118,6 +118,7 @@ export class Source {
 
   static newSource({
     companyId,
+    url,
     name,
     genre,
     clipLength,
@@ -125,6 +126,7 @@ export class Source {
     tags,
   }: {
     companyId: string;
+    url?: string,
     name: string;
     genre: string;
     clipLength: string;
@@ -136,6 +138,7 @@ export class Source {
     return new Source({
       id,
       companyId: companyId,
+      url: url || "",
       name: name,
       processing: true,
       externalId: "",
@@ -151,10 +154,5 @@ export class Source {
 
   setExternalId(externalId: string) {
     this.externalId = externalId;
-  }
-
-  updateUrl(url: string) {
-    this.url = url;
-    this.updatedAt = new Date();
   }
 }
