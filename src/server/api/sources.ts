@@ -6,6 +6,7 @@ import { PgSourceRepository } from "@/server/entities/source/infrastructure/PgSo
 import { PgEventRepository } from "@/server/entities/event/infrastructure/PgEventRepository";
 import * as sourceCrud from "@/server/entities/source/application/sourceCrud";
 import * as sourceUpload from "@/server/entities/source/application/sourceUpload";
+import { ProdVideoDownloader } from "../entities/source/infrastructure/ProdVideoDuration";
 
 export const sourceRouter = createTRPCRouter({
   all: protectedProcedure.input(z.object({})).query(async ({ ctx }) => {
@@ -29,6 +30,14 @@ export const sourceRouter = createTRPCRouter({
 
       return await sourceCrud.getClipWords(repo, input);
     }),
+  getUrlVideoDuration: protectedProcedure
+  .input(sourceUpload.GetVideoDurationInputSchema)
+  .mutation(async ({ ctx, input }) => {
+    const repo = new PgSourceRepository(ctx.db);
+    const videoDownloader = new ProdVideoDownloader();
+
+    return await sourceUpload.getUrlVideoDuration(repo, videoDownloader, input);
+  }),
   initiateUpload: protectedProcedure
     .input(sourceUpload.UplaodInputSchema)
     .mutation(async ({ ctx, input }) => {

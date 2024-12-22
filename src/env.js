@@ -22,6 +22,7 @@ export const env = createEnv({
     AFTER_CLIP_JOB_DEFINITION: z.string().optional(),
     HLS: z.boolean({coerce: true}).optional().default(false),
     CLOUDFRONT_URL: z.string().optional(),
+    GOOGLE_API_KEY: z.string().optional(),
   },
 
   /**
@@ -50,6 +51,7 @@ export const env = createEnv({
     AFTER_CLIP_JOB_DEFINITION: process.env.AFTER_CLIP_JOB_DEFINITION,
     HLS: process.env.HLS,
     CLOUDFRONT_URL: process.env.CLOUDFRONT_URL,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

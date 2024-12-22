@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/Tabs
 
 import { toReadableTime } from "@/app/utils";
 import { Button } from "@/app/_components/Button";
+import { api } from "@/trpc/react";
 
 const lengths = [
   "<30s",
@@ -87,8 +88,6 @@ export default function NewSource({
     }
   }, [mode]);
 
-  const [invalidError, setInvalidError] = useState<string | null>(null);
-
   const [videoData, setVideoData] = useState<SourceData | null>(null);
 
   const { percentage, error, upload, onCancel, uploading }
@@ -101,14 +100,9 @@ export default function NewSource({
   }, [percentage, uploading]);
 
   const fileInput = async (file: File, duration: number) => {
-    if (duration < 60 * 10) {
-      setInvalidError("Video should be grater than 10 minutes");
-    } else {
-      setVideoFile(file as File);
-      setVideoDuration(duration);
-      setInvalidError(null);
-      setStep("data");
-    }
+    setVideoFile(file as File);
+    setVideoDuration(duration);
+    setStep("data");
   };
 
   const clearFileInput = () => {
@@ -117,15 +111,16 @@ export default function NewSource({
     setStep("input");
   }
 
+  const clearUrlInput = () => {
+    setVideoUrl("");
+    setVideoDuration(0);
+    setStep("input");
+  }
+
   const urlInput = async (file: string, duration: number) => {
-    if (duration < 60 * 10) {
-      setInvalidError("Video should be grater than 10 minutes");
-    } else {
-      setVideoUrl(file as string);
-      setVideoDuration(duration);
-      setInvalidError(null);
-      setStep("data");
-    }
+    setVideoUrl(file as string);
+    setVideoDuration(duration);
+    setStep("data");
   }
 
   const addData = (data: SourceData) => {
@@ -161,7 +156,7 @@ export default function NewSource({
           <UrlNewSource
             videoUrl={videoUrl}
             finishInput={urlInput}
-            setInvalidError={setInvalidError}
+            clearUrlInput={clearUrlInput}
           />
         </TabsContent>
         <TabsContent value="upload">
@@ -172,12 +167,6 @@ export default function NewSource({
           />
         </TabsContent>
       </Tabs>
-
-      {invalidError && (
-        <Label className="text-red-500">
-          {invalidError}
-        </Label>
-      )}
 
       {step === "data" && (
         <MetadataInput
@@ -308,25 +297,70 @@ function MetadataInput({
 function UrlNewSource({
   videoUrl,
   finishInput,
-  setInvalidError,
+  clearUrlInput,
 }: {
   videoUrl: string,
   finishInput: (url: string, duration: number) => void,
-  setInvalidError: (error: string | null) => void
+  clearUrlInput: () => void
 }) {
+  const [url, setUrl] = useState<string>(videoUrl);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { mutateAsync: getVideoDuration } = api.source.getUrlVideoDuration.useMutation();
 
-  const handleUrlChange = (url: string) => {
-    //finishInput(url, duration);
+  const handleUrlChange = async (url: string) => {
+    if (url === "") {
+      clearUrlInput();
+      return;
+    }
+
+    setUrl(url);
+    setLoading(true);
+    console.log(url);
   }
+
+  useEffect(() => {
+    const run = async () => {
+      const duration = await getVideoDuration({ url });
+
+      if (duration > 10 * 60) {
+        finishInput(url, duration);
+        setError(null);
+        setLoading(false);
+      }
+      else if (duration === 0) {
+        clearUrlInput();
+        setError("Invalid youtube url");
+        setLoading(false);
+      } else {
+        clearUrlInput();
+        setError("Video should be grater than 10 minutes");
+        setLoading(false);
+      }
+    }
+
+    if (url !== "" && loading) {
+      run();
+    }
+  }, [url]);
 
   return (
     <div className="flex flex-col gap-y-3">
+      {error && (
+        <Label className="text-red-500">
+          {error}
+        </Label>
+      )}
       <Label htmlFor="file">Video url</Label>
       <NewInput
         type="text"
+        value={url}
         className="border border-gray-200 rounded-lg p-2"
         onChange={(e) => handleUrlChange(e.target.value)}
       />
+      {loading && (
+        <div>Loading...</div>
+      )}
     </div>);
 }
 
@@ -339,6 +373,8 @@ function UploadNewSource({
   finishInput: (file: File, duration: number) => void,
   clearFileInput: () => void
 }) {
+  const [error, setError] = useState<string | null>(null);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'video/mp4': ['.mp4'],
@@ -351,7 +387,13 @@ function UploadNewSource({
         video.ondurationchange = function() {
           window.URL.revokeObjectURL(video.src);
           const duration = video.duration;
-          finishInput(f, duration);
+
+          if (duration > 60 * 10) {
+            finishInput(f, duration);
+            setError(null);
+          } else {
+            setError("Video should be grater than 10 minutes");
+          }
         }
 
         video.src = URL.createObjectURL(f);
@@ -361,6 +403,11 @@ function UploadNewSource({
 
   return (
     <div className="">
+      {error && (
+        <Label className="text-red-500">
+          {error}
+        </Label>
+      )}
       <div className="flex flex-col gap-y-4">
         {file === null && (
           <div

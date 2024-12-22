@@ -4,6 +4,7 @@ import { SourceRepository } from "@/server/entities/source/domain/SourceReposito
 import { Store } from "@/server/entities/source/domain/Store";
 import { EventRepository } from "@/server/entities/event/domain/EventRepository";
 import { Event } from "@/server/entities/event/domain/Event";
+import { VideoDownloader } from "../domain/VideoDownloader";
 
 export const UplaodInputSchema = z.object({
   name: z.string().min(1),
@@ -71,4 +72,16 @@ export async function completeUpload(
 
   const event = Event.createSourceUploadedEvent(id, companyId);
   await eventRepo.saveEvent(event);
+}
+
+export const GetVideoDurationInputSchema = z.object({
+  url: z.string(),
+});
+type GetVideoDurationInput = z.infer<typeof GetVideoDurationInputSchema>;
+export async function getUrlVideoDuration(
+  repo: SourceRepository,
+  videoDownloader: VideoDownloader,
+  input: GetVideoDurationInput,
+) {
+  return await videoDownloader.getVideoDuration(input.url);
 }
