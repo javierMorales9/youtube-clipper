@@ -83,7 +83,6 @@ export const GetVideoDurationInputSchema = z.object({
 });
 type GetVideoDurationInput = z.infer<typeof GetVideoDurationInputSchema>;
 export async function getUrlVideoDuration(
-  repo: SourceRepository,
   videoDownloader: VideoDownloader,
   input: GetVideoDurationInput,
 ) {

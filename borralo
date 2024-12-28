@@ -1,0 +1,17 @@
+elif event.type == EventType.TRANSCRIPTION_FINISHED:
+    prodSystem = ProdSystem(event.sourceId)
+    fileHandler = S3FileHandler(prodSystem, event.sourceId)
+    suggestionModel = OpenAiModel(prodSystem)
+    dateCreator = ProdDateCreator()
+
+    processSource(
+        sourceRepo,
+        eventRepo,
+        suggestionRepo,
+        prodSystem,
+        fileHandler,
+        suggestionModel,
+        dateCreator,
+        event,
+    )
+

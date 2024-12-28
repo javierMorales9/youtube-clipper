@@ -58,21 +58,35 @@ export type SourceData = {
   range: number[];
 };
 
-const MAX_TAGS = 20;
-
 export default function NewSource({
   addSource,
 }: {
   addSource: (source: any) => void
 }) {
   const [mode, setMode] = useState<"url" | "upload">("url");
+
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [step, setStep] = useState<"input" | "data" | "uploading">("input");
 
+  const [videoData, setVideoData] = useState<SourceData | null>(null);
+
+  const { mutateAsync: newUrlSource } = api.source.newUrlSource.useMutation();
+  const { percentage, error: uploadError, upload, onCancel, uploading }
+    = useUploader()({ file: videoFile, setFile: setVideoFile });
+
   useEffect(() => {
-    if (mode === "url") {
+    if (step === "uploading" && uploading === false) {
+      finishUpload()
+    }
+  }, [percentage, uploading]);
+
+
+  const changeMode = (newMode: "url" | "upload") => {
+    setMode(newMode);
+
+    if (newMode === "url") {
       if (videoUrl !== "") {
         setStep("data");
       } else {
@@ -86,20 +100,7 @@ export default function NewSource({
         setStep("input");
       }
     }
-  }, [mode]);
-
-  const [videoData, setVideoData] = useState<SourceData | null>(null);
-
-  const { percentage, error, upload, onCancel, uploading }
-    = useUploader()({ file: videoFile, setFile: setVideoFile });
-
-  const { mutateAsync: newUrlSource } = api.source.newUrlSource.useMutation();
-
-  useEffect(() => {
-    if (step === "uploading" && uploading === false) {
-      finishUpload()
-    }
-  }, [percentage, uploading]);
+  };
 
   const fileInput = async (file: File, duration: number) => {
     setVideoFile(file as File);
@@ -113,16 +114,16 @@ export default function NewSource({
     setStep("input");
   }
 
-  const clearUrlInput = () => {
-    setVideoUrl("");
-    setVideoDuration(0);
-    setStep("input");
-  }
-
   const urlInput = async (file: string, duration: number) => {
     setVideoUrl(file as string);
     setVideoDuration(duration);
     setStep("data");
+  }
+
+  const clearUrlInput = () => {
+    setVideoUrl("");
+    setVideoDuration(0);
+    setStep("input");
   }
 
   const addData = (data: SourceData) => {
@@ -151,9 +152,9 @@ export default function NewSource({
       <Tabs
         defaultValue="url"
         className="w-[400px]"
-        onValueChange={(value) => setMode(value as "url" | "upload")}>
+        onValueChange={(value) => changeMode(value as "url" | "upload")}>
         <TabsList>
-          <TabsTrigger value="url">Past an Url</TabsTrigger>
+          <TabsTrigger value="url">Paste an Url</TabsTrigger>
           <TabsTrigger value="upload">Upload file</TabsTrigger>
         </TabsList>
         <TabsContent value="url">
@@ -179,23 +180,16 @@ export default function NewSource({
         />
       )}
 
-      {step === "uploading" && (
+      {step === "uploading" && mode === "upload" && (
         <>
-          {mode === "url" ? (
-            <>URL</>
+          {uploadError ? (
+            <div className="text-red-500">
+              {uploadError.message}
+            </div>
           ) : (
             <div>
-              {error === null && (
-                <div>
-                  <div>{percentage}%</div>
-                  <button onClick={onCancel}>Cancel</button>
-                </div>
-              )}
-              {error && (
-                <div className="text-red-500">
-                  {error.message}
-                </div>
-              )}
+              <div>{percentage}%</div>
+              <button onClick={onCancel}>Cancel</button>
             </div>
           )}
         </>
@@ -204,6 +198,7 @@ export default function NewSource({
   );
 }
 
+const MAX_TAGS = 20;
 function MetadataInput({
   videoDuration,
   addData,
@@ -312,43 +307,34 @@ function UrlNewSource({
   const [loading, setLoading] = useState(false);
   const { mutateAsync: getVideoDuration } = api.source.getUrlVideoDuration.useMutation();
 
-  const handleUrlChange = async (url: string) => {
-    if (url === "") {
+  const handleUrlChange = async (newUrl: string) => {
+    if (newUrl === "") {
       clearUrlInput();
       setUrl("");
       setError(null);
       return;
     }
 
-    setUrl(url);
     setLoading(true);
-    console.log(url);
+    setUrl(newUrl);
+
+    const duration = await getVideoDuration({ url: newUrl });
+
+    if (duration === 0) {
+      clearUrlInput();
+      setError("Invalid youtube url");
+    }
+    else if (duration < 10 * 60) {
+      clearUrlInput();
+      setError("Video should be grater than 10 minutes");
+    } else {
+      finishInput(newUrl, duration);
+      setError(null);
+    }
+
+    setLoading(false);
+    console.log(newUrl);
   }
-
-  useEffect(() => {
-    const run = async () => {
-      const duration = await getVideoDuration({ url });
-
-      if (duration > 10 * 60) {
-        finishInput(url, duration);
-        setError(null);
-        setLoading(false);
-      }
-      else if (duration === 0) {
-        clearUrlInput();
-        setError("Invalid youtube url");
-        setLoading(false);
-      } else {
-        clearUrlInput();
-        setError("Video should be grater than 10 minutes");
-        setLoading(false);
-      }
-    }
-
-    if (url !== "" && loading) {
-      run();
-    }
-  }, [url]);
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -367,7 +353,8 @@ function UrlNewSource({
       {loading && (
         <div>Loading...</div>
       )}
-    </div>);
+    </div>
+  );
 }
 
 function UploadNewSource({
