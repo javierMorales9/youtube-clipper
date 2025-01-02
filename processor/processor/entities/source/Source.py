@@ -2,9 +2,11 @@ from enum import Enum
 from datetime import datetime
 from typing import Optional
 
+
 class SourceOrigin(str, Enum):
     UPLOAD = "upload"
     URL = "url"
+
 
 class Source:
     def __init__(
@@ -47,3 +49,9 @@ class Source:
 
     def __repr__(self):
         return f"<Source(id={self.id}, name={self.name}, origin={self.origin}, processing={self.processing}, url={self.url}, width={self.width}, height={self.height}, duration={self.duration}, genre={self.genre}, clipLength={self.clipLength}, processingRangeStart={self.processingRangeStart}, processingRangeEnd={self.processingRangeEnd}, tags={self.tags}, createdAt={self.createdAt}, updatedAt={self.updatedAt})>"
+
+    def finishProcessing(self, duration: float, width: int, height: int):
+        self.processing = False
+        self.duration = duration
+        self.width = width
+        self.height = height

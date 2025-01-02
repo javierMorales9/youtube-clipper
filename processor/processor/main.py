@@ -6,7 +6,7 @@ from time import sleep
 
 from flask_server import flask_server
 
-from entities.event.Event import EventType
+from entities.event.Event import EventType, createTranscriptionInProgressEvent
 
 from entities.event.postgresEventRepository import PostgresEventRepository
 from entities.source.postgresSourceRepository import PostgresSourceRepository
@@ -46,47 +46,60 @@ def main():
             suggestionRepo = PostgresSuggestionRepository(session)
             clipRepo = PostgresClipRepository(session)
 
+            print("Checking for new events")
             event = eventRepo.getNextEvent()
 
             if event is not None:
                 if event.type == EventType.SOURCE_UPLOADED:
-                    prodSystem = ProdSystem(event.sourceId)
-                    transcriptionHandler = S3TranscriptionHandler(
-                        prodSystem, event.sourceId
+                    sys = ProdSystem(event.sourceId)
+                    fileHandler = S3FileHandler(
+                        sys, event.sourceId, uploadBaseFiles=True
                     )
-                    videoDownloader = ProdVideoDownloader(prodSystem)
+                    transcriptionHandler = S3TranscriptionHandler(
+                        sys, event.sourceId
+                    )
+                    videoDownloader = ProdVideoDownloader(sys)
                     dateCreator = ProdDateCreator()
 
                     startTranscription(
                         eventRepo,
                         sourceRepo,
-                        prodSystem,
+                        sys,
+                        fileHandler,
                         transcriptionHandler,
                         videoDownloader,
                         dateCreator,
                         event,
                     )
-                elif event.type == EventType.TRANSCRIPTION_FINISHED:
-                    prodSystem = ProdSystem(event.sourceId)
-                    fileHandler = S3FileHandler(prodSystem, event.sourceId)
-                    suggestionModel = OpenAiModel(prodSystem)
+                elif event.type == EventType.TRANSCRIPTION_IN_PROGRESS:
+                    sys = ProdSystem(event.sourceId)
+                    fileHandler = S3FileHandler(sys, event.sourceId)
                     dateCreator = ProdDateCreator()
+                    suggestionModel = OpenAiModel(sys)
+
+                    source = sourceRepo.findSourceById(event.sourceId)
+                    if source is None:
+                        return
+
+                    if not fileHandler.checkIfFilesExist("transcription.json"):
+                        print("Transcription not ready yet")
+                        newEv = createTranscriptionInProgressEvent(source, dateCreator.newDate())
+                        eventRepo.saveEvent(newEv)
+                        return
 
                     processSource(
                         sourceRepo,
-                        eventRepo,
                         suggestionRepo,
-                        prodSystem,
+                        sys,
                         fileHandler,
                         suggestionModel,
-                        dateCreator,
-                        event,
+                        source,
                     )
                 elif event.type == EventType.CLIP_UPDATED:
-                    prodSystem = ProdSystem(event.sourceId)
-                    fileHandler = S3FileHandler(prodSystem, event.sourceId)
+                    sys = ProdSystem(event.sourceId)
+                    fileHandler = S3FileHandler(sys, event.sourceId)
 
-                    generateClip(sourceRepo, clipRepo, prodSystem, fileHandler, event)
+                    generateClip(sourceRepo, clipRepo, sys, fileHandler, event)
 
             session.commit()
 

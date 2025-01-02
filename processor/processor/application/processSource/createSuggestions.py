@@ -21,6 +21,7 @@ clipDurationRanges = {
 def createSuggestions(
     suggestionModel: AIModel, source: Source, words: list[Word]
 ):
+    print("Creating suggestions")
     lines = extractLines(words)
 
     #

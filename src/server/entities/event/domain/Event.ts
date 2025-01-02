@@ -16,7 +16,7 @@ export const EventSchema = z.object({
 
 export const ProcessingEvent = {
   SOURCE_UPLOADED: "source_uploaded",
-  TRANSCRIPTION_FINISHED: "transcription_finished",
+  TRANSCRIPTION_IN_PROGRESS: "transcription_in_progress",
   CLIP_UPDATED: "clip_updated",
 };
 
@@ -75,17 +75,6 @@ export class Event {
       startProcessingAt: this.startProcessingAt,
       error: this.error,
     };
-  }
-
-  static createTranscriptionFinishedEvent(sourceId: string, companyId: string) {
-    return new Event({
-      id: randomUUID(),
-      companyId,
-      sourceId,
-      type: ProcessingEvent.TRANSCRIPTION_FINISHED,
-      startProcessingAt: new Date(newDate().getTime() + 10 * 60000), //We add 10 minutes to the current time
-      createdAt: newDate(),
-    });
   }
 
   static createSourceUploadedEvent(sourceId: string, companyId: string) {

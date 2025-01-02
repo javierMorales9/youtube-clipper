@@ -1,5 +1,6 @@
 from entities.shared.system import System
 
+
 class ProdVideoDownloader:
     def __init__(self, sys: System):
         self.sys = sys
@@ -15,8 +16,10 @@ class ProdVideoDownloader:
                 "vcodec:h264,res,acodec:m4a",
                 "-f",
                 "bestvideo+bestaudio",
-                "https://www.youtube.com/watch?v=Ghq7bMArUOA",
+                url,
                 "-o",
-                self.sys.path("original.mp4"),
+                self.path,
             ]
         )
+
+        print("Finished downloading video")

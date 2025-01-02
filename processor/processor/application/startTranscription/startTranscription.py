@@ -1,16 +1,18 @@
-from entities.event.Event import Event, createTranscriptionFinishedEvent
+from entities.event.Event import Event, createTranscriptionInProgressEvent
 from entities.event.eventRepository import EventRepository
 from entities.source.sourceRepository import SourceRepository
 from entities.shared.transcriptionHandler import TranscriptionHandler
 from entities.shared.system import System
 from entities.shared.dateCreator import DateCreator
 from entities.shared.videoDownloader import VideoDownloader
+from entities.shared.fileHandler import FileHandler
 
 
 def startTranscription(
     eventRepo: EventRepository,
     sourceRepo: SourceRepository,
     sys: System,
+    fileHandler: FileHandler,
     transcriptionHandler: TranscriptionHandler,
     videoDownloader: VideoDownloader,
     dateCreator: DateCreator,
@@ -24,16 +26,11 @@ def startTranscription(
 
     if source.origin == "url" and source.url is not None:
         videoDownloader.downloadVideo(source.url)
+        fileHandler.saveFiles()
 
-    if sys.env("ENV") == "dev":
-        print(
-            f"We don't generate a transcription in dev mode. Paste the file here {sys.path('')}"
-        )
-        return
 
-    else:
-        transcriptionHandler.callTranscribe()
+    transcriptionHandler.callTranscribe()
 
-    newEv = createTranscriptionFinishedEvent(source, dateCreator.newDate())
+    newEv = createTranscriptionInProgressEvent(source, dateCreator.newDate())
     eventRepo.saveEvent(newEv)
 

@@ -1,17 +1,6 @@
-elif event.type == EventType.TRANSCRIPTION_FINISHED:
-    prodSystem = ProdSystem(event.sourceId)
-    fileHandler = S3FileHandler(prodSystem, event.sourceId)
-    suggestionModel = OpenAiModel(prodSystem)
-    dateCreator = ProdDateCreator()
-
-    processSource(
-        sourceRepo,
-        eventRepo,
-        suggestionRepo,
-        prodSystem,
-        fileHandler,
-        suggestionModel,
-        dateCreator,
-        event,
-    )
+def finishProcessing(self, duration: float, width: int, height: int):
+    self.processing = False
+    self.duration = duration
+    self.width = width
+    self.height = height
 

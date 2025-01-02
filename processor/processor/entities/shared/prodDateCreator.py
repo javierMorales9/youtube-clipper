@@ -1,5 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 class ProdDateCreator():
     def newDate(self):
-        return datetime.now()
+        return datetime.now(timezone.utc)

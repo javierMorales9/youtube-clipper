@@ -1,70 +1,41 @@
-from entities.event.Event import Event, createTranscriptionFinishedEvent
-
 from application.processSource.createSuggestions import createSuggestions
 from application.processSource.extractWordsFromFile import extractWordsFromFile
 
-from entities.event.eventRepository import EventRepository
 from entities.source.sourceRepository import SourceRepository
 from entities.suggestion.suggestionRepository import SuggestionRepository
 from entities.shared.fileHandler import FileHandler
 from entities.shared.aiModel import AIModel
 
 from entities.shared.system import System
-from entities.shared.dateCreator import DateCreator
+from entities.source.Source import Source
 
 
 def processSource(
     sourceRepo: SourceRepository,
-    eventRepo: EventRepository,
     suggestionRepo: SuggestionRepository,
     sys: System,
     fileHandler: FileHandler,
     suggestionModel: AIModel,
-    dateCreator: DateCreator,
-    event: Event,
+    source: Source,
 ):
+    print(f"Processing source after transcription {source.id}")
     fileHandler.downloadFiles()
 
-    source = sourceRepo.findSourceById(event.sourceId)
-    if source is None:
-        return
-
-    print(f"Processing source after transcription {source.id}")
-
-    if not sys.fileExist("transcription.json"):
-        newEv = createTranscriptionFinishedEvent(source, dateCreator.newDate())
-        eventRepo.saveEvent(newEv)
-        return
+    duration = getVideoDuration(sys)
+    width, height = getVideoResolution(sys)
+    words = extractWordsFromFile(sys)
 
     generateHls(sys)
-
-    duration = getVideoDuration(sys)
-    resolution = getVideoResolution(sys)
-
-    createTimelineAndSnapshot(sys, duration)
-
-    print("Finish processing source", duration, resolution)
-
-    source.processing = False
-    source.duration = duration
-
-    # Resolution format is "1920x1080"
-    resolution = resolution.split("x")
-    if len(resolution) != 2:
-        print("Invalid resolution")
-    else:
-        source.width = int(resolution[0])
-        source.height = int(resolution[1])
+    createTimeline(sys, duration)
+    createSnapshot(sys, duration)
+    suggestions = createSuggestions(suggestionModel, source, words)
+    sourceRepo.saveTranscription(source.id, words)
+    source.finishProcessing(duration, width, height)
 
     sourceRepo.saveSource(source)
-
-    words = extractWordsFromFile(sys)
-    sourceRepo.saveTranscription(source.id, words)
-
-    suggestions = createSuggestions(suggestionModel, source, words)
     suggestionRepo.saveSuggestions(suggestions)
 
-    fileHandler.saveFiles()
+    #fileHandler.saveFiles()
 
 
 def generateHls(sys: System):
@@ -90,7 +61,7 @@ def generateHls(sys: System):
 
 def getVideoDuration(sys: System):
     print("Getting video duration")
-    aso = sys.run(
+    process = sys.run(
         [
             "ffprobe",
             "-v",
@@ -102,7 +73,7 @@ def getVideoDuration(sys: System):
             sys.path("original.mp4"),
         ],
     )
-    stdout = aso[0]
+    stdout = process[0]
     duration = float(stdout)
 
     return duration
@@ -110,7 +81,7 @@ def getVideoDuration(sys: System):
 
 def getVideoResolution(sys: System):
     print("Getting video resolution")
-    return sys.run(
+    result = sys.run(
         [
             "ffprobe",
             "-v",
@@ -125,8 +96,22 @@ def getVideoResolution(sys: System):
         ],
     )[0]
 
+    # Resolution format is "1920x1080"
+    resolution = result.split("x")
 
-def createTimelineAndSnapshot(sys: System, duration: float):
+    if len(resolution) != 2:
+        print("Invalid resolution")
+        width = 0
+        height = 0
+
+    else:
+        width = int(resolution[0])
+        height = int(resolution[1])
+
+    return width, height
+
+
+def createTimeline(sys: System, duration: float):
     intDuration = int(duration)
 
     print("Creating timeline. Duration:", duration)
@@ -135,6 +120,8 @@ def createTimelineAndSnapshot(sys: System, duration: float):
             "ffmpeg",
             "-i",
             sys.path("original.mp4"),
+            '-frames',
+            '1',
             "-vf",
             f"select=not(mod(n\\,30)),scale=240:-1,tile=1x{intDuration}",
             sys.path("timeline.png"),
@@ -142,6 +129,7 @@ def createTimelineAndSnapshot(sys: System, duration: float):
         ],
     )
 
+def createSnapshot(sys: System, duration: float):
     print("Creating snapshot")
     sys.run(
         [

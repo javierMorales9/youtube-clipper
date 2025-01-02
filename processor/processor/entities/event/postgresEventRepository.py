@@ -20,6 +20,7 @@ class PostgresEventRepository():
             type=event.type,
             startProcessingAt=event.startProcessingAt,
             createdAt=event.createdAt,
+            fnishedAt=None,
         )
 
         self.session.merge(processing_event)

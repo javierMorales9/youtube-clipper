@@ -8,18 +8,18 @@ from datetime import timedelta
 
 class EventType(str, Enum):
     SOURCE_UPLOADED = "source_uploaded"
-    TRANSCRIPTION_FINISHED = "transcription_finished"
+    TRANSCRIPTION_IN_PROGRESS = "transcription_in_progress"
     CLIP_UPDATED = "clip_updated"
 
-def createTranscriptionFinishedEvent(source: Source, date: datetime):
+def createTranscriptionInProgressEvent(source: Source, now: datetime):
     return Event(
         id=None,
         companyId=source.companyId,
         sourceId=source.id,
         clipId=None,
-        type=EventType.TRANSCRIPTION_FINISHED,
-        createdAt=date,
-        startProcessingAt=date + timedelta(minutes=5),
+        type=EventType.TRANSCRIPTION_IN_PROGRESS,
+        createdAt=now,
+        startProcessingAt=now + timedelta(minutes=1),
     )
 
 
