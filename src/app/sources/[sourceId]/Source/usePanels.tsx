@@ -2,6 +2,13 @@ import { useState } from "react";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 
+export type SelectedPanel = {
+  type: "clip" | "suggestion" | "selection" | null,
+  id: string | null
+  handleSide?: "left" | "right",
+  range?: { start: number, end: number },
+};
+
 export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionType[]) {
   const [selection, setSelection] = useState<
     { range: { start: number, end: number } | null, created: boolean }
@@ -10,12 +17,6 @@ export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionTy
   const [clips, setClips] = useState<ClipType[]>(inputClips);
   const [suggestions, setSuggestions] = useState<SuggestionType[]>(inputSuggestions);
 
-  type SelectedPanel = {
-    type: "clip" | "suggestion" | "selection" | null,
-    id: string | null
-    handleSide?: "left" | "right",
-    range?: { start: number, end: number },
-  };
   const [selectedPanel, setSelectedPanel] = useState<SelectedPanel>(
     { type: null, id: null, handleSide: undefined, range: undefined }
   );

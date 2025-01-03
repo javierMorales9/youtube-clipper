@@ -17,7 +17,7 @@ import Loading from "../../../../../public/images/Loading.svg";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 import MP4Reproducer from "./MP4Reproducer";
-import { usePanels } from "./usePanels";
+import { SelectedPanel, usePanels } from "./usePanels";
 
 export default function SourceEditor({
   source,
@@ -54,7 +54,13 @@ export default function SourceEditor({
   return (
     <div className="py-2 flex flex-col justify-between">
       <div className="flex flex-row justify-between gap-x-4">
-        <Menu />
+        <Menu
+          clips={clips}
+          suggestions={suggestions}
+          setPanel={setPanel}
+          selectedPanel={selectedPanel}
+          source={source}
+        />
         <div className="flex flex-col items-center w-full bg-white rounded p-2">
           {hls ? (
             <HLSReproducer
@@ -127,154 +133,166 @@ export default function SourceEditor({
       </div>
     </div>
   );
+}
 
-  function Menu() {
-    const router = useRouter();
-    const [view, setView] = useState<"clips" | "suggestions">("suggestions");
-    const [redirectingToClip, setRedirectingToClip] = useState(false);
+function Menu({
+  clips,
+  suggestions,
+  setPanel,
+  selectedPanel,
+  source,
+}: {
+  clips: ClipType[],
+  suggestions: SuggestionType[],
+  setPanel: (type: "clip" | "suggestion" | "selection", id?: string) => void,
+  selectedPanel: SelectedPanel,
+  source: SourceType,
+}) {
+  const router = useRouter();
+  const [view, setView] = useState<"clips" | "suggestions">("suggestions");
+  const [redirectingToClip, setRedirectingToClip] = useState(false);
 
-    const toEditor = () => {
-      if (!selectedPanel.range) return;
+  const toEditor = () => {
+    if (!selectedPanel.range) return;
 
-      if (selectedPanel.type === 'clip') {
-        router.push(`/sources/${source.id}/clips/${selectedPanel.id}/`);
-      }
-      else {
-        router.push(`/sources/${source.id}/clips/new?start=${selectedPanel.range.start}&end=${selectedPanel.range.end}`);
-      }
-
-      setRedirectingToClip(true);
+    if (selectedPanel.type === 'clip') {
+      router.push(`/sources/${source.id}/clips/${selectedPanel.id}/`);
+    }
+    else {
+      router.push(`/sources/${source.id}/clips/new?start=${selectedPanel.range.start}&end=${selectedPanel.range.end}`);
     }
 
-    const downloadClip = async (clip: any) => {
-      console.log('Downloading clip', clip);
-    }
+    setRedirectingToClip(true);
+  }
 
-    return (
-      <div className="w-full flex flex-col gap-y-2">
-        <div className="p-4 border rounded flex flex-col gap-y-3 bg-white max-h-[500px] ">
-          <Link
-            href="/sources"
-            className="flex flex-row items-center gap-x-2 text-gray-600"
+  const downloadClip = async (clip: any) => {
+    console.log('Downloading clip', clip);
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col gap-y-2">
+      <div className="p-4 border rounded flex flex-col gap-y-3 bg-white h-full">
+        <Link
+          href="/sources"
+          className="flex flex-row items-center gap-x-2 text-gray-600"
+        >
+          <Back className="fill-gray-600 w-6 h-6 " />
+          <span
+            className="text-lg font-semibold"
           >
-            <Back className="fill-gray-600 w-6 h-6 " />
-            <span
-              className="text-lg font-semibold"
-            >
-              Go back
-            </span>
-          </Link>
-          <div className="flex flex-row gap-x-4">
+            Go back
+          </span>
+        </Link>
+        <div className="flex flex-row gap-x-4">
+          <button
+            className={`text-xl font-semibold ${view === 'suggestions' ? "text-blue-500" : "text-gray-400"}`}
+            onClick={() => setView("suggestions")}
+          >
+            Suggestions
+          </button>
+          <button
+            className={`text-xl font-semibold ${view === 'clips' ? "text-blue-500" : "text-gray-400"}`}
+            onClick={() => setView("clips")}
+          >
+            Clips
+          </button>
+          <div className="w-full flex justify-end">
             <button
-              className={`text-xl font-semibold ${view === 'suggestions' ? "text-blue-500" : "text-gray-400"}`}
-              onClick={() => setView("suggestions")}
-            >
-              Suggestions
-            </button>
-            <button
-              className={`text-xl font-semibold ${view === 'clips' ? "text-blue-500" : "text-gray-400"}`}
-              onClick={() => setView("clips")}
-            >
-              Clips
-            </button>
-            <div className="w-full flex justify-end">
-              <button
-                onClick={toEditor}
-                className={`
+              onClick={toEditor}
+              className={`
                 text-white px-4 py-2 rounded-lg
                 ${selectedPanel.type !== null ? 'bg-blue-500' : 'bg-blue-200'}
               `}
-                disabled={selectedPanel.type === null || redirectingToClip}
-              >
-                {redirectingToClip ? (
-                  <Loading className="w-6 h-6 fill-white" />
-                ) : (
-                  <>
-                    {selectedPanel.type === 'clip' ? 'Edit Clip' : 'Create Clip'}
-                  </>
-                )}
-              </button>
-            </div>
+              disabled={selectedPanel.type === null || redirectingToClip}
+            >
+              {redirectingToClip ? (
+                <Loading className="w-6 h-6 fill-white" />
+              ) : (
+                <>
+                  {selectedPanel.type === 'clip' ? 'Edit Clip' : 'Create Clip'}
+                </>
+              )}
+            </button>
           </div>
+        </div>
 
-          {view === 'suggestions' && (
-            <div className="w-full overflow-y-scroll flex flex-row justify-between flex-wrap gap-y-5">
-              {suggestions.map((suggestion, i) => (
-                <button
-                  key={i}
-                  className={`
+        {view === 'suggestions' && (
+          <div className="w-full overflow-y-scroll flex flex-row justify-between flex-wrap gap-y-5">
+            {suggestions.map((suggestion, i) => (
+              <button
+                key={i}
+                className={`
                       flex flex-row justify-between items-center cursor-pointer
                       p-2 w-full rounded border 
                       ${(selectedPanel.id !== null && selectedPanel.id === suggestion.id) ?
-                      'bg-blue-100 border-blue-300'
-                      : 'bg-gray-100 border-gray-300'
-                    }
+                    'bg-blue-100 border-blue-300'
+                    : 'bg-gray-100 border-gray-300'
+                  }
                     `}
-                  onClick={() => setPanel("suggestion", suggestion.id)}
-                >
-                  <div className="flex flex-col gap-y-1">
-                    <span className="flex justify-start text-start font-semibold">
-                      {suggestion.name}
-                    </span>
-                    <span className="flex justify-start text-start text-gray-400">
-                      {suggestion.description}
-                    </span>
-                    <span className="flex justify-start">
-                      {toReadableTime(suggestion.range.start)} - {toReadableTime(suggestion.range.end)}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-          {view === 'clips' && (
-            <div className="w-full flex flex-row justify-between flex-wrap">
-              {clips.map((clip) => (
-                <button
-                  key={clip.id}
-                  className={`
+                onClick={() => setPanel("suggestion", suggestion.id)}
+              >
+                <div className="flex flex-col gap-y-1">
+                  <span className="flex justify-start text-start font-semibold">
+                    {suggestion.name}
+                  </span>
+                  <span className="flex justify-start text-start text-gray-400">
+                    {suggestion.description}
+                  </span>
+                  <span className="flex justify-start">
+                    {toReadableTime(suggestion.range.start)} - {toReadableTime(suggestion.range.end)}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {view === 'clips' && (
+          <div className="w-full flex flex-row justify-between flex-wrap">
+            {clips.map((clip) => (
+              <button
+                key={clip.id}
+                className={`
                       flex flex-row justify-between items-center cursor-pointer
                       p-2 w-full rounded border 
                       ${(selectedPanel.id !== null && selectedPanel.id === clip.id) ?
-                      'bg-blue-100 border-blue-300'
-                      : 'bg-gray-100 border-gray-300'
-                    }
+                    'bg-blue-100 border-blue-300'
+                    : 'bg-gray-100 border-gray-300'
+                  }
                     `}
-                  onClick={() => setPanel("clip", clip.id)}
-                //disabled={clip.processing}
-                >
-                  <div className="flex flex-col">
-                    <span className="flex justify-start">
-                      {clip.name}
-                    </span>
-                    <span className="flex justify-start">
-                      {toReadableTime(clip.range.start)} - {toReadableTime(clip.range.end)}
-                    </span>
-                  </div>
-                  <div className="">
-                    {clip.processing && (
-                      <div className="">
-                        <Loading className="w-10 h-10 fill-gray-400" />
-                      </div>
-                    )}
-                    {!clip.processing && (
-                      <div
-                        className=""
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          downloadClip(clip).catch(() => { });
-                        }}
-                      >
-                        <Download className="w-10 h-10 fill-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+                onClick={() => setPanel("clip", clip.id)}
+              //disabled={clip.processing}
+              >
+                <div className="flex flex-col">
+                  <span className="flex justify-start">
+                    {clip.name}
+                  </span>
+                  <span className="flex justify-start">
+                    {toReadableTime(clip.range.start)} - {toReadableTime(clip.range.end)}
+                  </span>
+                </div>
+                <div className="">
+                  {clip.processing && (
+                    <div className="">
+                      <Loading className="w-10 h-10 fill-gray-400" />
+                    </div>
+                  )}
+                  {!clip.processing && (
+                    <div
+                      className=""
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadClip(clip).catch(() => { });
+                      }}
+                    >
+                      <Download className="w-10 h-10 fill-gray-400" />
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
 }
