@@ -92,16 +92,16 @@ export default function SourceEditor({
         {timer.length && (
           <Timeline
             length={timer.length}
-            imageUrl={timelineUrl}
-            source={source}
             currentSeconds={timer.currentSeconds}
             setCurrentTime={(time: number) => timer.seek(time)}
+            imageUrl={timelineUrl}
+            source={source}
           >
             {(
-              visibleTimelineWidth: number,
-              timelineSeconds: number,
-              initialPosition: number,
-              initialSeconds: number
+              secondsOfClick: (value: number) => number,
+              left: (startSeconds: number) => number,
+              width: (startSeconds: number, endSeconds: number) => number,
+              reference: number,
             ) => (
               <>
                 <RangeSelection
@@ -115,10 +115,10 @@ export default function SourceEditor({
                   addHandle={addHandle}
                   changePanelDuration={changePanelDuration}
                   finishPanelDurationChange={finishPanelDurationChange}
-                  visibleTimelineWidth={visibleTimelineWidth}
-                  timelineSeconds={timelineSeconds}
-                  initialPosition={initialPosition}
-                  initialSeconds={initialSeconds}
+                  secondsOfClick={secondsOfClick}
+                  left={left}
+                  width={width}
+                  reference={reference}
                 />
               </>
             )}

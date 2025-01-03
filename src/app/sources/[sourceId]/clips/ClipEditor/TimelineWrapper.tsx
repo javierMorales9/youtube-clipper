@@ -10,6 +10,7 @@ import Split from "../../../../../../public/images/Split.svg";
 import Trash from "../../../../../../public/images/Trash.svg";
 import Pause from "../../../../../../public/images/Pause.svg";
 import { toReadableTime } from "@/app/utils";
+import { useMemo } from "react";
 
 export function TimelineWrapper({
   source,
@@ -41,12 +42,11 @@ export function TimelineWrapper({
         <div className="flex flex-col w-full items-center">
           <Timeline
             length={timer.length}
-            imageUrl={timelineUrl}
-            source={source}
             currentSeconds={timer.currentSeconds}
             setCurrentTime={(time: number) => timer.seek(time)}
+            imageUrl={timelineUrl}
+            source={source}
             offset={start}
-            sourceLength={source.duration!}
             controls={(zoomBar) => (
               <div className="w-full flex flex-row gap-x-10 justify-center">
                 <Controls
@@ -60,16 +60,16 @@ export function TimelineWrapper({
             )}
           >
             {(
-              visibleTimelineWidth: number,
-              timelineSeconds: number,
-              initialPosition: number,
-              initialSeconds: number
+              secondsOfClick: (value: number) => number,
+              left: (startSeconds: number) => number,
+              width: (startSeconds: number, endSeconds: number) => number,
+              reference: number,
             ) => (
               <SectionSelector
-                visibleTimelineWidth={visibleTimelineWidth}
-                timelineSeconds={timelineSeconds}
-                initialPosition={initialPosition}
-                initialSeconds={initialSeconds}
+                secondsOfClick={secondsOfClick}
+                left={left}
+                width={width}
+                reference={reference}
                 sections={form.watch('sections')}
                 selectedSection={selectedSection}
                 setSelectedSection={setSelectedSection}
@@ -83,18 +83,17 @@ export function TimelineWrapper({
 }
 
 function SectionSelector({
-  visibleTimelineWidth,
-  timelineSeconds,
-  initialPosition,
-  initialSeconds,
+  left,
+  width,
+  reference,
   sections,
   selectedSection,
   setSelectedSection,
 }: {
-  visibleTimelineWidth: number,
-  timelineSeconds: number,
-  initialPosition: number,
-  initialSeconds: number
+  secondsOfClick: (value: number) => number,
+  left: (startSeconds: number) => number,
+  width: (startSeconds: number, endSeconds: number) => number,
+  reference: number,
   sections: Clip['sections']
   selectedSection: number,
   setSelectedSection: (start: number) => void,
@@ -121,10 +120,15 @@ function SectionSelector({
     selected: boolean,
     onClick: () => void,
   }) {
-    const { start, end } = section;
+    const leftVal = useMemo(
+      () => left(section.start),
+      [section.start, reference]
+    );
 
-    const left = (start - initialSeconds) * visibleTimelineWidth / timelineSeconds + initialPosition;
-    const width = (end - start) * visibleTimelineWidth / timelineSeconds;
+    const widthVal = useMemo(
+      () => width(section.start, section.end),
+      [section.start, section.end, reference]
+    );
 
     return (
       <div
@@ -132,7 +136,10 @@ function SectionSelector({
           absolute h-full border-2 border-gray-400
           ${selected && 'bg-gray-200 opacity-50'}
         `}
-        style={{ left, width }}
+        style={{
+          left: leftVal,
+          width: widthVal,
+        }}
         onClick={onClick}
       >
       </div>

@@ -8,9 +8,6 @@ import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 export default function RangeSelection({
   clips,
   suggestions,
-  visibleTimelineWidth,
-  timelineSeconds,
-  initialSeconds,
   selection,
   startSelection,
   deleteSelection,
@@ -19,11 +16,14 @@ export default function RangeSelection({
   addHandle,
   changePanelDuration,
   finishPanelDurationChange,
+  secondsOfClick,
+  left,
+  width,
+  reference,
 }: {
-  visibleTimelineWidth: number,
-  timelineSeconds: number,
-  initialPosition: number,
-  initialSeconds: number,
+  secondsOfClick: (value: number) => number,
+  left: (startSeconds: number) => number,
+  width: (startSeconds: number, endSeconds: number) => number,
   selection: { range: { start: number, end: number } | null, created: boolean },
   startSelection: (second: number) => void,
   deleteSelection: () => void,
@@ -38,20 +38,21 @@ export default function RangeSelection({
   addHandle: (side: "left" | "right") => void,
   changePanelDuration: (second: number) => void,
   finishPanelDurationChange: () => void,
+  reference: number,
 }) {
   const clipPanels = useMemo(
     () => clips.map((clip) => ({ name: clip.name, ...panelDimensions(clip.range), })),
-    [clips, visibleTimelineWidth, timelineSeconds, initialSeconds]
+    [clips, reference]
   );
 
   const suggestionPanels = useMemo(
     () => suggestions.map((s) => ({ name: s.name, ...panelDimensions(s.range), })),
-    [suggestions, visibleTimelineWidth, timelineSeconds, initialSeconds]
+    [suggestions, reference]
   );
 
   const selectionPanel = useMemo(() => {
     return panelDimensions(selection.range);
-  }, [selection, initialSeconds, visibleTimelineWidth, timelineSeconds]);
+  }, [selection, reference]);
 
   function panelDimensions(range?: { start: number, end: number } | null) {
     if (!range) {
@@ -59,8 +60,8 @@ export default function RangeSelection({
     }
 
     return {
-      left: (range.start - initialSeconds) * visibleTimelineWidth / timelineSeconds,
-      width: (range.end - range.start) * visibleTimelineWidth / timelineSeconds,
+      left: left(range.start),
+      width: width(range.start, range.end),
     }
   }
 
@@ -68,9 +69,8 @@ export default function RangeSelection({
     const target = e.currentTarget as HTMLDivElement;
     const bcr = target.getBoundingClientRect();
     const clientX = (e.clientX - bcr.left);
-    const percent = clientX / bcr.width;
 
-    return initialSeconds + percent * timelineSeconds;
+    return secondsOfClick(clientX);
   }
 
   function Handles() {
@@ -91,7 +91,6 @@ export default function RangeSelection({
           }}
         ></div>
       </>
-
     );
   }
 
@@ -149,7 +148,7 @@ export default function RangeSelection({
               setPanel("suggestion", suggestions[index]!.id);
             }}
           >
-            {selectedPanel.id === suggestions[index]!.id && <Handles />}
+            {/*selectedPanel.id === suggestions[index]!.id && <Handles />*/}
             <div className="w-full p-1 h-full overflow-hidden whitespace-nowrap text-ellipsis">
               {suggestion.name}
             </div>
@@ -184,6 +183,6 @@ export default function RangeSelection({
           </div>
         )}
       </div>
-    </div>);
+    </div>
+  );
 }
-

@@ -16,7 +16,6 @@ export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionTy
     handleSide?: "left" | "right",
     range?: { start: number, end: number },
   };
-
   const [selectedPanel, setSelectedPanel] = useState<SelectedPanel>(
     { type: null, id: null, handleSide: undefined, range: undefined }
   );
