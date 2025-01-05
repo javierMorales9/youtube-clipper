@@ -1,10 +1,9 @@
-import { Displays } from "@/app/sources/[sourceId]/clips/Displays";
 import { newDate } from "@/utils/newDate";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 export enum ThemeFont {
-  Arial = "Arial",
+  Komika = "Komika",
 }
 
 export enum ThemeShadow {
@@ -26,10 +25,16 @@ export enum ThemeEmojiPosition {
   Bottom = "Bottom",
 }
 
+export enum DisplayName {
+  One = "One",
+  TwoColumn = "TwoColumn",
+  TwoRow = "TwoRow",
+}
+
 export const SectionSchema = z.object({
   start: z.number(),
   end: z.number(),
-  display: z.string(),
+  display: z.nativeEnum(DisplayName),
   fragments: z.array(
     z.object({
       order: z.number(),
@@ -40,7 +45,6 @@ export const SectionSchema = z.object({
     }),
   ),
 });
-
 export type SectionType = z.infer<typeof SectionSchema>;
 
 export const ThemeSchema = z.object({
@@ -81,7 +85,7 @@ export type ClipType = z.infer<typeof ClipSchema>;
 export const defaultWidth = 0;
 export const defaultHeight = 0;
 
-export const defaultDisplay = Displays.One.name;
+export const defaultDisplay = DisplayName.One;
 export const defaultFragments = [
   {
     order: 0,
@@ -93,14 +97,14 @@ export const defaultFragments = [
 ];
 
 export const defaultTheme: ThemeType = {
-  themeFont: ThemeFont.Arial,
-  themeFontColor: "#000000",
+  themeFont: ThemeFont.Komika,
+  themeFontColor: "#FFFFFF",
   themeSize: 12,
   themePosition: 50,
   themeMainColor: "#d4c591",
   themeSecondaryColor: "#63edc3",
   themeThirdColor: "#9560c6",
-  themeShadow: ThemeShadow.Medium,
+  themeShadow: ThemeShadow.None,
   themeStroke: ThemeStroke.Small,
   themeStrokeColor: "#000000",
   themeUpperText: false,

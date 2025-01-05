@@ -41,9 +41,11 @@ class OpenAiModel:
         batches = []
         for i in range(numBatches):
             start = i * batchSize
+
             end = (i + 1) * batchSize
             if i == numBatches - 1:
-                end = lines
+                end = len(lines)
+
             batch = lines[start:end]
             batches.append(batch)
 

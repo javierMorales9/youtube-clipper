@@ -5,21 +5,21 @@ import Cross from "../../../../../public/images/Cross.svg";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 
-export default function RangeSelection({
+export default function Blocks({
   clips,
   suggestions,
   selection,
   startSelection,
   deleteSelection,
-  selectedPanel,
-  setPanel,
+  selectedBlock,
+  setBlock,
   addHandle,
-  changePanelDuration,
-  finishPanelDurationChange,
+  changeBlockDuration,
+  finishBlockDurationChange,
   secondsOfClick,
   left,
   width,
-  reference,
+  cursor,
 }: {
   secondsOfClick: (value: number) => number,
   left: (startSeconds: number) => number,
@@ -29,32 +29,32 @@ export default function RangeSelection({
   deleteSelection: () => void,
   clips: ClipType[],
   suggestions: SuggestionType[],
-  selectedPanel: {
+  selectedBlock: {
     type: "clip" | "suggestion" | "selection" | null,
     id: string | null,
     handleSide?: "left" | "right"
   },
-  setPanel: (type: "clip" | "suggestion" | "selection", id?: string) => void,
+  setBlock: (type: "clip" | "suggestion" | "selection", id?: string) => void,
   addHandle: (side: "left" | "right") => void,
-  changePanelDuration: (second: number) => void,
-  finishPanelDurationChange: () => void,
-  reference: number,
+  changeBlockDuration: (second: number) => void,
+  finishBlockDurationChange: () => void,
+  cursor: number,
 }) {
-  const clipPanels = useMemo(
-    () => clips.map((clip) => ({ name: clip.name, ...panelDimensions(clip.range), })),
-    [clips, reference]
+  const clipBlocks = useMemo(
+    () => clips.map((clip) => ({ name: clip.name, ...blockDimensions(clip.range), })),
+    [clips, cursor]
   );
 
-  const suggestionPanels = useMemo(
-    () => suggestions.map((s) => ({ name: s.name, ...panelDimensions(s.range), })),
-    [suggestions, reference]
+  const suggestionBlocks = useMemo(
+    () => suggestions.map((s) => ({ name: s.name, ...blockDimensions(s.range), })),
+    [suggestions, cursor]
   );
 
-  const selectionPanel = useMemo(() => {
-    return panelDimensions(selection.range);
-  }, [selection, reference]);
+  const selectionBlock = useMemo(() => {
+    return blockDimensions(selection.range);
+  }, [selection, cursor]);
 
-  function panelDimensions(range?: { start: number, end: number } | null) {
+  function blockDimensions(range?: { start: number, end: number } | null) {
     if (!range) {
       return { left: 0, width: 0 };
     }
@@ -98,15 +98,15 @@ export default function RangeSelection({
     <div
       className="absolute w-full h-full bottom-0"
       onMouseDown={(e) => startSelection(secondsOfPosition(e))}
-      onMouseMove={(e) => changePanelDuration(secondsOfPosition(e))}
-      onMouseUp={finishPanelDurationChange}
-      onMouseLeave={finishPanelDurationChange}
+      onMouseMove={(e) => changeBlockDuration(secondsOfPosition(e))}
+      onMouseUp={finishBlockDurationChange}
+      onMouseLeave={finishBlockDurationChange}
     >
       <div
         className="absolute w-full h-full"
-        style={{ cursor: selectedPanel.handleSide ? "w-resize" : "default" }}
+        style={{ cursor: selectedBlock.handleSide ? "w-resize" : "default" }}
       >
-        {clipPanels.map((clip, index) => (
+        {clipBlocks.map((clip, index) => (
           <div
             key={index}
             className={`
@@ -121,16 +121,16 @@ export default function RangeSelection({
             }}
             onClick={(e) => {
               e.stopPropagation();
-              setPanel("clip", clips[index]!.id);
+              setBlock("clip", clips[index]!.id);
             }}
           >
-            {/*selectedPanel.id === clips[index]!.id && <Handles />*/}
+            {/*selectedBlock.id === clips[index]!.id && <Handles />*/}
             <div className="w-full p-1 h-full overflow-hidden whitespace-nowrap text-ellipsis">
               {clip.name}
             </div>
           </div>
         ))}
-        {suggestionPanels.map((suggestion, index) => (
+        {suggestionBlocks.map((suggestion, index) => (
           <div
             key={index}
             className={`
@@ -145,10 +145,10 @@ export default function RangeSelection({
             }}
             onClick={(e) => {
               e.stopPropagation();
-              setPanel("suggestion", suggestions[index]!.id);
+              setBlock("suggestion", suggestions[index]!.id);
             }}
           >
-            {/*selectedPanel.id === suggestions[index]!.id && <Handles />*/}
+            {selectedBlock.id === suggestions[index]!.id && <Handles />}
             <div className="w-full p-1 h-full overflow-hidden whitespace-nowrap text-ellipsis">
               {suggestion.name}
             </div>
@@ -158,9 +158,9 @@ export default function RangeSelection({
       <div
         className="absolute h-full z-10 "
         style={{
-          left: selectionPanel.left,
-          width: selectionPanel.width,
-          padding: selectionPanel.width > 0 ? '0 0.5rem' : '0',
+          left: selectionBlock.left,
+          width: selectionBlock.width,
+          padding: selectionBlock.width > 0 ? '0 0.5rem' : '0',
           backgroundColor: 'rgba(255, 165, 0, 0.7)'
         }}
       >
@@ -169,10 +169,10 @@ export default function RangeSelection({
             className="w-full h-full flex flex-row items-center justify-between cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              setPanel("selection");
+              setBlock("selection");
             }}
           >
-            {selectedPanel.type === "selection" && <Handles />}
+            {selectedBlock.type === "selection" && <Handles />}
 
             <span
               className="absolute right-0 top-0 text-black cursor-pointer"

@@ -87,7 +87,12 @@ export default function Timeline({
       >
         {visibleTimelineWidth !== 0 && length !== 0 && (
           <>
-            <Controls />
+            <Controls
+              changeZoom={changeZoom}
+              zoom={zoom}
+              length={length}
+              controls={controls}
+            />
             <div
               className="flex items-start overflow-x-hidden no-scrollbar"
               style={{
@@ -99,9 +104,14 @@ export default function Timeline({
                 onClick={handleTimelineClick}
                 onWheel={scroll}
               >
-                <Reference />
+                <Reference
+                  reference={reference}
+                />
                 <div className="flex flex-col justify-start items-start">
-                  <TimelineMarks />
+                  <TimelineMarks
+                    sections={sections}
+                    visibleTimelineWidth={visibleTimelineWidth}
+                  />
                   <div className="relative flex flex-row items-start">
                     {children && children(
                       secondsOfClick,
@@ -109,7 +119,13 @@ export default function Timeline({
                       width,
                       reference,
                     )}
-                    <Images />
+                    <Images
+                      sections={sections}
+                      visibleTimelineWidth={visibleTimelineWidth}
+                      source={source}
+                      imageUrl={imageUrl}
+                      offset={offset}
+                    />
                   </div>
                 </div>
               </div>
@@ -119,130 +135,6 @@ export default function Timeline({
       </div>
     </>
   );
-
-  function Controls() {
-    function ZoomBar() {
-      return (
-        <>
-          {length && Math.floor(length / NUMBER_OF_MARKS - 1) > 1 && (
-            <div className="w-full flex flex-row justify-start gap-x-2">
-              <span
-                className="text-lg p-2 border border-gray-300 cursor-pointer"
-                onClick={() => changeZoom(zoom - 1)}
-              >
-                -
-              </span>
-              <input
-                type="range"
-                min={1}
-                value={zoom}
-                max={MAX_ZOOM}
-                step={1}
-                onChange={(e) => changeZoom(parseInt(e.target.value))}
-              />
-              <span
-                className="text-lg p-2 border border-gray-300 cursor-pointer"
-                onClick={() => changeZoom(zoom + 1)}
-              >
-                +
-              </span>
-            </div>
-          )}
-        </>
-      );
-    }
-
-    return (
-      <>{controls ? controls(<ZoomBar />) : (<ZoomBar />)}</>
-    )
-  }
-
-  function Reference() {
-    return (
-      <span className="absolute bottom-0 z-10" style={{ left: reference }}>
-        <div className="w-[2px] h-[130px] bg-red-500"></div>
-      </span>
-    );
-  }
-
-  function TimelineMarks() {
-    return (
-      <div className="flex flex-row items-start w-full z-[-1]">
-        {sections.map((section, i) => (
-          <div
-            key={i}
-            className="overflow-hidden"
-            style={{ width: section.width + 'px' }}
-          >
-            {section.time ? (
-              <div style={{
-                position: 'relative',
-                width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
-                left: section.first
-                  ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
-                  : undefined,
-              }}>
-                <span className="text-[7px]">{section.time}</span>
-                <div className="w-[2px] h-[10px] bg-gray-300"></div>
-                <div className="w-full h-[2px] bg-gray-300"></div>
-              </div>
-            ) : (
-              <>
-                <span className="text-[7px] text-white">h</span>
-                <div className="w-[2px] h-[10px]"></div>
-                <div className="w-full h-[2px] bg-gray-300"></div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  function Images() {
-    const imageHeight = useMemo(
-      () => visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!
-      , [visibleTimelineWidth, source]
-    );
-
-    return (
-      <>
-        {
-          sections.map((section, i) => (
-            <div
-              key={i}
-              style={{ width: section.width + 'px', zIndex: -1 }}
-            >
-              <div
-                className=""
-                style={{
-                  width: (visibleTimelineWidth / NUMBER_OF_MARKS) + 'px',
-                  height: imageHeight + 'px',
-                  overflowY: 'hidden',
-                  overflowX: 'clip',
-                }}
-              >
-                <img
-                  src={imageUrl}
-                  alt="Timeline"
-                  style={{
-                    position: 'relative',
-                    width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
-                    top: `-${imageHeight * (Math.floor(offset) + section.second)}px`,
-                    left: section.first
-                      ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
-                      : section.last
-                        ? 0
-                        : undefined,
-                  }}
-                />
-              </div>
-            </div>
-          ))
-        }
-      </>
-    );
-  }
 }
 
 type Section = {
@@ -297,7 +189,6 @@ function useSections({
 
   const sections = useMemo<Section[]>(
     () => {
-      console.log("Recalculating sections", marks(zoom));
       const markWidth = visibleTimelineWidth / NUMBER_OF_MARKS;
       const leftMark = Math.abs(initialPosition) / timelineWidth(zoom) * marks(zoom);
 
@@ -381,4 +272,157 @@ function useSections({
     left,
     width,
   };
+}
+
+function Controls({
+  changeZoom,
+  zoom,
+  length,
+  controls,
+}: {
+  changeZoom: (value: number) => void,
+  zoom: number,
+  length: number,
+  controls?: (ZoomBar: JSX.Element) => JSX.Element,
+}) {
+  function ZoomBar() {
+    return (
+      <>
+        {length && Math.floor(length / NUMBER_OF_MARKS - 1) > 1 && (
+          <div className="w-full flex flex-row justify-start gap-x-2">
+            <span
+              className="text-lg p-2 border border-gray-300 cursor-pointer"
+              onClick={() => changeZoom(zoom - 1)}
+            >
+              -
+            </span>
+            <input
+              type="range"
+              min={1}
+              value={zoom}
+              max={MAX_ZOOM}
+              step={1}
+              onChange={(e) => changeZoom(parseInt(e.target.value))}
+            />
+            <span
+              className="text-lg p-2 border border-gray-300 cursor-pointer"
+              onClick={() => changeZoom(zoom + 1)}
+            >
+              +
+            </span>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>{controls ? controls(<ZoomBar />) : (<ZoomBar />)}</>
+  )
+}
+
+function Reference({ reference }: { reference: number }) {
+  return (
+    <span className="absolute bottom-0 z-10" style={{ left: reference }}>
+      <div className="w-[2px] h-[130px] bg-red-500"></div>
+    </span>
+  );
+}
+
+function TimelineMarks({
+  sections,
+  visibleTimelineWidth,
+}: {
+  sections: Section[],
+  visibleTimelineWidth: number,
+}) {
+  return (
+    <div className="flex flex-row items-start w-full z-[-1]">
+      {sections.map((section, i) => (
+        <div
+          key={i}
+          className="overflow-hidden"
+          style={{ width: section.width + 'px' }}
+        >
+          {section.time ? (
+            <div style={{
+              position: 'relative',
+              width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
+              left: section.first
+                ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
+                : undefined,
+            }}>
+              <span className="text-[7px]">{section.time}</span>
+              <div className="w-[2px] h-[10px] bg-gray-300"></div>
+              <div className="w-full h-[2px] bg-gray-300"></div>
+            </div>
+          ) : (
+            <>
+              <span className="text-[7px] text-white">h</span>
+              <div className="w-[2px] h-[10px]"></div>
+              <div className="w-full h-[2px] bg-gray-300"></div>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Images({
+  sections,
+  visibleTimelineWidth,
+  source,
+  imageUrl,
+  offset,
+}: {
+  sections: Section[],
+  visibleTimelineWidth: number,
+  source: SourceType,
+  imageUrl: string,
+  offset: number,
+}) {
+  const imageHeight = useMemo(
+    () => visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!
+    , [visibleTimelineWidth, source]
+  );
+
+  return (
+    <>
+      {
+        sections.map((section, i) => (
+          <div
+            key={i}
+            style={{ width: section.width + 'px', zIndex: -1 }}
+          >
+            <div
+              className=""
+              style={{
+                width: (visibleTimelineWidth / NUMBER_OF_MARKS) + 'px',
+                height: imageHeight + 'px',
+                overflowY: 'hidden',
+                overflowX: 'clip',
+              }}
+            >
+              <img
+                src={imageUrl}
+                alt="Timeline"
+                style={{
+                  position: 'relative',
+                  width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
+                  top: `-${imageHeight * (Math.floor(offset) + section.second)}px`,
+                  left: section.first
+                    ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
+                    : section.last
+                      ? 0
+                      : undefined,
+
+                }}
+              />
+            </div>
+          </div>
+        ))
+      }
+    </>
+  );
 }

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
+//200ms
+const TIME_INCREMENT = 200;
+
 export function useTimer(duration?: number) {
-  const increaseIncrement = 1000 / 5;
   const [length, setLength] = useState<number | null>(duration || null);
   const [currentTime, setCurrentTime] = useState<
     [number, number, number, number]
@@ -37,6 +39,11 @@ export function useTimer(duration?: number) {
 
   useEffect(() => {
     setCurrentSeconds(toSeconds(currentTime));
+    /*
+    if (Math.abs(toSeconds(currentTime) - currentSeconds) > 1) {
+      setCurrentSeconds(toSeconds(currentTime));
+    }
+    */
   }, [currentTime]);
 
   function restrict(range?: { start: number; end: number }) {
@@ -88,7 +95,7 @@ export function useTimer(duration?: number) {
 
         return result;
       });
-    }, increaseIncrement);
+    }, TIME_INCREMENT);
 
     setTimelineTimer(timeT);
     setPlaying(true);
@@ -103,7 +110,7 @@ export function useTimer(duration?: number) {
   ): [number, number, number, number] {
     const [hours, minutes, seconds, milliseconds] = time;
 
-    let newMilliseconds = milliseconds + increaseIncrement;
+    let newMilliseconds = milliseconds + TIME_INCREMENT;
     let newSeconds = seconds;
     let newMinutes = minutes;
     let newHours = hours;

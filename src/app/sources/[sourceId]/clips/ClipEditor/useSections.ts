@@ -2,16 +2,16 @@
 
 import { Timer } from "../../useTimer";
 import { UseFormReturn } from "react-hook-form";
-import { Clip, Display } from "../Clip";
 import { useEffect, useState } from "react";
-import { Displays } from "../Displays";
+import { Displays } from "./Displays";
+import { ClipType, DisplayName } from "@/server/entities/clip/domain/Clip";
 
 export function useSections(
   timer: Timer,
-  form: UseFormReturn<Clip, null, undefined>,
+  form: UseFormReturn<ClipType, null, undefined>,
 ) {
-  const [selectedSection, setSelectedSection] = useState<number>(0);
-  const section = form.watch("sections")[selectedSection];
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState<number>(0);
+  const selectedSection = form.watch("sections")[selectedSectionIndex];
 
   useEffect(() => {
     const range = form.getValues().range;
@@ -21,16 +21,14 @@ export function useSections(
         {
           start: 0,
           end: range.end - range.start,
-          display: Displays.One,
-          fragments: [
-            {
-              order: 0,
-              x: 0,
-              y: 0,
-              width: 270,
-              height: 480,
-            },
-          ],
+          display: Displays.One.name,
+          fragments: Displays.One.fragments.map((element, i) => ({
+            order: i,
+            x: element.x,
+            y: element.y,
+            width: element.width / 2,
+            height: element.height / 2,
+          })),
         },
       ]);
     }
@@ -45,16 +43,14 @@ export function useSections(
         section.start <= timer.currentSeconds &&
         timer.currentSeconds <= section.end
       ) {
-        setSelectedSection(i);
+        setSelectedSectionIndex(i);
         return;
       }
     }
-  }, [timer.currentTime]);
+  }, [timer.currentSeconds]);
 
   function divideSection() {
     const sections = form.getValues().sections;
-
-    timer.currentSeconds;
 
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
@@ -81,28 +77,29 @@ export function useSections(
   function deleteSection() {
     const sections = form.getValues().sections;
 
+    //If there is only one section, we can't delete it.
     if (sections.length === 1) return;
 
-    const section = sections[selectedSection];
+    const sectionToDelete = sections[selectedSectionIndex];
+    if (!sectionToDelete) return;
 
-    if (!section) return;
-
-    if (selectedSection === 0) {
-      //We put this instead of harcoding 1 because typescript complains.
-      sections[selectedSection + 1]!.start = 0;
+    if (selectedSectionIndex === 0) {
+      //If we delete the first section, we join to the next section.
+      sections[selectedSectionIndex + 1]!.start = 0;
     } else {
-      sections[selectedSection - 1]!.end = section.end;
+      //Otherwise, we join to the previous section.
+      sections[selectedSectionIndex - 1]!.end = sectionToDelete.end;
     }
 
-    sections.splice(selectedSection, 1);
+    sections.splice(selectedSectionIndex, 1);
     form.setValue("sections", sections);
   }
 
-  const handleSelectDisplay = (newDisplay: Display) => {
-    if (!section || newDisplay.name === section.display?.name) return;
+  const changeDisplay = (newDisplay: DisplayName) => {
+    if (!selectedSection || newDisplay === selectedSection.display) return;
 
-    section.display = newDisplay;
-    section.fragments = newDisplay.elements.map((element, i) => ({
+    selectedSection.display = newDisplay;
+    selectedSection.fragments = Displays[newDisplay].fragments.map((element, i) => ({
       order: i,
       x: element.x,
       y: element.y,
@@ -122,10 +119,10 @@ export function useSections(
       height: number;
     },
   ) => {
-    if (!section?.fragments || !section?.fragments[i]) return;
+    if (!selectedSection?.fragments || !selectedSection?.fragments[i]) return;
 
-    section.fragments[i] = {
-      order: section.fragments[i]?.order ?? i,
+    selectedSection.fragments[i] = {
+      order: selectedSection.fragments[i]?.order ?? i,
       x: newAttrs.x,
       y: newAttrs.y,
       width: newAttrs.width,
@@ -136,12 +133,12 @@ export function useSections(
   };
 
   return {
-    section,
     selectedSection,
-    setSelectedSection,
+    selectedSectionIndex,
+    setSelectedSectionIndex,
     divideSection,
     deleteSection,
-    handleSelectDisplay,
+    changeDisplay,
     modifyFragment,
   };
 }

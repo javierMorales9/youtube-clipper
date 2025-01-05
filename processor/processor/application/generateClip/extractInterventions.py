@@ -3,6 +3,7 @@ from typing import TypedDict
 
 from entities.source.Word import Word
 
+
 class Line(TypedDict):
     text: str
     start: int

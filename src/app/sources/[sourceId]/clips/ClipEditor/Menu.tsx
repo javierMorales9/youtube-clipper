@@ -2,29 +2,33 @@ import { Line } from "@/app/utils";
 import { useState } from "react";
 import { Label } from "@/app/_components/Label";
 import { NewInput } from "@/app/_components/NewInput";
-import { ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/entities/clip/domain/Clip";
+import { ClipType, SectionType, DisplayName, ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/entities/clip/domain/Clip";
 import { ColorPicker } from "@/app/_components/ColorPicker";
 import { SingleChoice } from "@/app/_components/SingleChoice";
 import { YesOrNo } from "@/app/_components/YesOrNo";
 import { NewSelect } from "@/app/_components/NewSelect";
-import { Displays, DisplayKey } from "../Displays";
-import {  Display } from "../Clip";
 import { useFormContext } from "react-hook-form";
 import { Timer } from "../../useTimer";
-import { Clip, SectionFront } from "../Clip";
+
+export const DisplaysImages = {
+  [DisplayName.One]: "/images/One.png",
+  [DisplayName.TwoColumn]: "/images/TwoColumns.png",
+  [DisplayName.TwoRow]: "/images/TwoRows.png",
+};
+
 
 export function Menu({
   lines,
   timer,
   start,
   section,
-  handleSelectDisplay
+  changeDisplay
 }: {
   lines: Line[],
   timer: Timer,
   start: number,
-  section: SectionFront | undefined,
-  handleSelectDisplay: (newDisplay: Display) => void
+  section: SectionType | undefined,
+  changeDisplay: (newDisplay: DisplayName) => void
 }) {
   const menuViews = ["Display", "Translations", "Theme"] as const;
   const [menuView, setMenuView] = useState<typeof menuViews[number]>(menuViews[0]);
@@ -50,7 +54,7 @@ export function Menu({
       {menuView === "Display" && (
         <DisplaysSelector
           section={section}
-          handleSelectDisplay={handleSelectDisplay}
+          changeDisplay={changeDisplay}
         />
       )}
       {menuView === "Translations" && (
@@ -127,7 +131,7 @@ function Translations({
 }
 
 function Theme({ }) {
-  const { getValues: vals, setValue: setVal, register } = useFormContext<Clip>();
+  const { getValues: vals, setValue: setVal, register } = useFormContext<ClipType>();
 
   return (
     <div className="h-full bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col gap-y-10 overflow-y-scroll">
@@ -167,6 +171,7 @@ function Theme({ }) {
             />
           </div>
         </div>
+        {/*
         <div className="flex flex-col gap-y-2">
           <Label htmlFor="file">Shadow</Label>
           <SingleChoice
@@ -175,6 +180,7 @@ function Theme({ }) {
             onChange={(v) => setVal("theme.themeShadow", v as ThemeShadow)}
           />
         </div>
+        */}
         <div className="flex flex-row justify-between">
           <div className="flex flex-col gap-y-2">
             <Label htmlFor="file">Stroke</Label>
@@ -205,6 +211,7 @@ function Theme({ }) {
             {...register('theme.themePosition', { valueAsNumber: true })}
           />
         </div>
+        {/*
         <div className="flex flex-row justify-between gap-x-2">
           <div className="flex flex-col gap-y-2">
             <Label htmlFor="file">Include emoji</Label>
@@ -246,6 +253,7 @@ function Theme({ }) {
             />
           </div>
         </div>
+        */}
         <div>
         </div>
       </div>
@@ -255,35 +263,38 @@ function Theme({ }) {
 
 function DisplaysSelector({
   section,
-  handleSelectDisplay,
+  changeDisplay,
 }: {
-  section?: SectionFront,
-  handleSelectDisplay: (newDisplay: Display) => void,
+  section?: SectionType,
+  changeDisplay: (newDisplay: DisplayName) => void,
 }) {
   return (
     <div className="bg-white h-full rounded-xl border border-gray-200 p-6 shadow-sm">
-      <div className="w-full flex flex-wrap flex-row justify-between">
-        {(Object.keys(Displays) as DisplayKey[]).map((key) => (
+      <div className="w-full flex flex-wrap flex-col gap-y-5">
+        {(Object.keys(DisplayName) as DisplayName[]).map((displayName) => (
           <div
-            key={key}
-            onClick={() => handleSelectDisplay(Displays[key])}
+            key={displayName}
+            onClick={() => changeDisplay(displayName)}
             className={`
-              flex flex-col justify-center items-center cursor-pointer
-           `}
+              flex flex-row justify-center items-center cursor-pointer
+              gap-x-2 p-2 rounded-lg border border-gray-200
+              ${section?.display === displayName 
+                ? 'bg-blue-100 border-blue-300'
+                : 'bg-gray-100 border-gray-300'
+              }
+            `}
           >
+            <img
+              className="w-20"
+              src={DisplaysImages[displayName]} alt={displayName}
+            />
             <span
               className={
                 `w-full flex justify-center
-                ${section?.display?.name === Displays[key].name && 'bg-gray-200'}
               `}
             >
-              {Displays[key].name}
+              {displayName}
             </span>
-
-            <img
-              className="w-20"
-              src={Displays[key].image} alt={Displays[key].name}
-            />
           </div>
         ))}
       </div>

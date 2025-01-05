@@ -2,14 +2,14 @@ import { useState } from "react";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 
-export type SelectedPanel = {
+export type SelectedBlock = {
   type: "clip" | "suggestion" | "selection" | null,
   id: string | null
   handleSide?: "left" | "right",
   range?: { start: number, end: number },
 };
 
-export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionType[]) {
+export function useBlocks(inputClips: ClipType[], inputSuggestions: SuggestionType[]) {
   const [selection, setSelection] = useState<
     { range: { start: number, end: number } | null, created: boolean }
   >({ range: null, created: false });
@@ -17,55 +17,55 @@ export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionTy
   const [clips, setClips] = useState<ClipType[]>(inputClips);
   const [suggestions, setSuggestions] = useState<SuggestionType[]>(inputSuggestions);
 
-  const [selectedPanel, setSelectedPanel] = useState<SelectedPanel>(
+  const [selectedBlock, setSelectedBlock] = useState<SelectedBlock>(
     { type: null, id: null, handleSide: undefined, range: undefined }
   );
 
-  function setPanel(type: "clip" | "suggestion" | "selection", id?: string) {
-    const panel: SelectedPanel = {
+  function setBlock(type: "clip" | "suggestion" | "selection", id?: string) {
+    const block: SelectedBlock = {
       type,
       id: null,
     };
 
     if (type === "selection") {
-      panel.range = selection.range || undefined;
+      block.range = selection.range || undefined;
     }
 
     if (id) {
-      panel.id = id;
+      block.id = id;
 
       if (type === "clip") {
         const clip = clips.find((clip) => clip.id === id);
         if (clip) {
-          panel.range = clip.range;
+          block.range = clip.range;
         }
       }
       else if (type === "suggestion") {
         const suggestion = suggestions.find((suggestion) => suggestion.id === id);
         if (suggestion) {
-          panel.range = suggestion.range;
+          block.range = suggestion.range;
         }
       }
     }
 
-    setSelectedPanel(panel);
+    setSelectedBlock(block);
   }
 
   function addHandle(side: "left" | "right") {
-    setSelectedPanel({ ...selectedPanel, handleSide: side });
+    setSelectedBlock({ ...selectedBlock, handleSide: side });
   }
 
   function startSelection(second: number) {
-    const panelIsClipOrSugg = selectedPanel.type !== null && selectedPanel.type !== "selection";
+    const isClipOrSug = selectedBlock.type !== null && selectedBlock.type !== "selection";
     const selectionExist = selection.range !== null || selection.created;
 
-    if (panelIsClipOrSugg || selectionExist) {
-      setSelectedPanel({ type: null, id: null });
+    if (isClipOrSug || selectionExist) {
+      setSelectedBlock({ type: null, id: null });
       return;
     }
 
     setSelection({ range: { start: second, end: second }, created: false });
-    setSelectedPanel({ type: "selection", id: null });
+    setSelectedBlock({ type: "selection", id: null });
   }
 
   function finishSelection() {
@@ -77,24 +77,24 @@ export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionTy
     }
 
     setSelection({ ...selection, created: true });
-    setSelectedPanel({ type: "selection", id: null, range: selection.range });
+    setSelectedBlock({ type: "selection", id: null, range: selection.range });
   }
 
   function deleteSelection() {
     setSelection({ range: null, created: false });
   }
 
-  function changePanelDuration(second: number) {
-    if (selectedPanel.type === "selection") {
-      if (!selection.range || (selection.created && !selectedPanel.handleSide)) return;
+  function changeBlockDuration(second: number) {
+    if (selectedBlock.type === "selection") {
+      if (!selection.range || (selection.created && !selectedBlock.handleSide)) return;
 
       if (detectCollision(second)) {
         finishSelection();
         return;
       }
 
-      if (selectedPanel.handleSide) {
-        if (selectedPanel.handleSide === "left") {
+      if (selectedBlock.handleSide) {
+        if (selectedBlock.handleSide === "left") {
           setSelection({ range: { start: second, end: selection.range.end }, created: false });
         }
         else {
@@ -111,32 +111,32 @@ export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionTy
       }
     }
 
-    else if (selectedPanel.type === "clip") {
-      if (!selectedPanel.handleSide || !selectedPanel.id) return;
+    else if (selectedBlock.type === "clip") {
+      if (!selectedBlock.handleSide || !selectedBlock.id) return;
 
-      const clipIndex = clips.findIndex((clip) => clip.id === selectedPanel.id);
+      const clipIndex = clips.findIndex((clip) => clip.id === selectedBlock.id);
       if (clipIndex === -1) return;
 
       const newClips = [...clips];
       const clip = newClips[clipIndex]!;
 
-      if (selectedPanel.handleSide === "left") {
+      if (selectedBlock.handleSide === "left") {
         clip.range.start = second;
       } else {
         clip.range.end = second;
       }
 
       setClips(newClips);
-    } else if (selectedPanel.type === "suggestion") {
-      if (!selectedPanel.handleSide || !selectedPanel.id) return;
+    } else if (selectedBlock.type === "suggestion") {
+      if (!selectedBlock.handleSide || !selectedBlock.id) return;
 
-      const suggestionIndex = suggestions.findIndex((suggestion) => suggestion.id === selectedPanel.id);
+      const suggestionIndex = suggestions.findIndex((suggestion) => suggestion.id === selectedBlock.id);
       if (suggestionIndex === -1) return;
 
       const newSuggestions = [...suggestions];
       const suggestion = newSuggestions[suggestionIndex]!;
 
-      if (selectedPanel.handleSide === "left") {
+      if (selectedBlock.handleSide === "left") {
         suggestion.range.start = second;
       } else {
         suggestion.range.end = second;
@@ -170,12 +170,12 @@ export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionTy
     return false;
   }
 
-  function finishPanelDurationChange() {
-    if (selectedPanel.type === "selection") {
+  function finishBlockDurationChange() {
+    if (selectedBlock.type === "selection") {
       finishSelection();
     }
     else {
-      setSelectedPanel({ ...selectedPanel, handleSide: undefined });
+      setSelectedBlock({ ...selectedBlock, handleSide: undefined });
     }
   }
 
@@ -184,12 +184,12 @@ export function usePanels(inputClips: ClipType[], inputSuggestions: SuggestionTy
     suggestions,
     selection,
     setSelection,
-    selectedPanel,
-    setPanel,
+    selectedBlock,
+    setBlock,
     addHandle,
     startSelection,
     deleteSelection,
-    changePanelDuration,
-    finishPanelDurationChange,
+    changeBlockDuration,
+    finishBlockDurationChange,
   };
 }

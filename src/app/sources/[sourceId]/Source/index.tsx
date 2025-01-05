@@ -2,13 +2,13 @@
 
 import Timeline from "@/app/sources/[sourceId]/Timeline";
 import { useTimer } from "../useTimer";
-import RangeSelection from "./RangeSelector";
+import Blocks from "./Blocks";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Back from "../../../../../public/images/Back.svg";
 import Play from "../../../../../public/images/MaterialSymbolsPlayArrow.svg";
 import Pause from "../../../../../public/images/Pause.svg";
-import HLSReproducer from "./HLSReproducer";
+import HLSReproducer from "../HLSReproducer";
 import { SourceType } from "@/server/entities/source/domain/Source";
 import { useRouter } from "next/navigation";
 import { toReadableTime } from "@/app/utils";
@@ -16,8 +16,7 @@ import Download from "../../../../../public/images/Download.svg";
 import Loading from "../../../../../public/images/Loading.svg";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
-import MP4Reproducer from "./MP4Reproducer";
-import { SelectedPanel, usePanels } from "./usePanels";
+import { SelectedBlock, useBlocks } from "./usePanels";
 
 export default function SourceEditor({
   source,
@@ -38,18 +37,18 @@ export default function SourceEditor({
     clips,
     suggestions,
     selection,
-    selectedPanel,
-    setPanel,
+    selectedBlock,
+    setBlock,
     addHandle,
     startSelection,
     deleteSelection,
-    changePanelDuration,
-    finishPanelDurationChange,
-  } = usePanels(inputClips, inputSuggestions);
+    changeBlockDuration,
+    finishBlockDurationChange,
+  } = useBlocks(inputClips, inputSuggestions);
 
   useEffect(() => {
-    timer.restrict(selectedPanel.range);
-  }, [selectedPanel]);
+    timer.restrict(selectedBlock.range);
+  }, [selectedBlock]);
 
   return (
     <div className="py-2 flex flex-col justify-between">
@@ -57,27 +56,17 @@ export default function SourceEditor({
         <Menu
           clips={clips}
           suggestions={suggestions}
-          setPanel={setPanel}
-          selectedPanel={selectedPanel}
+          setPanel={setBlock}
+          selectedPanel={selectedBlock}
           source={source}
         />
-        <div className="flex flex-col items-center w-full bg-white rounded p-2">
-          {hls ? (
-            <HLSReproducer
-              src={source.url!}
-              timer={timer}
-              startTime={0}
-              height={400}
-            />
-          ) : (
-            <MP4Reproducer
-              src={source.url!}
-              timer={timer}
-              startTime={0}
-              width={1000}
-              height={500}
-            />
-          )}
+        <div className="border rounded flex flex-col items-center w-full bg-white p-2">
+          <HLSReproducer
+            src={source.url!}
+            timer={timer}
+            startTime={0}
+            height={400}
+          />
           <div className="relative w-full flex flex-row justify-center py-4">
             <div className="flex flex-row gap-x-4">
               <button onClick={() => timer.togglePlay()}>
@@ -107,24 +96,24 @@ export default function SourceEditor({
               secondsOfClick: (value: number) => number,
               left: (startSeconds: number) => number,
               width: (startSeconds: number, endSeconds: number) => number,
-              reference: number,
+              cursor: number,
             ) => (
               <>
-                <RangeSelection
+                <Blocks
                   suggestions={suggestions}
-                  selectedPanel={selectedPanel}
+                  selectedBlock={selectedBlock}
                   selection={selection}
                   startSelection={startSelection}
                   deleteSelection={deleteSelection}
                   clips={clips}
-                  setPanel={setPanel}
+                  setBlock={setBlock}
                   addHandle={addHandle}
-                  changePanelDuration={changePanelDuration}
-                  finishPanelDurationChange={finishPanelDurationChange}
+                  changeBlockDuration={changeBlockDuration}
+                  finishBlockDurationChange={finishBlockDurationChange}
                   secondsOfClick={secondsOfClick}
                   left={left}
                   width={width}
-                  reference={reference}
+                  cursor={cursor}
                 />
               </>
             )}
@@ -145,7 +134,7 @@ function Menu({
   clips: ClipType[],
   suggestions: SuggestionType[],
   setPanel: (type: "clip" | "suggestion" | "selection", id?: string) => void,
-  selectedPanel: SelectedPanel,
+  selectedPanel: SelectedBlock,
   source: SourceType,
 }) {
   const router = useRouter();
@@ -170,8 +159,8 @@ function Menu({
   }
 
   return (
-    <div className="w-full h-full flex flex-col gap-y-2">
-      <div className="p-4 border rounded flex flex-col gap-y-3 bg-white h-full">
+    <div className="w-full flex flex-col gap-y-2">
+      <div className="p-4 border rounded flex flex-col gap-y-3 bg-white max-h-[475px] ">
         <Link
           href="/sources"
           className="flex flex-row items-center gap-x-2 text-gray-600"

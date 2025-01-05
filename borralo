@@ -1,6 +1,0 @@
-def finishProcessing(self, duration: float, width: int, height: int):
-    self.processing = False
-    self.duration = duration
-    self.width = width
-    self.height = height
-

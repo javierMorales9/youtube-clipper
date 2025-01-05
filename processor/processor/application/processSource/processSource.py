@@ -19,7 +19,7 @@ def processSource(
     source: Source,
 ):
     print(f"Processing source after transcription {source.id}")
-    fileHandler.downloadFiles()
+    fileHandler.downloadFiles(keys=["original.mp4", "transcription.json"])
 
     duration = getVideoDuration(sys)
     width, height = getVideoResolution(sys)
@@ -35,7 +35,7 @@ def processSource(
     sourceRepo.saveSource(source)
     suggestionRepo.saveSuggestions(suggestions)
 
-    #fileHandler.saveFiles()
+    fileHandler.saveFiles()
 
 
 def generateHls(sys: System):

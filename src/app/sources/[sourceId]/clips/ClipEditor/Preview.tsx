@@ -1,37 +1,32 @@
 'use client';
-
-import videojs from 'video.js';
-import 'video.js/dist/video-js.css';
-import Player from 'video.js/dist/types/player';
 import { Timer } from "../../useTimer";
-import { useEffect, useMemo, useRef } from "react";
-import { ThemeFont, ThemeShadow, ThemeStroke } from "@/server/entities/clip/domain/Clip";
+import { useMemo } from "react";
+import { ClipType, SectionType, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/entities/clip/domain/Clip";
 import { SourceType } from "@/server/entities/source/domain/Source";
-import { Clip, SectionFront } from "../Clip";
+import { Displays } from "./Displays";
 import { Line } from "@/app/utils";
 import { useFormContext } from "react-hook-form";
+import HLSReproducer from '../../HLSReproducer';
 
 export function Preview({
   section,
   isOpen,
-  closeModal,
+  closePreview,
   source,
   timer,
   startTime,
   dimensions,
   lines,
 }: {
-  section?: SectionFront,
+  section?: SectionType,
   isOpen: boolean,
-  closeModal: () => void,
+  closePreview: () => void,
   source: SourceType,
   timer: Timer,
   startTime: number
   dimensions: [number, number],
   lines: Line[],
 }) {
-
-  const factor = 440 / 480
 
   return (
     <div
@@ -41,7 +36,7 @@ export function Preview({
         justify-center items-center
         bg-black bg-opacity-80
       `}
-      onClick={closeModal}
+      onClick={closePreview}
     >
       <div onClick={(e) => {
         e.stopPropagation();
@@ -49,37 +44,90 @@ export function Preview({
         <div
           className="relative"
           style={{
-            width: 270 * factor,
-            height: 480 * factor,
+            width: 270,
+            height: 480,
           }}
         >
           <Captions
-            previewWidth={270 * factor}
-            previewHeight={480 * factor}
+            previewWidth={270}
+            previewHeight={480}
             lines={lines}
             timer={timer}
             startTime={startTime}
           />
-          {section && section.fragments && section.fragments.map((element, i) => (
+          {section && section.fragments && section.fragments.map((fragment, i) => (
             <VideoFragment
               key={i}
               src={`${source.url!}`}
               timer={timer}
               startTime={startTime}
-              dimensions={[dimensions[0] * factor, dimensions[1] * factor]}
-              x={section.display!.elements[i]!.x * factor}
-              y={section.display!.elements[i]!.y * factor}
-              width={section.display!.elements[i]!.width * factor}
-              height={section.display!.elements[i]!.height * factor}
-              clip={{
-                x: element.x * factor,
-                y: element.y * factor,
-                width: element.width * factor,
-                height: element.height * factor,
-              }}
+              dimensions={dimensions}
+              defaultFragment={Displays[section.display]!.fragments[i]!}
+              fragment={fragment}
             />
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function VideoFragment({
+  src,
+  startTime = 0,
+  timer,
+  dimensions,
+  defaultFragment,
+  fragment,
+}: {
+  src: string,
+  startTime: number,
+  timer: Timer,
+  dimensions: [number, number],
+  defaultFragment: {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  },
+  fragment: {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  },
+}) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: defaultFragment.x,
+        top: defaultFragment.y,
+        width: fragment.width,
+        height: fragment.height,
+        transformOrigin: 'left top',
+        transform: `scale(
+          ${defaultFragment.width / fragment.width},
+          ${defaultFragment.height / fragment.height}
+        )`,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          width: dimensions[0],
+          height: dimensions[1],
+          left: -fragment.x,
+          top: -fragment.y,
+        }}
+      >
+        <HLSReproducer
+          src={src}
+          startTime={startTime}
+          timer={timer}
+          muted={true}
+        />
       </div>
     </div>
   );
@@ -97,11 +145,11 @@ function Captions({
   timer: Timer,
   startTime: number,
 }) {
-  const { getValues: vals, watch } = useFormContext<Clip>();
+  const { watch } = useFormContext<ClipType>();
   const theme = watch("theme");
 
   const fonts: Record<ThemeFont, string> = {
-    [ThemeFont.Arial]: 'komika',
+    [ThemeFont.Komika]: 'komika',
   };
 
   const currentLine = useMemo(() => {
@@ -170,139 +218,3 @@ function Captions({
   );
 }
 
-function VideoFragment({
-  src,
-  startTime = 0,
-  timer: {
-    currentTime,
-    playing,
-    currentSeconds
-  },
-  dimensions,
-  x,
-  y,
-  width,
-  height,
-  clip: {
-    x: clipX,
-    y: clipY,
-    width: clipWidth,
-    height: clipHeight,
-  },
-}: {
-  src: string,
-  startTime: number,
-  timer: Timer,
-  dimensions: [number, number],
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  clip: {
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  },
-}) {
-  const videoRef = useRef<HTMLDivElement | null>(null);
-  const playerRef = useRef<Player | null>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (!playerRef.current) {
-      const videoElement = document.createElement("video-js");
-
-      videoElement.classList.add('vjs-big-play-centered');
-      video.appendChild(videoElement);
-
-      playerRef.current = videojs(videoElement, {
-        autoplay: false,
-        controls: false,
-        responsive: true,
-        muted: true,
-        fluid: true,
-        sources: [{
-          src,
-          type: 'application/x-mpegURL'
-        }],
-      },
-        () => {
-          videojs.log('player is ready');
-        }
-      );
-    }
-  }, [videoRef]);
-
-  useEffect(() => {
-    const player = playerRef.current;
-
-    return () => {
-      if (player && !player.isDisposed()) {
-        player.dispose();
-        playerRef.current = null;
-      }
-    };
-  }, [playerRef]);
-
-  useEffect(() => {
-    const movie = playerRef.current;
-    if (!movie) return;
-
-    movie.width(dimensions[0]);
-    movie.height(dimensions[1]);
-  }, [dimensions]);
-
-  useEffect(() => {
-    const movie = playerRef.current;
-    if (movie) {
-      movie.currentTime(startTime + currentSeconds);
-    }
-  }, [currentTime]);
-
-  useEffect(() => {
-    if (playing)
-      play();
-    else
-      pause();
-  }, [playing]);
-
-  function pause() {
-    playerRef?.current?.pause();
-  }
-
-  function play() {
-    playerRef?.current?.play()?.catch(console.error);
-  }
-
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: x,
-        top: y,
-        width: clipWidth,
-        height: clipHeight,
-        transformOrigin: 'left top',
-        transform: `scale(${width / clipWidth}, ${height / clipHeight})`,
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          width: dimensions[0],
-          height: dimensions[1],
-          left: -clipX,
-          top: -clipY,
-        }}
-      >
-        <div data-vjs-player>
-          <div ref={videoRef} />
-        </div>
-      </div>
-    </div>
-  );
-}

@@ -15,7 +15,6 @@ export class PgClipRepository implements ClipRepository {
 
   constructor(db: Db) {
     this.db = db;
-    console.log("No me jodas", this.db);
   }
 
   async find(id: string): Promise<Clip | null> {

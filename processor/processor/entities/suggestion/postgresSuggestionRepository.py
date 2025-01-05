@@ -24,6 +24,6 @@ class PostgresSuggestionRepository():
 
     def saveSuggestions(self, suggestions: list[Suggestion]):
         for suggestion in suggestions:
-            saveSuggestion(self.session, suggestion)
+            self.saveSuggestion(suggestion)
 
 

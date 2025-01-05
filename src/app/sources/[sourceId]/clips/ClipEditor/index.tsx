@@ -1,10 +1,10 @@
 'use client';
+
 import { useTimer } from "../../useTimer";
 import { useForm, FormProvider } from "react-hook-form";
 import { useEffect, useMemo, useState } from "react";
 import { SourceType } from "@/server/entities/source/domain/Source";
 import { api } from "@/trpc/react";
-import { Clip } from "../Clip";
 import Link from "next/link";
 import Back from "../../../../../../public/images/Back.svg";
 import { wordsIntoLines } from "@/app/utils";
@@ -14,6 +14,7 @@ import { Viewer } from "./Viewer";
 import { Preview } from "./Preview";
 import { Menu } from "./Menu";
 import { TimelineWrapper } from "./TimelineWrapper";
+import { ClipType } from "@/server/entities/clip/domain/Clip";
 
 export default function ClipEditor({
   source,
@@ -23,16 +24,16 @@ export default function ClipEditor({
 }: {
   source: SourceType,
   timelineUrl: string,
-  clip: Clip,
+  clip: ClipType,
   words: Word[]
 }) {
   const { start, end } = clip.range;
   const timer = useTimer(end - start);
-  const [showModal, setShowModal] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const { mutateAsync: createClip } = api.clip.save.useMutation();
 
-  const form = useForm<Clip>({
+  const form = useForm<ClipType>({
     defaultValues: clip,
   });
 
@@ -47,17 +48,18 @@ export default function ClipEditor({
   }
 
   useEffect(() => {
+    console.log("Setting dimensions", dimensions);
     form.setValue("width", dimensions[0]);
     form.setValue("height", dimensions[1]);
   }, [dimensions]);
 
   const {
-    section,
     selectedSection,
-    setSelectedSection,
+    selectedSectionIndex,
+    setSelectedSectionIndex,
     divideSection,
     deleteSection,
-    handleSelectDisplay,
+    changeDisplay,
     modifyFragment,
   } = useSections(timer, form);
 
@@ -75,12 +77,7 @@ export default function ClipEditor({
       range: data.range,
       width: data.width,
       height: data.height,
-      sections: data.sections.map((section) => ({
-        start: section.start,
-        end: section.end,
-        display: section.display!.name,
-        fragments: section.fragments,
-      })),
+      sections: data.sections,
       theme: data.theme,
     });
   }
@@ -122,15 +119,15 @@ export default function ClipEditor({
             lines={lines}
             timer={timer}
             start={start}
-            section={section}
-            handleSelectDisplay={handleSelectDisplay}
+            section={selectedSection}
+            changeDisplay={changeDisplay}
           />
           <div className="w-2/3 flex flex-col items-center justify-between">
             <Viewer
               source={source.url!}
               start={start}
               timer={timer}
-              section={section}
+              section={selectedSection}
               modifyFragment={modifyFragment}
               dimensions={dimensions}
               setDimensions={handleDimensionsUpdate}
@@ -139,19 +136,20 @@ export default function ClipEditor({
               timer={timer}
               source={source}
               start={start}
+              duration={end - start}
               timelineUrl={timelineUrl}
-              togglePreview={() => setShowModal(!showModal)}
-              selectedSection={selectedSection}
-              setSelectedSection={setSelectedSection}
+              togglePreview={() => setShowPreview(!showPreview)}
+              selectedSectionIndex={selectedSectionIndex}
+              setSelectedSection={setSelectedSectionIndex}
               divideSection={divideSection}
               deleteSection={deleteSection}
             />
           </div>
         </div>
         <Preview
-          isOpen={showModal}
-          closeModal={() => setShowModal(false)}
-          section={section}
+          isOpen={showPreview}
+          closePreview={() => setShowPreview(false)}
+          section={selectedSection}
           source={source}
           timer={timer}
           startTime={start}
@@ -159,6 +157,6 @@ export default function ClipEditor({
           lines={lines}
         />
       </form>
-    </FormProvider >
+    </FormProvider>
   );
 }

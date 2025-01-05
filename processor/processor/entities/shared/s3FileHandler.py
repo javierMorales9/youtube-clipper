@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import boto3
 
@@ -13,7 +14,10 @@ class S3FileHandler:
         self.sourceId = sourceId
         self.path = sys.path("")
 
-    def downloadFiles(self):
+    def downloadFiles(self, keys: Optional[list[str]]):
+        if(keys is not None):
+            self.baseFiles = keys
+
         my_bucket = self.getBucket()
 
         # Create tmp/{sourceId} folder

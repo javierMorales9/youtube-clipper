@@ -1,6 +1,5 @@
 import { api } from "@/trpc/server";
 import ClipEditor from "../ClipEditor";
-import { DisplayKey, Displays } from "../Displays";
 import TopBar from "@/app/_components/TopBar";
 
 export default async function EditClip({
@@ -29,15 +28,7 @@ export default async function EditClip({
         <ClipEditor
           source={source}
           timelineUrl={source.timelineUrl}
-          clip={{
-            ...clip,
-            sections: clip.sections.map((section) => ({
-              start: section.start,
-              end: section.end,
-              display: Displays[section.display as DisplayKey],
-              fragments: section.fragments,
-            })),
-          }}
+          clip={clip}
           words={clipWords}
         />
       </div>

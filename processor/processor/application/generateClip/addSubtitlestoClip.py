@@ -18,21 +18,21 @@ def addSubtitlestoClip(clip: Clip, words: list[Word], sys: System):
 
     assFile = generateAssFile(clip, linelevel_subtitles)
 
-    with open(sys.path(clip.id + '.ass'), "w") as file:
+    with open(sys.path(f"{clip.id}.ass"), "w") as file:
         file.write(assFile)
 
     try:
         sys.rm(f"{clip.id}_temp.mp4")
     except:
-        print(f"File: {sys.path(clip.id + '_temp.mp4')} don't exist")
+        print(f"File: {sys.path(f"{clip.id}_temp.mp4")} don't exist")
 
     arguments = [
         "ffmpeg",
         "-i",
         sys.path(f"{clip.id}.mp4"),
         "-vf",
-        f"ass={sys.path(clip.id + ".ass")}:fontsdir={fontPath}",
-        f"{sys.path(clip.id + "_temp.mp4")}",
+        f"ass={sys.path(f"{clip.id}.ass")}:fontsdir={fontPath}",
+        f"{sys.path(f"{clip.id}_temp.mp4")}",
     ]
     print("arguments", " ".join(arguments))
 
@@ -47,8 +47,9 @@ def addSubtitlestoClip(clip: Clip, words: list[Word], sys: System):
     sys.rm(f"{clip.id}.mp4")
     sys.rename(f"{clip.id}_temp.mp4", f"{clip.id}.mp4")
 
+
 fonts = {
-    "Arial": "Komika Axis",
+    "Komika": "Komika Axis",
 }
 
 

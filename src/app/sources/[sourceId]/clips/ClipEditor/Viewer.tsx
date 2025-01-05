@@ -1,12 +1,9 @@
 import { Timer } from "../../useTimer";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
-import { SectionFront } from "../Clip";
 import Konva from "konva";
-import { Image } from 'react-konva';
-import videojs from 'video.js';
-import 'video.js/dist/video-js.css';
-import Player from 'video.js/dist/types/player';
+import HLSReproducer from "../../HLSReproducer";
+import { SectionType } from "@/server/entities/clip/domain/Clip";
 
 export function Viewer({
   source,
@@ -20,182 +17,64 @@ export function Viewer({
   source: string,
   start: number,
   timer: Timer,
-  section?: SectionFront
+  section?: SectionType
   dimensions: [number, number],
   setDimensions: (dim: [number, number]) => void
-  modifyFragment: (index: number, fragment: { x: number, y: number, width: number, height: number }) => void
+  modifyFragment: (
+    index: number,
+    fragment: {
+      x: number,
+      y: number,
+      width: number,
+      height: number
+    }
+  ) => void
 }) {
   const factor = 400 / 480
 
-  const stageRef = useRef<Konva.Stage | null>(null);
-
   return (
-    <Stage
-      ref={stageRef}
-      width={dimensions[0] * factor}
-      height={dimensions[1] * factor}
-    >
-      <Layer>
-        <Video
-          src={`${source}`}
+    <div className="relative">
+      <div className="absolute top-0 left-0">
+        <HLSReproducer
+          src={source}
           timer={timer}
           startTime={start}
-          dimensions={[dimensions[0] * factor, dimensions[1] * factor]}
+          width={dimensions[0] * factor}
+          height={dimensions[1] * factor}
           setDimensions={setDimensions}
         />
-        {section?.fragments && (
-          section?.fragments.map((element, i) => (
-            <Rectangle
-              key={i}
-              shapeProps={{
-                x: element.x * factor,
-                y: element.y * factor,
-                width: element.width * factor,
-                height: element.height * factor,
-              }}
-              stageWidth={dimensions[0] * factor}
-              stageHeight={dimensions[1] * factor}
-              onChange={(newAttrs) => {
-                modifyFragment(i, {
-                  x: newAttrs.x / factor,
-                  y: newAttrs.y / factor,
-                  width: newAttrs.width / factor,
-                  height: newAttrs.height / factor,
-                })
-              }}
-            />
-          ))
-        )}
-      </Layer>
-    </Stage>
-  );
-}
-
-function Video({
-  src,
-  startTime = 0,
-  timer: {
-    length,
-    setLength,
-    currentSeconds,
-    playing,
-  },
-  dimensions,
-  setDimensions,
-}: {
-  src: string,
-  startTime: number,
-  timer: Timer,
-  dimensions: [number, number],
-  setDimensions: (dim: [number, number]) => void
-}) {
-  const playerRef = useRef<Player | null>(null);
-
-  const [videoTimer, setVideoTimer] = useState<ReturnType<typeof setInterval> | null>(null);
-  const [videoNode, setVideoNode] = useState<Konva.Image | null>();
-
-  useEffect(() => {
-    if (!playerRef.current) {
-      const videoElement = document.createElement("video-js");
-
-      videoElement.classList.add('vjs-big-play-centered');
-      videoElement.style.display = 'none';
-      document.body.appendChild(videoElement);
-
-      const player = playerRef.current = videojs(
-        videoElement,
-        {
-          autoplay: false,
-          controls: false,
-          responsive: true,
-          fluid: true,
-          sources: [{
-            src,
-            type: 'application/x-mpegURL'
-          }],
-        },
-        () => {
-          player.on('loadedmetadata', () => {
-            if (!length)
-              setLength(player.duration()!);
-
-            setDimensions([player.videoWidth(), player.videoHeight()]);
-          });
-        }
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    const player = playerRef.current;
-
-    return () => {
-      if (player && !player.isDisposed()) {
-        player.dispose();
-        playerRef.current = null;
-      }
-    };
-  }, [playerRef]);
-
-  useEffect(() => {
-    if (!videoNode) return;
-
-    console.log('start', videoNode, playerRef.current);
-    playerRef.current?.currentTime(startTime + currentSeconds);
-    videoNode.getLayer()?.batchDraw();
-  }, [videoNode]);
-
-  useEffect(() => {
-    const movie = playerRef.current;
-    if (!movie) return;
-
-    if (Math.abs(currentSeconds + startTime - movie.currentTime()!) < 1)
-      return;
-
-    movie.currentTime(startTime + currentSeconds);
-  }, [currentSeconds]);
-
-  useEffect(() => {
-    if (playing)
-      play();
-    else
-      pause();
-  }, [playing]);
-
-  function pause() {
-    clearInterval(videoTimer!);
-    setVideoTimer(null);
-
-    playerRef.current?.pause();
-  }
-
-  function play() {
-    const movie = playerRef.current;
-
-    const vidT = setInterval(() => {
-      if (!movie) return;
-      videoNode?.getLayer()?.batchDraw();
-    }, 1000 / 30);
-
-
-    setVideoTimer(vidT);
-
-    movie?.play()?.catch(console.error);
-  }
-
-  return (
-    <>
-      {playerRef.current && (
-        <Image
-          ref={(node) => {
-            setVideoNode(node);
-          }}
-          width={dimensions[0]}
-          height={dimensions[1]}
-          image={playerRef.current?.el().querySelector('video') as any}
-        />
-      )}
-    </>
+      </div>
+      <Stage
+        width={dimensions[0] * factor}
+        height={dimensions[1] * factor}
+      >
+        <Layer>
+          {section?.fragments && (
+            section?.fragments.map((element, i) => (
+              <Rectangle
+                key={i}
+                shapeProps={{
+                  x: element.x * factor,
+                  y: element.y * factor,
+                  width: element.width * factor,
+                  height: element.height * factor,
+                }}
+                stageWidth={dimensions[0] * factor}
+                stageHeight={dimensions[1] * factor}
+                onChange={(newAttrs) => {
+                  modifyFragment(i, {
+                    x: newAttrs.x / factor,
+                    y: newAttrs.y / factor,
+                    width: newAttrs.width / factor,
+                    height: newAttrs.height / factor,
+                  })
+                }}
+              />
+            ))
+          )}
+        </Layer>
+      </Stage>
+    </div>
   );
 }
 

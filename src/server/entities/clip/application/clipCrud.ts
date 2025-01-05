@@ -45,8 +45,6 @@ export async function save(
   companyId: string,
   input: ClipType,
 ) {
-  console.log("Saving clip", JSON.stringify(input, null, 2));
-
   const clip = await repo.find(input.id);
 
   if (!clip) {

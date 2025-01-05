@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Timer } from '../useTimer';
+import { Timer } from './useTimer';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';
@@ -9,19 +9,22 @@ export default function HLSReproducer({
   src,
   startTime = 0,
   timer: {
-    setLength,
     currentTime,
     currentSeconds,
     playing,
   },
   width,
   height,
+  setDimensions,
+  muted,
 }: {
   src: string,
   startTime: number,
   timer: Timer,
   width?: number,
   height?: number,
+  setDimensions?: (dim: [number, number]) => void,
+  muted?: boolean,
 }) {
   const playerRef = useRef<Player | null>(null);
   const videoRef = useRef<HTMLDivElement>(null);
@@ -46,6 +49,7 @@ export default function HLSReproducer({
           controls: false,
           responsive: true,
           fluid: true,
+          muted,
           sources: [{
             src,
             type: 'application/x-mpegURL'
@@ -56,7 +60,8 @@ export default function HLSReproducer({
           player.on('loadedmetadata', () => {
             setVideoWidth(width || player.videoWidth() || 0);
             setVideoHeight(player.videoHeight() || 0);
-            setLength(player.duration() || 0);
+
+            setDimensions && setDimensions([player.videoWidth(), player.videoHeight()]);
           });
         });
     }
@@ -78,31 +83,21 @@ export default function HLSReproducer({
     if (!movie) return;
 
     const a = 1;
-    if (Math.abs(currentSeconds - movie.currentTime()!) < a)
+    if (Math.abs(currentSeconds + startTime - movie.currentTime()!) < a)
       return;
 
     movie.currentTime(startTime + currentSeconds);
   }, [currentTime]);
 
   useEffect(() => {
+    const movie = playerRef.current;
+    if (!movie) return;
+
     if (playing)
-      play();
-    else
-      pause();
-  }, [playing]);
-
-  function pause() {
-    const movie = playerRef.current;
-    if (movie)
-      movie.pause();
-  }
-
-  function play() {
-    const movie = playerRef.current;
-
-    if (movie)
       movie.play()?.catch(console.error);
-  }
+    else
+      movie.pause();
+  }, [playing]);
 
   return (
     <div data-vjs-player style={{ width: videoWidth!*height!/videoHeight! }}>

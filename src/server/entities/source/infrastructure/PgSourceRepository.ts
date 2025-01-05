@@ -96,16 +96,6 @@ export class PgSourceRepository implements SourceRepository {
     //     { "word": "is", "start": 100, "end": 200 },
     //     ...
     // ]
-    // Apply a query similar to this one
-    //
-    // SELECT word -> 'word', word -> 'start', word -> 'end'
-    // FROM source_transcription, jsonb_array_elements(source_transcription.transcription) AS word
-    // WHERE
-    //   source_transcription.source_id = sourceId
-    //   AND CAST((word -> 'start') AS INTEGER) > range.start
-    //   AND CAST((word -> 'end') AS INTEGER) < range.end
-    //;
-    //
     // See the following link for more info about jsonb arrays and how to query them
     // https://hevodata.com/learn/query-jsonb-array-of-objects/
     return (await this.db.execute(sql`

@@ -20,7 +20,7 @@ def generateClip(
     fileHandler: FileHandler,
     event: Event,
 ):
-    fileHandler.downloadFiles()
+    #fileHandler.downloadFiles(keys=["original.mp4"])
 
     source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
@@ -42,16 +42,18 @@ def generateClip(
 
     clipRepo.finishClipProcessing(clip.id)
     
-    fileHandler.saveFiles()
+    #fileHandler.saveFiles()
 
 
 # Generate a clip from a source video.
 # The clip is divided into sections, each section is divided into fragments.
 # We generate a video for each section, and then concatenate them.
 def generateClipFile(clip: Clip, source: Source, sys: System):
+    print(clip.sections)
     sects = len(clip.sections)
 
     for i in range(sects):
+        print("Generating section", i)
         section = clip.sections[i]
         # Generate the video for each section
         # We first trim the video to the section range with -ss and -to
@@ -82,9 +84,10 @@ def generateClipFile(clip: Clip, source: Source, sys: System):
 
         result = sys.run(arguments)
 
+        print("Result", result[2])
         if result[2] != 0:
             print("Error", result[1])
-            raise Exception(f"Error generating section {i}", result[1])
+            raise Exception(f"Error generating section {i}")
 
     # Concatenate sections videos
     arguments = [
@@ -121,10 +124,12 @@ def generateClipFile(clip: Clip, source: Source, sys: System):
         print("Error", result[1])
         raise Exception("Error generating clip", result[1])
 
+    """
     # Remove section videos
     for i in range(sects):
-        sys.rm(sys.path(f"{clip.id}_{i}.mp4"))
+        sys.rm(f"{clip.id}_{i}.mp4")
         # os.unlink(sys.path(f"{clip.id}_{i}.mp4"))
+    """
 
 
 # It generates the filter for a section.

@@ -4,20 +4,21 @@ import Timeline from "../../Timeline";
 import { Timer } from "../../useTimer";
 import { useFormContext } from "react-hook-form";
 import { SourceType } from "@/server/entities/source/domain/Source";
-import { Clip, SectionFront } from "../Clip";
-import Play from "../../../../../../public/images/MaterialSymbolsPlayArrow.svg";
 import Split from "../../../../../../public/images/Split.svg";
 import Trash from "../../../../../../public/images/Trash.svg";
+import { useMemo } from "react";
+import Play from "../../../../../../public/images/MaterialSymbolsPlayArrow.svg";
 import Pause from "../../../../../../public/images/Pause.svg";
 import { toReadableTime } from "@/app/utils";
-import { useMemo } from "react";
+import { ClipType, SectionType } from "@/server/entities/clip/domain/Clip";
 
 export function TimelineWrapper({
   source,
   timer,
   togglePreview,
   start,
-  selectedSection,
+  duration,
+  selectedSectionIndex,
   timelineUrl,
   setSelectedSection,
   divideSection,
@@ -27,14 +28,15 @@ export function TimelineWrapper({
   timer: Timer,
   togglePreview: () => void,
   start: number,
+  duration: number,
   timelineUrl: string,
-  selectedSection: number,
+  selectedSectionIndex: number,
   setSelectedSection: (start: number) => void,
   divideSection: () => void,
   deleteSection: () => void,
 }) {
 
-  const form = useFormContext<Clip>();
+  const form = useFormContext<ClipType>();
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -51,6 +53,7 @@ export function TimelineWrapper({
               <div className="w-full flex flex-row gap-x-10 justify-center">
                 <Controls
                   timer={timer}
+                  duration={duration}
                   divideSection={divideSection}
                   deleteSection={deleteSection}
                   zoomBar={zoomBar}
@@ -63,15 +66,15 @@ export function TimelineWrapper({
               secondsOfClick: (value: number) => number,
               left: (startSeconds: number) => number,
               width: (startSeconds: number, endSeconds: number) => number,
-              reference: number,
+              cursor: number,
             ) => (
               <SectionSelector
                 secondsOfClick={secondsOfClick}
                 left={left}
                 width={width}
-                reference={reference}
+                cursor={cursor}
                 sections={form.watch('sections')}
-                selectedSection={selectedSection}
+                selectedSectionIndex={selectedSectionIndex}
                 setSelectedSection={setSelectedSection}
               />
             )}
@@ -85,17 +88,17 @@ export function TimelineWrapper({
 function SectionSelector({
   left,
   width,
-  reference,
+  cursor,
   sections,
-  selectedSection,
+  selectedSectionIndex,
   setSelectedSection,
 }: {
   secondsOfClick: (value: number) => number,
   left: (startSeconds: number) => number,
   width: (startSeconds: number, endSeconds: number) => number,
-  reference: number,
+  cursor: number,
   sections: Clip['sections']
-  selectedSection: number,
+  selectedSectionIndex: number,
   setSelectedSection: (start: number) => void,
 }) {
   return (
@@ -104,8 +107,8 @@ function SectionSelector({
         <Section
           key={i}
           section={section}
-          selected={selectedSection === i}
-          onClick={() => setSelectedSection(i)}
+          selected={selectedSectionIndex === i}
+          onClick={() => {setSelectedSection(i)}}
         />
       ))}
     </div>
@@ -116,18 +119,18 @@ function SectionSelector({
     selected,
     onClick,
   }: {
-    section: SectionFront,
+    section: SectionType,
     selected: boolean,
     onClick: () => void,
   }) {
     const leftVal = useMemo(
       () => left(section.start),
-      [section.start, reference]
+      [section.start, cursor]
     );
 
     const widthVal = useMemo(
       () => width(section.start, section.end),
-      [section.start, section.end, reference]
+      [section.start, section.end, cursor]
     );
 
     return (
@@ -148,13 +151,19 @@ function SectionSelector({
 }
 
 function Controls({
-  timer,
+  timer: {
+    togglePlay,
+    playing,
+    currentSeconds
+  },
+  duration,
   divideSection,
   deleteSection,
   zoomBar,
   showPreview,
 }: {
   timer: Timer,
+  duration: number,
   divideSection: () => void,
   deleteSection: () => void
   zoomBar?: JSX.Element,
@@ -175,13 +184,13 @@ function Controls({
         </div>
         <div className="flex flex-row items-center gap-x-4">
           <div className="flex flex-row gap-x-2">
-            <button onClick={() => timer.togglePlay()}>
-              {timer.playing ?
+            <button onClick={() => { togglePlay() }}>
+              {playing ?
                 <Pause className="w-7 h-7 fill-none stroke-gray-700" /> :
                 <Play className="w-7 h-7 fill-none stroke-gray-700" />
               }
             </button>
-            <div>{toReadableTime(timer.currentSeconds)}</div>
+            <div>{toReadableTime(currentSeconds)} / {toReadableTime(duration)}</div>
           </div>
         </div>
         <button onClick={showPreview}>Preview</button>
