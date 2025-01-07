@@ -31,6 +31,7 @@ export function Viewer({
   ) => void
 }) {
   const factor = 400 / 480
+  //const factor = 1;
 
   return (
     <div className="relative">

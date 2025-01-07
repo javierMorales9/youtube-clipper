@@ -1,10 +1,11 @@
+import json
+from typing import TypedDict
 from pydantic import BaseModel
-from application.generateClip.extractInterventions import extractLines
+from application.generateClip.extractInterventions import Line, groupWordsInLines
 from entities.source.Word import Word
 from entities.suggestion.Suggestion import Suggestion
 from entities.source.Source import Source
 import numpy as np
-import pandas as pd
 from entities.shared.aiModel import AIModel
 
 clipDurationRanges = {
@@ -18,196 +19,112 @@ clipDurationRanges = {
 }
 
 
-def createSuggestions(
-    suggestionModel: AIModel, source: Source, words: list[Word]
-):
-    print("Creating suggestions")
-    lines = extractLines(words)
+class SuggestionRange(TypedDict):
+    start_line: int
+    end_line: int
 
-    #
-    # The lines are created to show them in the a mobile view, so they are short
-    # and don't have enough information for the beam search to work properly.
-    # We will join the lines in pairs to create longer phrases.
-    #
-    i = 0
-    step = 2
-    phrasesArr = []
-    index = 0
-    while i < len(lines):
-        phrasesArr.append(
-            {
-                "index": index,
-                "start": i,
-                "length": step,
-                "text": " ".join([line["text"] for line in lines[i : i + step]]),
-            }
-        )
-        i += step
-        index += 1
 
-    phrases = pd.DataFrame(phrasesArr)
+def createSuggestions(suggestionModel: AIModel, source: Source, words: list[Word]):
+    lines = groupWordsInLines(words, maxChars=30, maxDuration=5000)
 
-    phrases["embedding"] = suggestionModel.generateEmbeddingsFromList(
-        phrases["text"].to_list()
-    )
-
+    """
     queryEmb = generateQueryEmedding(source, suggestionModel)
-
-    phrases["similarities"] = phrases["embedding"].apply(
-        lambda x: cosineSimilarity(x, queryEmb)
+    embeddings = suggestionModel.generateEmbeddingsFromList(
+        [line["text"] for line in lines]
     )
-    topPhrases = phrases.sort_values(by="similarities", ascending=False).head(10)
-    print("top phrases", topPhrases)
+    similarities = [
+        cosineSimilarity(embeddings[i], queryEmb) for i in range(len(embeddings))
+    ]
+    json.dump(similarities, open("similarities.json", "w"))
+    """
+    similarities = json.load(open("similarities.json", "r"))
 
-    selections = pd.DataFrame(
-        columns=np.array(["start", "end", "text", "similarities"])
-    )
+    clipDurationRange = clipDurationRanges[source.clipLength or "<30s"]
+    minClipDuration = clipDurationRange[0]
+    maxClipDuration = clipDurationRange[1]
 
-    clipLengthRange = clipDurationRanges[source.clipLength or "<30s"]
+    # A list of the top <lineCount> lines to create suggestions from.
+    # E.g. [970, 91, 1741, 1563, 698 ...]
+    lineCount = 5
+    topLineIndexes = getTopLines(lineCount, maxClipDuration, similarities, lines)
+    print("topLineIndexes", topLineIndexes)
 
-    for i in range(0, len(topPhrases)):
-        start = topPhrases.iloc[i]["index"]
-        length = 1
-
-        current = topPhrases.iloc[i]["text"]
-        currentSim = topPhrases.iloc[i]["similarities"]
-
-        withPrev = withNext = withBoth = ""
-        withPrevSim = withNextSim = withBothSim = 0
-        withPrevDuration = withNextDuration = withBothDuration = 0
-
-        takePrev = takeNext = True
-
-        while takePrev or takeNext:
-            if takePrev:
-                withPrev = phrases.loc[start - 1]["text"] + current
-                newEmb = suggestionModel.generateEmbedding(withPrev)
-                withPrevSim = cosineSimilarity(newEmb, queryEmb)
-
-                lineStart = phrases.loc[start - 1]["start"]
-                lineEnd = (
-                    phrases.loc[start + length - 1]["start"]
-                    + phrases.loc[start + length - 1]["length"]
-                )
-                millisStart = lines[lineStart]["start"]
-                millisEnd = lines[lineEnd]["end"]
-
-                withPrevDuration = millisEnd - millisStart
-
-            if takeNext:
-                withNext = current + phrases.loc[start + length]["text"]
-                newEmb = suggestionModel.generateEmbedding(withNext)
-                withNextSim = cosineSimilarity(newEmb, queryEmb)
-
-                lineStart = phrases.loc[start]["start"]
-                lineEnd = (
-                    phrases.loc[start + length]["start"]
-                    + phrases.loc[start + length]["length"]
-                )
-                millisStart = lines[lineStart]["start"]
-                millisEnd = lines[lineEnd]["end"]
-
-                withNextDuration = millisEnd - millisStart
-
-            if takePrev and takeNext:
-                withBoth = (
-                    phrases.loc[start - 1]["text"]
-                    + current
-                    + phrases.loc[start + length]["text"]
-                )
-                newEmb = suggestionModel.generateEmbedding(withBoth)
-                withBothSim = cosineSimilarity(newEmb, queryEmb)
-
-                lineStart = phrases.loc[start - 1]["start"]
-                lineEnd = (
-                    phrases.loc[start + length]["start"]
-                    + phrases.loc[start + length - 1]["length"]
-                )
-                millisStart = lines[lineStart]["start"]
-                millisEnd = lines[lineEnd]["end"]
-
-                withBothDuration = millisEnd - millisStart
-
-            if withBothSim > withPrevSim and withBothSim > withNextSim:
-                if withBothSim < currentSim and withBothDuration > clipLengthRange[0]:
-                    break
-
-                if withBothSim > currentSim and withBothDuration > clipLengthRange[1]:
-                    break
-
-                current = withBoth
-                currentSim = withBothSim
-
-                start -= 1
-                length += 2
-
-                continue
-
-            if withPrevSim > withNextSim:
-                if withPrevSim < currentSim and withPrevDuration > clipLengthRange[0]:
-                    break
-
-                if withPrevSim > currentSim and withPrevDuration > clipLengthRange[1]:
-                    break
-
-                current = withPrev
-                currentSim = withPrevSim
-
-                takeNext = False
-
-                start -= 1
-                length += 1
-
-            if withNextSim > withPrevSim:
-                if withNextSim < currentSim and withNextDuration > clipLengthRange[0]:
-                    break
-
-                if withNextSim > currentSim and withNextDuration > clipLengthRange[1]:
-                    break
-
-                current = withNext
-                currentSim = withNextSim
-
-                takePrev = False
-
-                length += 1
-
-        lineStart = phrases.loc[start]["start"]
-        lineEnd = (
-            phrases.loc[start + length]["start"] + phrases.loc[start + length]["length"]
+    for i in range(1001, 1002):
+        line = lines[i]
+        print(
+            line["text"],
+            toReadableTime(int(line["start"] / 1000)),
+            toReadableTime(int(line["end"] / 1000)),
         )
-        millisStart = lines[lineStart]["start"]
-        millisEnd = lines[lineEnd]["end"]
 
-        # Add the suggestion to the dataframe
-        selections.loc[-1] = [millisStart, millisEnd, current, currentSim]
-        selections.index = selections.index + 1
-        selections = selections.sort_index()
+    suggestionRanges: list[SuggestionRange] = []
+    for topLineIndex in topLineIndexes:
+        suggestionRange: SuggestionRange = {
+            "start_line": topLineIndex,
+            "end_line": topLineIndex,
+        }
+        while True:
+            suggestionRange["start_line"] -= 1
+            suggestionRange["end_line"] += 1
 
-    selectedSuggestions = selections.sort_values(
-        by="similarities", ascending=False
-    ).head(5)
-    print(selectedSuggestions)
+            endMillis = lines[suggestionRange["end_line"]]["end"]
+            startMillis = lines[suggestionRange["start_line"]]["start"]
+            suggestionDuration = endMillis - startMillis
 
-    addNameAndDescription(selectedSuggestions, suggestionModel, source)
+            if (
+                suggestionDuration > minClipDuration
+                and suggestionDuration < maxClipDuration
+            ):
+                break
 
-    selectedSuggestions.to_dict(orient="records")
+        suggestionRanges.append(suggestionRange)
+
+    print("suggestion ranges", suggestionRanges)
 
     suggestions: list[Suggestion] = []
-    for i in range(0, len(selectedSuggestions)):
+    for suggestionRange in suggestionRanges:
+        start_line = suggestionRange["start_line"]
+        end_line = suggestionRange["end_line"]
+
+        start = lines[start_line]["start"]
+        end = lines[end_line - 1]["end"]
+
+        text = " "
+        for i in range(start_line, end_line):
+            text += lines[i]["text"] + " "
+
+        data = generateNameAndDescription(text, suggestionModel, source)
+        name = data.name if data is not None else "No name"
+        description = data.description if data is not None else "No description"
+
         suggestions.append(
             Suggestion(
                 id=None,
                 sourceId=source.id,
                 companyId=source.companyId,
-                name=selectedSuggestions.iloc[i]["name"],
-                description=selectedSuggestions.iloc[i]["description"],
-                start=int(selectedSuggestions.iloc[i]["start"] / 1000),
-                end=int(selectedSuggestions.iloc[i]["end"] / 1000),
+                name=name,
+                description=description,
+                start=start,
+                end=end,
             )
         )
 
     return suggestions
+
+
+def toReadableTime(time: int, alwaysHours: bool = False):
+    if not time:
+        return "00:00" if not alwaysHours else "00:00:00"
+
+    hours = time // 3600
+    minutes = (time % 3600) // 60
+    seconds = time % 60
+
+    hoursStr = f"{hours}:" if hours > 0 or alwaysHours else ""
+    minutesStr = f"{minutes:02d}:"
+    secondsStr = f"{seconds:02d}"
+
+    return f"{hoursStr}{minutesStr}{secondsStr}"
 
 
 def cosineSimilarity(a, b):
@@ -230,34 +147,82 @@ The clips should be {clipLength} long.
     return suggestionModel.generateEmbedding(query)
 
 
+def getTopLines(
+    lineCount: int, maxClipDuration: int, similarities: list[int], lines: list[Line]
+):
+    orderedSimilarities = orderSimilarities(similarities)
+
+    topLineIndexes: list[int] = []
+    for sim in orderedSimilarities:
+        index: int = sim["id"]
+
+        if checkCollision(index, topLineIndexes, lines, maxClipDuration):
+            continue
+
+        topLineIndexes.append(index)
+
+        if len(topLineIndexes) == lineCount:
+            break
+
+    return topLineIndexes
+
+
+def checkCollision(
+    index: int,
+    topLineIndexes: list[int],
+    lines: list[Line],
+    minSuggestionSeparation: int,
+):
+    line = lines[index]
+    for topLineIndex in topLineIndexes:
+        topLine = lines[topLineIndex]
+
+        if line["start"] > topLine["start"]:
+            lineSeparation = line["start"] - topLine["end"]
+        else:
+            lineSeparation = topLine["start"] - line["end"]
+
+        if lineSeparation < minSuggestionSeparation:
+            return True
+
+    return False
+
+
+class OrderedSimilarity(TypedDict):
+    id: int
+    similarity: int
+
+
+def orderSimilarities(similarities: list[int]) -> list[OrderedSimilarity]:
+    orderedSimilarities: list[OrderedSimilarity] = []
+    for i in range(len(similarities)):
+        orderedSimilarities.append(
+            {
+                "id": i,
+                "similarity": similarities[i],
+            }
+        )
+
+    orderedSimilarities = sorted(
+        orderedSimilarities, key=lambda x: x["similarity"], reverse=True
+    )
+
+    return orderedSimilarities
+
+
 class SuggestionData(BaseModel):
     name: str
     description: str
 
 
-def addNameAndDescription(
-    df: pd.DataFrame, suggestionModel: AIModel, source: Source
-):
-    names = []
-    descriptions = []
-    for i in range(0, len(df)):
-        text = df.iloc[i]["text"]
-        data = suggestionModel.jsonCall(
-            roleText=f"You are an editor for a famous podcast. \
+def generateNameAndDescription(text: str, suggestionModel: AIModel, source: Source):
+    return suggestionModel.jsonCall(
+        roleText=f"You are an editor for a famous podcast. \
 You have already selected a clip from a new video. \
 The transcription of the clip is {text}. \
 The video from which the clip was taken is of the {source.genre} genre and has the following tags: {source.tags}.",
-            userText=f"Can you generate a name and a description for the clip. \
+        userText=f"Can you generate a name and a description for the clip. \
 The name should be short, under 60 words. The description should be a bit longer, under 100 words \
-and very direct with few adjectives.",
-            format=SuggestionData,
-        )
-
-        if data is None:
-            continue
-
-        names.append(data.name)
-        descriptions.append(data.description)
-
-    df["name"] = names
-    df["description"] = descriptions
+and very direct with few adjectives. All the text should be in english",
+        format=SuggestionData,
+    )

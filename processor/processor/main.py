@@ -1,3 +1,4 @@
+import json
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -25,6 +26,8 @@ from application.processSource.processSource import processSource
 from application.startTranscription.startTranscription import startTranscription
 from entities.shared.prodDateCreator import ProdDateCreator
 from entities.shared.prodvideoDownloader import ProdVideoDownloader
+from application.processSource.extractWordsFromFile import extractWordsFromFile
+from application.processSource.createSuggestions import createSuggestions
 
 
 def main():
@@ -55,9 +58,7 @@ def main():
                     fileHandler = S3FileHandler(
                         sys, event.sourceId, uploadBaseFiles=True
                     )
-                    transcriptionHandler = S3TranscriptionHandler(
-                        sys, event.sourceId
-                    )
+                    transcriptionHandler = S3TranscriptionHandler(sys, event.sourceId)
                     videoDownloader = ProdVideoDownloader(sys)
                     dateCreator = ProdDateCreator()
 
@@ -83,7 +84,9 @@ def main():
 
                     if not fileHandler.checkIfFilesExist("transcription.json"):
                         print("Transcription not ready yet")
-                        newEv = createTranscriptionInProgressEvent(source, dateCreator.newDate())
+                        newEv = createTranscriptionInProgressEvent(
+                            source, dateCreator.newDate()
+                        )
                         eventRepo.saveEvent(newEv)
                         return
 
@@ -106,4 +109,24 @@ def main():
         sleep(10)
 
 
-main()
+# main()
+
+load_dotenv()
+dbUrl = os.environ["DATABASE_URL"]
+
+engine = create_engine(dbUrl)
+sourceId = "16e68f83-9306-427e-a077-21f6933fd0f8"
+
+with Session(engine) as session:
+    sourceRepo = PostgresSourceRepository(session)
+    suggestionRepo = PostgresSuggestionRepository(session)
+
+    sys = ProdSystem(sourceId)
+    fileHandler = S3FileHandler(sys, sourceId)
+    dateCreator = ProdDateCreator()
+    suggestionModel = OpenAiModel(sys)
+
+    source = sourceRepo.findSourceById(sourceId)
+    if source is not None:
+        words = extractWordsFromFile(sys)
+        createSuggestions(suggestionModel, source, words)

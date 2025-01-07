@@ -43,63 +43,40 @@ class Line(TypedDict):
 #   If it takes to long, even if the are less words, we go to the next line
 # - The maximum gap between words. If there is a gap between words where no one
 #   is speaking, we go to the next line.
-def extractLines(
+def groupWordsInLines(
     words: list[Word], maxChars: int = 15, maxDuration: int = 2500, maxGap: int = 1500
 ):
-    interventions: list[Line] = []
-    line: list[Word] = []
+    lines: list[Line] = []
+    line_words: list[Word] = []
+    line_text = ""
     line_duration = 0
 
-    for idx, word_data in enumerate(words):
-        start = word_data["start"]
-        end = word_data["end"]
+    for idx in range(len(words)):
+        word_data = words[idx]
 
-        line.append(word_data)
-        line_duration += end - start
+        line_words.append(word_data)
 
-        # Check if adding a new word exceeds the maximum character count or duration
-        temp = " ".join(item["word"] for item in line)
-        new_line_chars = len(temp)
-        duration_exceeded = line_duration > maxDuration
-        chars_exceeded = new_line_chars > maxChars
+        line_text += word_data["word"] + " "
+        line_duration += word_data["end"] - word_data["start"]
 
-        # Check if the max time with no speech has been exceeded
-        if idx > 0:
-            gap = word_data["start"] - words[idx - 1]["end"]
-            maxgap_exceeded = gap > maxGap
-        else:
-            maxgap_exceeded = False
+        line_gap = word_data["start"] - words[idx - 1]["end"]
 
-        # If we have exceded any criteria, we finish the line and start a new one
-        if duration_exceeded or chars_exceeded or maxgap_exceeded:
-            if line:
-                subtitle_line: Line = {
-                    "text": " ".join(item["word"] for item in line),
-                    "start": line[0]["start"],
-                    "end": line[-1]["end"],
-                    "words": line,
+        if (
+            len(line_text) > maxChars
+            or line_duration > maxDuration
+            or line_gap > maxGap
+            or idx == len(words) - 1
+        ) and len(line_words) > 0:
+            lines.append(
+                {
+                    "text": line_text,
+                    "start": line_words[0]["start"],
+                    "end": line_words[-1]["end"],
+                    "words": line_words,
                 }
-                interventions.append(subtitle_line)
-                line = []
-                line_duration = 0
+            )
+            line_words = []
+            line_duration = 0
+            line_text = ""
 
-    # Add the last line
-    if line:
-        subtitle_line = {
-            "text": " ".join(item["word"] for item in line),
-            "start": line[0]["start"],
-            "end": line[-1]["end"],
-            "words": line,
-        }
-        interventions.append(subtitle_line)
-
-    return interventions
-
-
-def toMillis(timeStr):
-    fromStr, millis = timeStr.split(".")
-
-    if len(millis) < 3:
-        millis = millis + "0" * (3 - len(millis))
-
-    return int(fromStr) * 1000 + int(millis)
+    return lines

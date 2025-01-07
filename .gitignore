@@ -64,3 +64,5 @@ __pycache__/
 processor/processor/test.py
 
 .pytest_cache/
+
+processor/*.json

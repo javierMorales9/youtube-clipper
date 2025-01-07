@@ -1,11 +1,11 @@
 from entities.clip.Clip import Clip, Theme, ThemeShadow, ThemeStroke
-from application.generateClip.extractInterventions import extractLines, Line
+from application.generateClip.extractInterventions import groupWordsInLines, Line
 from entities.source.Word import Word
 from entities.shared.system import System
 
 def addSubtitlestoClip(clip: Clip, words: list[Word], sys: System):
     fontPath = sys.env("FONTS_PATH")
-    lines = extractLines(words)
+    lines = groupWordsInLines(words)
 
     # Extract the ones that are in the clip. We multiply by 1000 to compare in millis
     linelevel_subtitles: list[Line] = []

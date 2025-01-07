@@ -1,0 +1,23 @@
+def jsonCall(
+    self, roleText: str, userText: str, format: type[FormatT]
+) -> FormatT | None:
+    client = OpenAI(
+        api_key=self.sys.env("OPENAI_API_KEY"),
+    )
+
+    result = client.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {
+                "role": "system",
+                "content": roleText,
+            },
+            {
+                "role": "user",
+                "content": userText,
+            },
+        ],
+        response_format=format,
+    )
+
+    return result.choices[0].message.parsed

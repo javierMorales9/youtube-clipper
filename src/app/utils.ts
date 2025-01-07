@@ -1,4 +1,4 @@
-import { Word } from "@/server/entities/source/Source";
+import { Word } from "@/server/entities/source/domain/Source";
 
 //We receive a time in seconds and convert it to a readable time format (hh:mm:ss)
 export function toReadableTime(

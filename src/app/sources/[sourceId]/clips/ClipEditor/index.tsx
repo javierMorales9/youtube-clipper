@@ -48,7 +48,6 @@ export default function ClipEditor({
   }
 
   useEffect(() => {
-    console.log("Setting dimensions", dimensions);
     form.setValue("width", dimensions[0]);
     form.setValue("height", dimensions[1]);
   }, [dimensions]);
