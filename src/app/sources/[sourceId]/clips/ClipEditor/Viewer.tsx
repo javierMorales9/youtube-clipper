@@ -24,11 +24,11 @@ export function Viewer({
     fragment: {
       x: number,
       y: number,
-      width: number,
-      height: number
+      size: number,
     },
   ) => void
 }) {
+  console.log("section", section?.fragments);
   const defaultHeight = 480;
   const width = useMemo(() => defaultHeight * dimensions[0] / dimensions[1], []);
   const height = useMemo(() => defaultHeight, []);
@@ -61,18 +61,16 @@ export function Viewer({
                     shapeProps={{
                       x: fragment.x * width,
                       y: fragment.y * height,
-                      width: height * clipAspectRatio * fragment.width,
-                      height: height * fragment.height,
+                      width: height * clipAspectRatio * fragment.size,
+                      height: height * fragment.size,
                     }}
                     stageWidth={width}
                     stageHeight={height}
                     onChange={(newAttrs) => {
-                      console.log(newAttrs, height, newAttrs.height / height);
                       modifyFragment(i, {
                         x: newAttrs.x / width,
                         y: newAttrs.y / height,
-                        width: newAttrs.height / height,
-                        height: newAttrs.height / height,
+                        size: newAttrs.height / height,
                       })
                     }}
                   />

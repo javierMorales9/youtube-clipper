@@ -26,8 +26,7 @@ export function useSections(
             order: i,
             x: element.x,
             y: element.y,
-            width: 1 / 2,
-            height: 1 / 2,
+            size: 1 / 2,
           })),
         },
       ]);
@@ -103,8 +102,7 @@ export function useSections(
       order: i,
       x: element.x,
       y: element.y,
-      width: 1/2,
-      height: 1/2,
+      size: 1/2,
     }));
 
     form.setValue("sections", form.getValues("sections"));
@@ -115,8 +113,7 @@ export function useSections(
     newAttrs: {
       x: number;
       y: number;
-      width: number;
-      height: number;
+      size: number;
     },
   ) => {
     if (!selectedSection?.fragments || !selectedSection?.fragments[i]) return;
@@ -125,8 +122,7 @@ export function useSections(
       order: selectedSection.fragments[i]?.order ?? i,
       x: newAttrs.x,
       y: newAttrs.y,
-      width: newAttrs.width,
-      height: newAttrs.height,
+      size: newAttrs.size,
     };
 
     form.setValue("sections", form.watch("sections"));

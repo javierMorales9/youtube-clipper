@@ -102,11 +102,10 @@ function VideoFragment({
   fragment: {
     x: number,
     y: number,
-    width: number,
-    height: number,
+    size: number,
   },
 }) {
-  const fragmentWidth = sectionWidth  * display.width;
+  const fragmentWidth = sectionWidth * display.width;
   const fragmentHeight = sectionHeight * display.height;
 
   const videoWidth = fragmentHeight * dimensions[0] / dimensions[1];
@@ -116,14 +115,14 @@ function VideoFragment({
     <div
       style={{
         position: 'absolute',
-        left: sectionWidth  * display.x,
-        top:  sectionHeight * display.y,
-        width: fragmentWidth  * fragment.width,
-        height: fragmentHeight * fragment.height,
+        left: sectionWidth * display.x,
+        top: sectionHeight * display.y,
+        width: fragmentWidth * fragment.size,
+        height: fragmentHeight * fragment.size,
         transformOrigin: 'left top',
         transform: `scale(
-          ${1 / fragment.width},
-          ${1 / fragment.height}
+          ${1 / fragment.size},
+          ${1 / fragment.size}
         )`,
         overflow: 'hidden',
       }}

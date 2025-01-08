@@ -109,24 +109,4 @@ def main():
         sleep(10)
 
 
-# main()
-
-load_dotenv()
-dbUrl = os.environ["DATABASE_URL"]
-
-engine = create_engine(dbUrl)
-sourceId = "16e68f83-9306-427e-a077-21f6933fd0f8"
-
-with Session(engine) as session:
-    sourceRepo = PostgresSourceRepository(session)
-    suggestionRepo = PostgresSuggestionRepository(session)
-
-    sys = ProdSystem(sourceId)
-    fileHandler = S3FileHandler(sys, sourceId)
-    dateCreator = ProdDateCreator()
-    suggestionModel = OpenAiModel(sys)
-
-    source = sourceRepo.findSourceById(sourceId)
-    if source is not None:
-        words = extractWordsFromFile(sys)
-        createSuggestions(suggestionModel, source, words)
+main()

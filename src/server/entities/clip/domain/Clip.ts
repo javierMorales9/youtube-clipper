@@ -40,8 +40,7 @@ export const SectionSchema = z.object({
       order: z.number(),
       x: z.number(),
       y: z.number(),
-      width: z.number(),
-      height: z.number(),
+      size: z.number(),
     }),
   ),
 });
@@ -91,8 +90,7 @@ export const defaultFragments = [
     order: 0,
     x: 0,
     y: 0,
-    width: 1,
-    height: 1,
+    size: 1/2,
   },
 ];
 

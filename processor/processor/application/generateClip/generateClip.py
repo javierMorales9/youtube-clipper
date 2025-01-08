@@ -1,8 +1,8 @@
 from typing import Optional
+from enum import Enum
 
 from entities.clip.Clip import Clip, Section
 
-from math import floor
 from entities.clip.clipRepository import ClipRepository
 from entities.event.Event import Event
 from application.generateClip.addSubtitlestoClip import addSubtitlestoClip
@@ -13,6 +13,58 @@ from entities.shared.fileHandler import FileHandler
 from entities.shared.system import System
 
 
+class DisplayName(str, Enum):
+    One = "One"
+    TwoColumn = "TwoColumn"
+    TwoRow = "TwoRow"
+
+
+displays = {
+    "One": {
+        "fragments": [
+            {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1,
+            }
+        ]
+    },
+    "TwoColumn": {
+        "fragments": [
+            {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1 / 2,
+            },
+            {
+                "x": 0,
+                "y": 1/2,
+                "width": 1,
+                "height": 1 / 2,
+            },
+        ]
+    },
+    "TwoRow": {
+        "fragments": [
+            {
+                "x": 0,
+                "y": 0,
+                "width": 1/2,
+                "height": 1,
+            },
+            {
+                "x": 1/2,
+                "y": 0,
+                "width": 1/2,
+                "height": 1,
+            },
+        ]
+    },
+}
+
+
 def generateClip(
     sourceRepo: SourceRepository,
     clipRepo: ClipRepository,
@@ -20,7 +72,7 @@ def generateClip(
     fileHandler: FileHandler,
     event: Event,
 ):
-    fileHandler.downloadFiles(keys=["original.mp4"])
+    #fileHandler.downloadFiles(keys=["original.mp4"])
 
     source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
@@ -42,18 +94,16 @@ def generateClip(
 
     clipRepo.finishClipProcessing(clip.id)
 
-    fileHandler.saveFiles()
+    #fileHandler.saveFiles()
 
 
 # Generate a clip from a source video.
 # The clip is divided into sections, each section is divided into fragments.
 # We generate a video for each section, and then concatenate them.
 def generateClipFile(clip: Clip, source: Source, sys: System):
-    print(clip.sections)
     sects = len(clip.sections)
 
     for i in range(sects):
-        print("Generating section", i)
         generateSectionFile(sys, i, clip, source)
 
     concatSectionFiles(sys, clip)
@@ -65,7 +115,11 @@ def generateClipFile(clip: Clip, source: Source, sys: System):
         # os.unlink(sys.path(f"{clip.id}_{i}.mp4"))
     """
 
+
 def generateSectionFile(sys: System, i: int, clip: Clip, source: Source):
+    if source.width is None or source.height is None:
+        raise Exception("Source resolution is missing")
+
     section = clip.sections[i]
     # Generate the video for each section
     # We first trim the video to the section range with -ss and -to
@@ -85,7 +139,7 @@ def generateSectionFile(sys: System, i: int, clip: Clip, source: Source):
         "-to",
         str(clip.range.start + section.end),
         "-filter_complex",
-        sectionFilter(clip, source, i, section),
+        sectionFilter(section, source.width, source.height),
         "-map",
         "[v]",
         "-map",
@@ -93,6 +147,7 @@ def generateSectionFile(sys: System, i: int, clip: Clip, source: Source):
         "-y",
         sys.path(f"{clip.id}_{i}.mp4"),
     ]
+    print(" ".join(arguments))
 
     result = sys.run(arguments)
 
@@ -113,13 +168,13 @@ def generateSectionFile(sys: System, i: int, clip: Clip, source: Source):
 # Then we generate a video for each fragment using the crop filter.
 # Finally, we stack the videos vertically or horizontally, depending on the display,
 # The final result is a single video [v] for the section.
-def sectionFilter(clip, source, i, section):
+def sectionFilter(section: Section, sourceWidth: float, sourceHeight: float):
     frags = len(section.fragments)
 
-    fs = "".join(f"[f{i}{j}]" for j in range(frags))
-    es = "".join(f"[e{i}{j}]" for j in range(frags))
+    fs = "".join(f"[f{i}]" for i in range(frags))
+    es = "".join(f"[e{i}]" for i in range(frags))
 
-    fragFilters = fragmentsString(clip, source, i, section)
+    fragFilters = fragmentsString(section, sourceWidth, sourceHeight)
 
     # If there is more than one fragment, we need to join them together
     # in a single video. We use the vstack and hstack filters. It takes the video of
@@ -140,23 +195,22 @@ def sectionFilter(clip, source, i, section):
 #   [fi0]<crop>,<resize>,...more filters,...[ei0];[fi1]<crop>,<resize>,...more filters,...[ei1];[fi2]...
 #
 # Being i the section order.
-def fragmentsString(clip: Clip, source: Source, i: int, section: Section):
-    if source.width is None or source.height is None:
-        raise Exception("Source resolution is missing")
-
+def fragmentsString(section: Section, sourceWidth: float, sourceHeight: float):
     frags = len(section.fragments)
 
     fragments = []
-    for j in range(frags):
-        fragment = section.fragments[j]
+    for i in range(frags):
+        fragment = section.fragments[i]
+        display = displays[section.display]["fragments"][i]
 
-        cropWidth = floor(fragment.width / clip.width * source.width)
-        cropHeight = floor(fragment.height / clip.height * source.height)
-        cropX = floor(fragment.x / clip.width * source.width)
-        cropY = floor(fragment.y / clip.height * source.height)
+        fragmentWidth = float(1080 * display["width"])
+        fragmentHeight = float(1920 * display["height"])
+        print(f"Fragment {i} {fragmentWidth}x{fragmentHeight}")
 
-        firstWidth = section.fragments[0].width
-        firstHeight = section.fragments[0].height
+        cropX = fragment.x * sourceWidth
+        cropY = fragment.y * sourceHeight
+        cropHeight = fragment.size * sourceHeight
+        cropWidth = float(cropHeight) * fragmentWidth / fragmentHeight
 
         # We generate a video for each fragment. We take the dimensions
         # and position of the fragment and use the crop filter to extract
@@ -166,12 +220,13 @@ def fragmentsString(clip: Clip, source: Source, i: int, section: Section):
         # We need to resize the fragment to the first fragment resolution to be able to stack them
         # Normally, the fragments resolution will differ by decimals, so the resize won't be noticeable
         # Basically, it is just for ffmpeg to be able to stack them
-        resize = f"setdar={firstWidth}/{firstHeight},scale={firstWidth}:{firstHeight}"
+        resize = f"setdar={fragmentWidth}/{fragmentHeight},scale={fragmentWidth}:{fragmentHeight}"
 
-        fragmentStr = f"[f{i}{j}]{crop},{resize}[e{i}{j}]"
+        fragmentStr = f"[f{i}]{crop},{resize}[e{i}]"
         fragments.append(fragmentStr)
 
     return ";".join(fragments)
+
 
 def concatSectionFiles(sys: System, clip: Clip):
     sects = len(clip.sections)

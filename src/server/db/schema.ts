@@ -196,10 +196,9 @@ export const sectionFragment = createTable(
     clipId: uuid("clip_id")
       .references(() => clip.id, { onDelete: "cascade" })
       .notNull(),
-    x: integer("x").notNull(),
-    y: integer("y").notNull(),
-    width: integer("width").notNull(),
-    height: integer("height").notNull(),
+    x: numeric("x").notNull(),
+    y: numeric("y").notNull(),
+    size: numeric("size").notNull(),
   },
   (table) => {
     return {

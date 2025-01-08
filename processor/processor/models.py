@@ -166,8 +166,7 @@ class SectionFragment(Base):
     )
     x: Mapped[int] = mapped_column(nullable=False)
     y: Mapped[int] = mapped_column(nullable=False)
-    width: Mapped[int] = mapped_column(nullable=False)
-    height: Mapped[int] = mapped_column(nullable=False)
+    size: Mapped[int] = mapped_column(nullable=False)
 
     __table_args__ = (PrimaryKeyConstraint("section_order", "clip_id", "order"),)
 

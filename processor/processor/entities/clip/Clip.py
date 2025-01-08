@@ -28,14 +28,13 @@ class Range:
 
 
 class Fragment:
-    def __init__(self, x: int, y: int, width: int, height: int):
+    def __init__(self, x: int, y: int, size: int):
         self.x: int = x
         self.y: int = y
-        self.width: int = width
-        self.height: int = height
+        self.size: int = size
 
     def __repr__(self):
-        return f"Fragment(x={self.x!r}, y={self.y!r}, width={self.width!r}, height={self.height!r})"
+        return f"Fragment(x={self.x!r}, y={self.y!r}, size={self.size!r})"
 
 
 class Section:

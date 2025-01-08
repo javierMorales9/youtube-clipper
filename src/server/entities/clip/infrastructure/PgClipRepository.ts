@@ -114,10 +114,9 @@ export class PgClipRepository implements ClipRepository {
             order: j,
             sectionOrder: i,
             clipId: id,
-            x: Math.floor(fragment.x),
-            y: Math.floor(fragment.y),
-            width: Math.floor(fragment.width),
-            height: Math.floor(fragment.height),
+            x: fragment.x,
+            y: fragment.y,
+            size: fragment.size,
           });
         }
       }
@@ -155,7 +154,12 @@ export class PgClipRepository implements ClipRepository {
 
         return SectionSchema.parse({
           ...section,
-          fragments,
+          fragments: fragments.map((fragment) => ({
+            order: fragment.order,
+            x: parseFloat(fragment.x),
+            y: parseFloat(fragment.y),
+            size: parseFloat(fragment.size),
+          })),
         });
       }),
     );

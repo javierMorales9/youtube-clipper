@@ -65,8 +65,7 @@ class PostgresClipRepository():
                         Fragment(
                             x=fragmentModel.x,
                             y=fragmentModel.y,
-                            width=fragmentModel.width,
-                            height=fragmentModel.height,
+                            size=fragmentModel.size,
                         )
                     )
             sections.append(

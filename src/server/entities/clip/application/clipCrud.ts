@@ -33,6 +33,7 @@ export async function createNew(
   input: CreateNewInput,
 ) {
   const clip = Clip.new({ ...input, companyId: companyId });
+  console.log('clip', clip.sections[0]);
 
   repo.save(clip);
 
