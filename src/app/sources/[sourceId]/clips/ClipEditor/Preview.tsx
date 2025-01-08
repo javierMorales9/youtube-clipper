@@ -27,6 +27,9 @@ export function Preview({
   dimensions: [number, number],
   lines: Line[],
 }) {
+  //console.log("section", section?.fragments);
+  const previewWidth = 270;
+  const previewHeight = 480;
 
   return (
     <div
@@ -44,13 +47,13 @@ export function Preview({
         <div
           className="relative"
           style={{
-            width: 270,
-            height: 480,
+            width: previewWidth,
+            height: previewHeight,
           }}
         >
           <Captions
-            previewWidth={270}
-            previewHeight={480}
+            previewWidth={previewWidth}
+            previewHeight={previewHeight}
             lines={lines}
             timer={timer}
             startTime={startTime}
@@ -62,7 +65,9 @@ export function Preview({
               timer={timer}
               startTime={startTime}
               dimensions={dimensions}
-              defaultFragment={Displays[section.display]!.fragments[i]!}
+              sectionWidth={previewWidth}
+              sectionHeight={previewHeight}
+              display={Displays[section.display]!.fragments[i]!}
               fragment={fragment}
             />
           ))}
@@ -77,14 +82,18 @@ function VideoFragment({
   startTime = 0,
   timer,
   dimensions,
-  defaultFragment,
+  sectionWidth,
+  sectionHeight,
+  display,
   fragment,
 }: {
   src: string,
   startTime: number,
   timer: Timer,
   dimensions: [number, number],
-  defaultFragment: {
+  sectionWidth: number,
+  sectionHeight: number,
+  display: {
     x: number,
     y: number,
     width: number,
@@ -97,18 +106,24 @@ function VideoFragment({
     height: number,
   },
 }) {
+  const fragmentWidth = sectionWidth  * display.width;
+  const fragmentHeight = sectionHeight * display.height;
+
+  const videoWidth = fragmentHeight * dimensions[0] / dimensions[1];
+  const videoHeight = fragmentHeight;
+
   return (
     <div
       style={{
         position: 'absolute',
-        left: defaultFragment.x,
-        top: defaultFragment.y,
-        width: fragment.width,
-        height: fragment.height,
+        left: sectionWidth  * display.x,
+        top:  sectionHeight * display.y,
+        width: fragmentWidth  * fragment.width,
+        height: fragmentHeight * fragment.height,
         transformOrigin: 'left top',
         transform: `scale(
-          ${defaultFragment.width / fragment.width},
-          ${defaultFragment.height / fragment.height}
+          ${1 / fragment.width},
+          ${1 / fragment.height}
         )`,
         overflow: 'hidden',
       }}
@@ -116,10 +131,8 @@ function VideoFragment({
       <div
         style={{
           position: 'absolute',
-          width: dimensions[0],
-          height: dimensions[1],
-          left: -fragment.x,
-          top: -fragment.y,
+          left: -videoWidth * fragment.x,
+          top: -videoHeight * fragment.y,
         }}
       >
         <HLSReproducer
@@ -127,6 +140,7 @@ function VideoFragment({
           startTime={startTime}
           timer={timer}
           muted={true}
+          height={videoHeight}
         />
       </div>
     </div>

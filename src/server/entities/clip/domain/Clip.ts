@@ -91,8 +91,8 @@ export const defaultFragments = [
     order: 0,
     x: 0,
     y: 0,
-    width: 270,
-    height: 480,
+    width: 1,
+    height: 1,
   },
 ];
 

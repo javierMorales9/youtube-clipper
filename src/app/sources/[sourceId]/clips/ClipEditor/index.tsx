@@ -37,6 +37,7 @@ export default function ClipEditor({
     defaultValues: clip,
   });
 
+  /*
   const [dimensions, setDimensions] = useState<[number, number]>([0, 0]);
 
   const handleDimensionsUpdate = (newDim: [number, number]) => {
@@ -51,6 +52,7 @@ export default function ClipEditor({
     form.setValue("width", dimensions[0]);
     form.setValue("height", dimensions[1]);
   }, [dimensions]);
+  */
 
   const {
     selectedSection,
@@ -128,8 +130,7 @@ export default function ClipEditor({
               timer={timer}
               section={selectedSection}
               modifyFragment={modifyFragment}
-              dimensions={dimensions}
-              setDimensions={handleDimensionsUpdate}
+              dimensions={[source.width!, source.height!]}
             />
             <TimelineWrapper
               timer={timer}
@@ -152,7 +153,7 @@ export default function ClipEditor({
           source={source}
           timer={timer}
           startTime={start}
-          dimensions={dimensions}
+          dimensions={[source.width!, source.height!]}
           lines={lines}
         />
       </form>

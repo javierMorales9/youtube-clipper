@@ -15,7 +15,6 @@ export default function HLSReproducer({
   },
   width,
   height,
-  setDimensions,
   muted,
 }: {
   src: string,
@@ -23,7 +22,6 @@ export default function HLSReproducer({
   timer: Timer,
   width?: number,
   height?: number,
-  setDimensions?: (dim: [number, number]) => void,
   muted?: boolean,
 }) {
   const playerRef = useRef<Player | null>(null);
@@ -60,8 +58,6 @@ export default function HLSReproducer({
           player.on('loadedmetadata', () => {
             setVideoWidth(width || player.videoWidth() || 0);
             setVideoHeight(player.videoHeight() || 0);
-
-            setDimensions && setDimensions([player.videoWidth(), player.videoHeight()]);
           });
         });
     }

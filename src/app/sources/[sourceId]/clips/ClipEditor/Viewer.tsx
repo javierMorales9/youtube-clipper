@@ -1,9 +1,10 @@
 import { Timer } from "../../useTimer";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import Konva from "konva";
 import HLSReproducer from "../../HLSReproducer";
 import { SectionType } from "@/server/entities/clip/domain/Clip";
+import { Displays } from "./Displays";
 
 export function Viewer({
   source,
@@ -11,7 +12,6 @@ export function Viewer({
   timer,
   section,
   dimensions,
-  setDimensions,
   modifyFragment,
 }: {
   source: string,
@@ -19,7 +19,6 @@ export function Viewer({
   timer: Timer,
   section?: SectionType
   dimensions: [number, number],
-  setDimensions: (dim: [number, number]) => void
   modifyFragment: (
     index: number,
     fragment: {
@@ -27,54 +26,63 @@ export function Viewer({
       y: number,
       width: number,
       height: number
-    }
+    },
   ) => void
 }) {
-  const factor = 400 / 480
-  //const factor = 1;
+  const defaultHeight = 480;
+  const width = useMemo(() => defaultHeight * dimensions[0] / dimensions[1], []);
+  const height = useMemo(() => defaultHeight, []);
 
   return (
-    <div className="relative">
-      <div className="absolute top-0 left-0">
-        <HLSReproducer
-          src={source}
-          timer={timer}
-          startTime={start}
-          width={dimensions[0] * factor}
-          height={dimensions[1] * factor}
-          setDimensions={setDimensions}
-        />
+    <div className="w-full">
+      <div className="relative">
+        <div className="absolute top-0 left-0">
+          <HLSReproducer
+            src={source}
+            timer={timer}
+            startTime={start}
+            height={height}
+          />
+        </div>
+        <Stage
+          width={width}
+          height={height}
+        >
+          <Layer>
+            {section?.fragments && (
+              section?.fragments.map((fragment, i) => {
+                const displayWidth = Displays[section.display].fragments[i]!.width;
+                const displayHeight = Displays[section.display].fragments[i]!.height;
+
+                const clipAspectRatio = (1080 * displayWidth) / (1920 * displayHeight);
+                return (
+                  <Rectangle
+                    key={i}
+                    shapeProps={{
+                      x: fragment.x * width,
+                      y: fragment.y * height,
+                      width: height * clipAspectRatio * fragment.width,
+                      height: height * fragment.height,
+                    }}
+                    stageWidth={width}
+                    stageHeight={height}
+                    onChange={(newAttrs) => {
+                      console.log(newAttrs, height, newAttrs.height / height);
+                      modifyFragment(i, {
+                        x: newAttrs.x / width,
+                        y: newAttrs.y / height,
+                        width: newAttrs.height / height,
+                        height: newAttrs.height / height,
+                      })
+                    }}
+                  />
+                )
+              }
+              )
+            )}
+          </Layer>
+        </Stage>
       </div>
-      <Stage
-        width={dimensions[0] * factor}
-        height={dimensions[1] * factor}
-      >
-        <Layer>
-          {section?.fragments && (
-            section?.fragments.map((element, i) => (
-              <Rectangle
-                key={i}
-                shapeProps={{
-                  x: element.x * factor,
-                  y: element.y * factor,
-                  width: element.width * factor,
-                  height: element.height * factor,
-                }}
-                stageWidth={dimensions[0] * factor}
-                stageHeight={dimensions[1] * factor}
-                onChange={(newAttrs) => {
-                  modifyFragment(i, {
-                    x: newAttrs.x / factor,
-                    y: newAttrs.y / factor,
-                    width: newAttrs.width / factor,
-                    height: newAttrs.height / factor,
-                  })
-                }}
-              />
-            ))
-          )}
-        </Layer>
-      </Stage>
     </div>
   );
 }
@@ -195,9 +203,22 @@ const Rectangle = ({
         ]}
         boundBoxFunc={(oldBox, newBox) => {
           // limit resize
+          if (newBox.x < 0) {
+            return oldBox;
+          }
+          if (newBox.y < 0) {
+            return oldBox;
+          }
+          if (newBox.x + newBox.width > stageWidth) {
+            return oldBox;
+          }
+          if (newBox.y + newBox.height > stageHeight) {
+            return oldBox
+          }
           if (Math.abs(newBox.width) < 5 || Math.abs(newBox.height) < 5) {
             return oldBox;
           }
+
           return newBox;
         }}
       />

@@ -26,8 +26,8 @@ export function useSections(
             order: i,
             x: element.x,
             y: element.y,
-            width: element.width / 2,
-            height: element.height / 2,
+            width: 1 / 2,
+            height: 1 / 2,
           })),
         },
       ]);
@@ -103,8 +103,8 @@ export function useSections(
       order: i,
       x: element.x,
       y: element.y,
-      width: element.width / 2,
-      height: element.height / 2,
+      width: 1/2,
+      height: 1/2,
     }));
 
     form.setValue("sections", form.getValues("sections"));

@@ -10,52 +10,49 @@ export type Display = {
   }[];
 };
 
-export const Displays: Record<DisplayName, Display & { image: string }> = {
+export const Displays: Record<DisplayName, Display> = {
   [DisplayName.One]: {
     name: DisplayName.One,
-    image: "/images/One.png",
     fragments: [
       {
         x: 0,
         y: 0,
-        width: 270,
-        height: 480,
+        width: 1,
+        height: 1,
       },
     ],
   },
   [DisplayName.TwoColumn]: {
     name: DisplayName.TwoColumn,
-    image: "/images/TwoColumns.png",
     fragments: [
       {
         x: 0,
         y: 0,
-        width: 270,
-        height: 240,
+        width: 1,
+        height: 1/2,
       },
       {
         x: 0,
-        y: 240,
-        width: 270,
-        height: 240,
+        y: 1/2,
+        width: 1,
+        height: 1/2,
       },
     ],
   },
   [DisplayName.TwoRow]: {
     name: DisplayName.TwoRow,
-    image: "/images/TwoRows.png",
     fragments: [
       {
         x: 0,
         y: 0,
-        width: 135,
-        height: 480,
+        width: 1/2,
+        height: 1,
       },
       {
-        x: 135,
+        x: 1/2,
         y: 0,
-        width: 135,
-        height: 480,
+        width: 1/2,
+        height: 1,
       },
     ],
   },

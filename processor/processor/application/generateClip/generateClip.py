@@ -20,7 +20,7 @@ def generateClip(
     fileHandler: FileHandler,
     event: Event,
 ):
-    #fileHandler.downloadFiles(keys=["original.mp4"])
+    fileHandler.downloadFiles(keys=["original.mp4"])
 
     source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
@@ -41,8 +41,8 @@ def generateClip(
     addSubtitlestoClip(clip, words, sys)
 
     clipRepo.finishClipProcessing(clip.id)
-    
-    #fileHandler.saveFiles()
+
+    fileHandler.saveFiles()
 
 
 # Generate a clip from a source video.
@@ -54,75 +54,9 @@ def generateClipFile(clip: Clip, source: Source, sys: System):
 
     for i in range(sects):
         print("Generating section", i)
-        section = clip.sections[i]
-        # Generate the video for each section
-        # We first trim the video to the section range with -ss and -to
-        # so that we only process the necessary part of the video (30s - 3min)
-        #
-        # Then, we apply the filter_complex to create the vertical video composed
-        # of the fragments. (See sectionFilter)
-        #
-        # And then we just take the resulting video [v] and the audio of the original video
-        # and save it in a new file.
-        arguments = [
-            "ffmpeg",
-            "-i",
-            sys.path("original.mp4"),
-            "-ss",
-            str(clip.range.start + section.start),
-            "-to",
-            str(clip.range.start + section.end),
-            "-filter_complex",
-            sectionFilter(clip, source, i, section),
-            "-map",
-            "[v]",
-            "-map",
-            "0:a?",
-            "-y",
-            sys.path(f"{clip.id}_{i}.mp4"),
-        ]
+        generateSectionFile(sys, i, clip, source)
 
-        result = sys.run(arguments)
-
-        print("Result", result[2])
-        if result[2] != 0:
-            print("Error", result[1])
-            raise Exception(f"Error generating section {i}")
-
-    # Concatenate sections videos
-    arguments = [
-        "ffmpeg",
-    ]
-
-    # We add the section videos as inputs to the command
-    for i in range(sects):
-        arguments.extend(
-            [
-                "-i",
-                sys.path(f"{clip.id}_{i}.mp4"),
-            ]
-        )
-
-    # We concatenate the videos using the concat filter
-    # and save the result in a new file
-    arguments.extend(
-        [
-            "-filter_complex",
-            f"concat=n={sects}:v=1:a=1[v][a]",
-            "-map",
-            "[v]",
-            "-map",
-            "[a]",
-            "-y",
-            sys.path(f"{clip.id}.mp4"),
-        ]
-    )
-
-    result = sys.run(arguments)
-
-    if result[2] != 0:
-        print("Error", result[1])
-        raise Exception("Error generating clip", result[1])
+    concatSectionFiles(sys, clip)
 
     """
     # Remove section videos
@@ -130,6 +64,42 @@ def generateClipFile(clip: Clip, source: Source, sys: System):
         sys.rm(f"{clip.id}_{i}.mp4")
         # os.unlink(sys.path(f"{clip.id}_{i}.mp4"))
     """
+
+def generateSectionFile(sys: System, i: int, clip: Clip, source: Source):
+    section = clip.sections[i]
+    # Generate the video for each section
+    # We first trim the video to the section range with -ss and -to
+    # so that we only process the necessary part of the video (30s - 3min)
+    #
+    # Then, we apply the filter_complex to create the vertical video composed
+    # of the fragments. (See sectionFilter)
+    #
+    # And then we just take the resulting video [v] and the audio of the original video
+    # and save it in a new file.
+    arguments = [
+        "ffmpeg",
+        "-i",
+        sys.path("original.mp4"),
+        "-ss",
+        str(clip.range.start + section.start),
+        "-to",
+        str(clip.range.start + section.end),
+        "-filter_complex",
+        sectionFilter(clip, source, i, section),
+        "-map",
+        "[v]",
+        "-map",
+        "0:a?",
+        "-y",
+        sys.path(f"{clip.id}_{i}.mp4"),
+    ]
+
+    result = sys.run(arguments)
+
+    print("Result", result[2])
+    if result[2] != 0:
+        print("Error", result[1])
+        raise Exception(f"Error generating section {i}")
 
 
 # It generates the filter for a section.
@@ -202,3 +172,40 @@ def fragmentsString(clip: Clip, source: Source, i: int, section: Section):
         fragments.append(fragmentStr)
 
     return ";".join(fragments)
+
+def concatSectionFiles(sys: System, clip: Clip):
+    sects = len(clip.sections)
+    # Concatenate sections videos
+    arguments = [
+        "ffmpeg",
+    ]
+
+    # We add the section videos as inputs to the command
+    for i in range(sects):
+        arguments.extend(
+            [
+                "-i",
+                sys.path(f"{clip.id}_{i}.mp4"),
+            ]
+        )
+
+    # We concatenate the videos using the concat filter
+    # and save the result in a new file
+    arguments.extend(
+        [
+            "-filter_complex",
+            f"concat=n={sects}:v=1:a=1[v][a]",
+            "-map",
+            "[v]",
+            "-map",
+            "[a]",
+            "-y",
+            sys.path(f"{clip.id}.mp4"),
+        ]
+    )
+
+    result = sys.run(arguments)
+
+    if result[2] != 0:
+        print("Error", result[1])
+        raise Exception("Error generating clip", result[1])
