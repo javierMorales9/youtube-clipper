@@ -4,21 +4,21 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useUploader } from "./useUploader";
 import Upload from "../../../../public/images/Upload.svg";
 import { useDropzone } from 'react-dropzone'
-import { NewSelect } from "@/app/_components/NewSelect";
+import { NewSelect } from "@/app/_components/common/NewSelect";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/app/_components/Select"
-import { Label } from "@/app/_components/Label";
-import { Slider } from "@/app/_components/Slider";
-import { NewInput } from "@/app/_components/NewInput";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/Tabs";
+} from "@/app/_components/common/Select"
+import { Label } from "@/app/_components/common/Label";
+import { Slider } from "@/app/_components/common/Slider";
+import { NewInput } from "@/app/_components/common/NewInput";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/common/Tabs";
 
 import { toReadableTime } from "@/app/utils";
-import { Button } from "@/app/_components/Button";
+import { Button } from "@/app/_components/common/Button";
 import { api } from "@/trpc/react";
 
 const lengths = [

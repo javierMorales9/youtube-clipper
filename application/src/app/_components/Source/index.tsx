@@ -1,19 +1,19 @@
 'use client';
 
-import Timeline from "@/app/sources/[sourceId]/Timeline";
-import { useTimer } from "../useTimer";
+import Timeline from "@/app/_components/Timeline";
+import { useTimer } from "@/app/_components/useTimer";
 import Blocks from "./Blocks";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Back from "../../../../../public/images/Back.svg";
-import Play from "../../../../../public/images/MaterialSymbolsPlayArrow.svg";
-import Pause from "../../../../../public/images/Pause.svg";
+import Back from "../../../../public/images/Back.svg";
+import Play from "../../../../public/images/MaterialSymbolsPlayArrow.svg";
+import Pause from "../../../../public/images/Pause.svg";
 import HLSReproducer from "../HLSReproducer";
 import { SourceType } from "@/server/entities/source/domain/Source";
 import { useRouter } from "next/navigation";
 import { toReadableTime } from "@/app/utils";
-import Download from "../../../../../public/images/Download.svg";
-import Loading from "../../../../../public/images/Loading.svg";
+import Download from "../../../../public/images/Download.svg";
+import Loading from "../../../../public/images/Loading.svg";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 import { SelectedBlock, useBlocks } from "./usePanels";

@@ -1,19 +1,14 @@
 import { DisplayName } from "@/server/entities/clip/domain/Clip";
 
 export type Display = {
-  name: DisplayName;
-  fragments: {
     x: number;
     y: number;
     width: number;
     height: number;
   }[];
-};
 
 export const Displays: Record<DisplayName, Display> = {
-  [DisplayName.One]: {
-    name: DisplayName.One,
-    fragments: [
+  [DisplayName.One]: [
       {
         x: 0,
         y: 0,
@@ -21,10 +16,7 @@ export const Displays: Record<DisplayName, Display> = {
         height: 1,
       },
     ],
-  },
-  [DisplayName.TwoColumn]: {
-    name: DisplayName.TwoColumn,
-    fragments: [
+  [DisplayName.TwoColumn]: [
       {
         x: 0,
         y: 0,
@@ -38,10 +30,7 @@ export const Displays: Record<DisplayName, Display> = {
         height: 1/2,
       },
     ],
-  },
-  [DisplayName.TwoRow]: {
-    name: DisplayName.TwoRow,
-    fragments: [
+  [DisplayName.TwoRow]: [
       {
         x: 0,
         y: 0,
@@ -55,5 +44,4 @@ export const Displays: Record<DisplayName, Display> = {
         height: 1,
       },
     ],
-  },
 };

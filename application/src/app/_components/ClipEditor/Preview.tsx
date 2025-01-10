@@ -1,12 +1,12 @@
 'use client';
-import { Timer } from "../../useTimer";
+import { Timer } from "@/app/_components/useTimer";
 import { useMemo } from "react";
 import { ClipType, SectionType, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/entities/clip/domain/Clip";
 import { SourceType } from "@/server/entities/source/domain/Source";
 import { Displays } from "./Displays";
 import { Line } from "@/app/utils";
 import { useFormContext } from "react-hook-form";
-import HLSReproducer from '../../HLSReproducer';
+import HLSReproducer from '@/app/_components/HLSReproducer';
 
 export function Preview({
   section,
@@ -67,7 +67,7 @@ export function Preview({
               dimensions={dimensions}
               sectionWidth={previewWidth}
               sectionHeight={previewHeight}
-              display={Displays[section.display]!.fragments[i]!}
+              display={Displays[section.display]![i]!}
               fragment={fragment}
             />
           ))}

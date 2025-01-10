@@ -1,12 +1,12 @@
 'use client';
 
-import { useTimer } from "../../useTimer";
+import { useTimer } from "@/app/_components/useTimer";
 import { useForm, FormProvider } from "react-hook-form";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { SourceType } from "@/server/entities/source/domain/Source";
 import { api } from "@/trpc/react";
 import Link from "next/link";
-import Back from "../../../../../../public/images/Back.svg";
+import Back from "../../../../public/images/Back.svg";
 import { wordsIntoLines } from "@/app/utils";
 import { Word } from "@/server/entities/source/domain/Source";
 import { useSections } from "./useSections";
@@ -36,23 +36,6 @@ export default function ClipEditor({
   const form = useForm<ClipType>({
     defaultValues: clip,
   });
-
-  /*
-  const [dimensions, setDimensions] = useState<[number, number]>([0, 0]);
-
-  const handleDimensionsUpdate = (newDim: [number, number]) => {
-    const height = 480;
-    const multiplier = height / newDim[1];
-    const newW = newDim[0] * multiplier;
-
-    setDimensions([newW, height]);
-  }
-
-  useEffect(() => {
-    form.setValue("width", dimensions[0]);
-    form.setValue("height", dimensions[1]);
-  }, [dimensions]);
-  */
 
   const {
     selectedSection,

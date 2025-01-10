@@ -1,6 +1,6 @@
 "use client";
 
-import { Timer } from "../../useTimer";
+import { Timer } from "@/app/_components/useTimer";
 import { UseFormReturn } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { Displays } from "./Displays";
@@ -21,8 +21,8 @@ export function useSections(
         {
           start: 0,
           end: range.end - range.start,
-          display: Displays.One.name,
-          fragments: Displays.One.fragments.map((element, i) => ({
+          display: DisplayName.One,
+          fragments: Displays.One.map((element, i) => ({
             order: i,
             x: element.x,
             y: element.y,
@@ -98,7 +98,7 @@ export function useSections(
     if (!selectedSection || newDisplay === selectedSection.display) return;
 
     selectedSection.display = newDisplay;
-    selectedSection.fragments = Displays[newDisplay].fragments.map((element, i) => ({
+    selectedSection.fragments = Displays[newDisplay].map((element, i) => ({
       order: i,
       x: element.x,
       y: element.y,

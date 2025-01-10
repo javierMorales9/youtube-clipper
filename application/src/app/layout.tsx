@@ -8,7 +8,7 @@ import { cookies, headers } from 'next/headers'
 import { api } from "@/trpc/server";
 import { FrontendCompanyType } from "@/server/entities/company/domain/Company";
 
-import { CompanyProvider } from "./CompanyWrapper";
+import { CompanyProvider } from "@/app/_components/CompanyWrapper";
 
 import { redirect } from 'next/navigation'
 

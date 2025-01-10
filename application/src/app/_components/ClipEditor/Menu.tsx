@@ -1,14 +1,14 @@
 import { Line } from "@/app/utils";
 import { useState } from "react";
-import { Label } from "@/app/_components/Label";
-import { NewInput } from "@/app/_components/NewInput";
+import { Label } from "@/app/_components/common/Label";
+import { NewInput } from "@/app/_components/common/NewInput";
 import { ClipType, SectionType, DisplayName, ThemeEmojiPosition, ThemeFont, ThemeShadow, ThemeStroke } from "@/server/entities/clip/domain/Clip";
-import { ColorPicker } from "@/app/_components/ColorPicker";
-import { SingleChoice } from "@/app/_components/SingleChoice";
-import { YesOrNo } from "@/app/_components/YesOrNo";
-import { NewSelect } from "@/app/_components/NewSelect";
+import { ColorPicker } from "@/app/_components/common/ColorPicker";
+import { SingleChoice } from "@/app/_components/common/SingleChoice";
+import { YesOrNo } from "@/app/_components/common/YesOrNo";
+import { NewSelect } from "@/app/_components/common/NewSelect";
 import { useFormContext } from "react-hook-form";
-import { Timer } from "../../useTimer";
+import { Timer } from "@/app/_components/useTimer";
 
 export const DisplaysImages = {
   [DisplayName.One]: "/images/One.png",
@@ -278,7 +278,7 @@ function DisplaysSelector({
             className={`
               flex flex-row justify-center items-center cursor-pointer
               gap-x-2 p-2 rounded-lg border border-gray-200
-              ${section?.display === displayName 
+              ${section?.display === displayName
                 ? 'bg-blue-100 border-blue-300'
                 : 'bg-gray-100 border-gray-300'
               }

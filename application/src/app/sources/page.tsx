@@ -1,5 +1,5 @@
 import { api } from "@/trpc/server";
-import { SourceList } from "./SourceList";
+import { SourceList } from "@/app/_components/SourceList";
 import { env } from "@/env";
 import TopBar from "../_components/TopBar";
 

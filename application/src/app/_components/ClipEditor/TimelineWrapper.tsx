@@ -1,16 +1,16 @@
 'use client';
 
-import Timeline from "../../Timeline";
-import { Timer } from "../../useTimer";
+import Timeline from "@/app/_components/Timeline";
+import { Timer } from "@/app/_components/useTimer";
 import { useFormContext } from "react-hook-form";
 import { SourceType } from "@/server/entities/source/domain/Source";
-import Split from "../../../../../../public/images/Split.svg";
-import Trash from "../../../../../../public/images/Trash.svg";
+import Split from "../../../../public/images/Split.svg";
+import Trash from "../../../../public/images/Trash.svg";
 import { useMemo } from "react";
-import Play from "../../../../../../public/images/MaterialSymbolsPlayArrow.svg";
-import Pause from "../../../../../../public/images/Pause.svg";
+import Play from "../../../../public/images/MaterialSymbolsPlayArrow.svg";
+import Pause from "../../../../public/images/Pause.svg";
 import { toReadableTime } from "@/app/utils";
-import { ClipType, SectionType } from "@/server/entities/clip/domain/Clip";
+import { Clip, ClipType, SectionType } from "@/server/entities/clip/domain/Clip";
 
 export function TimelineWrapper({
   source,

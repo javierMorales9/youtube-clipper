@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import Logo from 'public/images/Logo.svg';
+import Logo from '../../../public/images/Logo.svg';
 import { useEffect, useRef, useState } from 'react';
-import { Label } from './Label';
-import { useCompany } from '../CompanyWrapper';
+import { Label } from '@/app/_components/common/Label';
+import { useCompany } from '@/app/_components/CompanyWrapper';
 
 export default function TopBar({
   page,

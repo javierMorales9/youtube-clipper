@@ -1,8 +1,8 @@
-import { Timer } from "../../useTimer";
+import { Timer } from "@/app/_components/useTimer";
 import { useEffect, useMemo, useRef } from "react";
 import { Stage, Layer, Transformer, Rect } from 'react-konva';
 import Konva from "konva";
-import HLSReproducer from "../../HLSReproducer";
+import HLSReproducer from "@/app/_components/HLSReproducer";
 import { SectionType } from "@/server/entities/clip/domain/Clip";
 import { Displays } from "./Displays";
 
@@ -51,8 +51,8 @@ export function Viewer({
           <Layer>
             {section?.fragments && (
               section?.fragments.map((fragment, i) => {
-                const displayWidth = Displays[section.display].fragments[i]!.width;
-                const displayHeight = Displays[section.display].fragments[i]!.height;
+                const displayWidth = Displays[section.display][i]!.width;
+                const displayHeight = Displays[section.display][i]!.height;
 
                 const clipAspectRatio = (1080 * displayWidth) / (1920 * displayHeight);
                 return (
@@ -75,8 +75,7 @@ export function Viewer({
                     }}
                   />
                 )
-              }
-              )
+              })
             )}
           </Layer>
         </Stage>

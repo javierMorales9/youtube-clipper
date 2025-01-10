@@ -20,48 +20,17 @@ class DisplayName(str, Enum):
 
 
 displays = {
-    "One": {
-        "fragments": [
-            {
-                "x": 0,
-                "y": 0,
-                "width": 1,
-                "height": 1,
-            }
-        ]
-    },
-    "TwoColumn": {
-        "fragments": [
-            {
-                "x": 0,
-                "y": 0,
-                "width": 1,
-                "height": 1 / 2,
-            },
-            {
-                "x": 0,
-                "y": 1/2,
-                "width": 1,
-                "height": 1 / 2,
-            },
-        ]
-    },
-    "TwoRow": {
-        "fragments": [
-            {
-                "x": 0,
-                "y": 0,
-                "width": 1/2,
-                "height": 1,
-            },
-            {
-                "x": 1/2,
-                "y": 0,
-                "width": 1/2,
-                "height": 1,
-            },
-        ]
-    },
+    "One": [
+        { "x": 0, "y": 0, "width": 1, "height": 1, }
+    ],
+    "TwoColumn": [
+        { "x": 0, "y": 0, "width": 1, "height": 1 / 2, },
+        { "x": 0, "y": 1 / 2, "width": 1, "height": 1 / 2, },
+    ],
+    "TwoRow": [
+        { "x": 0, "y": 0, "width": 1 / 2, "height": 1, },
+        { "x": 1 / 2, "y": 0, "width": 1 / 2, "height": 1, },
+    ],
 }
 
 
@@ -72,7 +41,7 @@ def generateClip(
     fileHandler: FileHandler,
     event: Event,
 ):
-    #fileHandler.downloadFiles(keys=["original.mp4"])
+    # fileHandler.downloadFiles(keys=["original.mp4"])
 
     source = sourceRepo.findSourceById(event.sourceId)
     if source is None:
@@ -94,7 +63,7 @@ def generateClip(
 
     clipRepo.finishClipProcessing(clip.id)
 
-    #fileHandler.saveFiles()
+    # fileHandler.saveFiles()
 
 
 # Generate a clip from a source video.
@@ -201,7 +170,7 @@ def fragmentsString(section: Section, sourceWidth: float, sourceHeight: float):
     fragments = []
     for i in range(frags):
         fragment = section.fragments[i]
-        display = displays[section.display]["fragments"][i]
+        display = displays[section.display][i]
 
         fragmentWidth = float(1080 * display["width"])
         fragmentHeight = float(1920 * display["height"])

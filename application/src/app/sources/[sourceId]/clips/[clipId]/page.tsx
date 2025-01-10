@@ -1,5 +1,5 @@
 import { api } from "@/trpc/server";
-import ClipEditor from "../ClipEditor";
+import ClipEditor from "@/app/_components/ClipEditor";
 import TopBar from "@/app/_components/TopBar";
 
 export default async function EditClip({

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from "react";
-import Cross from "../../../../../public/images/Cross.svg";
+import Cross from "../../../../public/images/Cross.svg";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 

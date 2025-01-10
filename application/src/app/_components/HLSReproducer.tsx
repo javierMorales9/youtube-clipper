@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Timer } from './useTimer';
+import { Timer } from '@/app/_components/useTimer';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';

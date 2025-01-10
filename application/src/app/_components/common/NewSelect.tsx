@@ -3,8 +3,8 @@
 import * as React from "react"
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
 
-import { cn } from "@/app/_components/utils"
-import { Button } from "@/app/_components/Button"
+import { cn } from "@/app/_components/common/utils"
+import { Button } from "@/app/_components/common/Button"
 import {
   Command,
   CommandEmpty,
@@ -12,12 +12,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/app/_components/Command"
+} from "@/app/_components/common/Command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/app/_components/Popover"
+} from "@/app/_components/common/Popover"
 import { Label } from "./Label"
 
 export function NewSelect({
