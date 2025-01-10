@@ -1,4 +1,3 @@
-import json
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -7,27 +6,25 @@ from time import sleep
 
 from flask_server import flask_server
 
-from entities.event.Event import EventType, createTranscriptionInProgressEvent
+from entities.event.domain.Event import EventType, createTranscriptionInProgressEvent
 
-from entities.event.postgresEventRepository import PostgresEventRepository
-from entities.source.postgresSourceRepository import PostgresSourceRepository
-from entities.clip.postgresClipRepository import PostgresClipRepository
-from entities.suggestion.postgresSuggestionRepository import (
+from entities.event.infrastructure.postgresEventRepository import PostgresEventRepository
+from entities.source.infrastructure.postgresSourceRepository import PostgresSourceRepository
+from entities.clip.infrastructure.postgresClipRepository import PostgresClipRepository
+from entities.suggestion.infrastructure.postgresSuggestionRepository import (
     PostgresSuggestionRepository,
 )
 
-from entities.shared.s3TranscriptionHandler import S3TranscriptionHandler
-from entities.shared.s3FileHandler import S3FileHandler
-from entities.shared.openAiModel import OpenAiModel
-from entities.shared.prodSystem import ProdSystem
+from entities.shared.infrastructure.s3TranscriptionHandler import S3TranscriptionHandler
+from entities.shared.infrastructure.s3FileHandler import S3FileHandler
+from entities.shared.infrastructure.openAiModel import OpenAiModel
+from entities.shared.infrastructure.prodSystem import ProdSystem
 
 from application.generateClip.generateClip import generateClip
 from application.processSource.processSource import processSource
 from application.startTranscription.startTranscription import startTranscription
-from entities.shared.prodDateCreator import ProdDateCreator
-from entities.shared.prodvideoDownloader import ProdVideoDownloader
-from application.processSource.extractWordsFromFile import extractWordsFromFile
-from application.processSource.createSuggestions import createSuggestions
+from entities.shared.infrastructure.prodDateCreator import ProdDateCreator
+from entities.shared.infrastructure.prodvideoDownloader import ProdVideoDownloader
 
 
 def main():

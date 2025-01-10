@@ -2,7 +2,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from models import ProcessingEvent
-from entities.event.Event import Event
+from entities.event.domain.Event import Event
 
 class PostgresEventRepository():
     def __init__(

@@ -3,7 +3,7 @@ from typing import Optional
 
 import boto3
 
-from entities.shared.system import System
+from entities.shared.domain.system import System
 
 
 class S3FileHandler:

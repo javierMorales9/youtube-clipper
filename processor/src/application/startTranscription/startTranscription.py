@@ -1,11 +1,11 @@
-from entities.event.Event import Event, createTranscriptionInProgressEvent
-from entities.event.eventRepository import EventRepository
-from entities.source.sourceRepository import SourceRepository
-from entities.shared.transcriptionHandler import TranscriptionHandler
-from entities.shared.system import System
-from entities.shared.dateCreator import DateCreator
-from entities.shared.videoDownloader import VideoDownloader
-from entities.shared.fileHandler import FileHandler
+from entities.event.domain.Event import Event, createTranscriptionInProgressEvent
+from entities.event.domain.eventRepository import EventRepository
+from entities.source.domain.sourceRepository import SourceRepository
+from entities.shared.domain.transcriptionHandler import TranscriptionHandler
+from entities.shared.domain.system import System
+from entities.shared.domain.dateCreator import DateCreator
+from entities.shared.domain.videoDownloader import VideoDownloader
+from entities.shared.domain.fileHandler import FileHandler
 
 
 def startTranscription(

@@ -1,16 +1,16 @@
 from typing import Optional
 from enum import Enum
 
-from entities.clip.Clip import Clip, Section
+from entities.clip.domain.Clip import Clip, Section
 
-from entities.clip.clipRepository import ClipRepository
-from entities.event.Event import Event
+from entities.clip.domain.clipRepository import ClipRepository
+from entities.event.domain.Event import Event
 from application.generateClip.addSubtitlestoClip import addSubtitlestoClip
-from entities.source.sourceRepository import SourceRepository
+from entities.source.domain.sourceRepository import SourceRepository
 
-from entities.source.Source import Source
-from entities.shared.fileHandler import FileHandler
-from entities.shared.system import System
+from entities.source.domain.Source import Source
+from entities.shared.domain.fileHandler import FileHandler
+from entities.shared.domain.system import System
 
 
 class DisplayName(str, Enum):

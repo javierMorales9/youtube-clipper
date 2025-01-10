@@ -5,7 +5,7 @@ import tiktoken
 
 import pandas as pd
 
-from entities.shared.system import System
+from entities.shared.domain.system import System
 
 
 class OpenAiModel:

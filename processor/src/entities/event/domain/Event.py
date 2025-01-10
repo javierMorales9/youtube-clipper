@@ -2,7 +2,7 @@ from enum import Enum
 from datetime import datetime
 from typing import Optional
 import uuid
-from entities.source.Source import Source
+from entities.source.domain.Source import Source
 from datetime import timedelta
 
 

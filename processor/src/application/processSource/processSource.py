@@ -1,13 +1,13 @@
 from application.processSource.createSuggestions import createSuggestions
 from application.processSource.extractWordsFromFile import extractWordsFromFile
 
-from entities.source.sourceRepository import SourceRepository
-from entities.suggestion.suggestionRepository import SuggestionRepository
-from entities.shared.fileHandler import FileHandler
-from entities.shared.aiModel import AIModel
+from entities.source.domain.sourceRepository import SourceRepository
+from entities.suggestion.domain.suggestionRepository import SuggestionRepository
+from entities.shared.domain.fileHandler import FileHandler
+from entities.shared.domain.aiModel import AIModel
 
-from entities.shared.system import System
-from entities.source.Source import Source
+from entities.shared.domain.system import System
+from entities.source.domain.Source import Source
 
 
 def processSource(

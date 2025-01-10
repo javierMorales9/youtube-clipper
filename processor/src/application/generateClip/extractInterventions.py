@@ -1,7 +1,7 @@
 from typing import TypedDict
 from typing import TypedDict
 
-from entities.source.Word import Word
+from entities.source.domain.Word import Word
 
 
 class Line(TypedDict):

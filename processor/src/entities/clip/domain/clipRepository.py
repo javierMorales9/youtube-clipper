@@ -1,6 +1,6 @@
 from typing import Protocol
 from typing import Protocol
-from entities.clip.Clip import Clip
+from entities.clip.domain.Clip import Clip
 
 class ClipRepository(Protocol):
     def findClipById(self, clipId: str) -> (Clip | None): ...

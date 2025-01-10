@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from entities.clip.Clip import Fragment, Range, Section, Clip, Theme
+from entities.clip.domain.Clip import Fragment, Range, Section, Clip, Theme
 
 from models import Clip as ClipModel, ClipRange, ClipSection, SectionFragment
 

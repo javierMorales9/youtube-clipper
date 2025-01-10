@@ -2,11 +2,11 @@ import json
 from typing import TypedDict
 from pydantic import BaseModel
 from application.generateClip.extractInterventions import Line, groupWordsInLines
-from entities.source.Word import Word
-from entities.suggestion.Suggestion import Suggestion
-from entities.source.Source import Source
+from entities.source.domain.Word import Word
+from entities.suggestion.domain.Suggestion import Suggestion
+from entities.source.domain.Source import Source
 import numpy as np
-from entities.shared.aiModel import AIModel
+from entities.shared.domain.aiModel import AIModel
 
 clipDurationRanges = {
     "<30s": [0, 30000],

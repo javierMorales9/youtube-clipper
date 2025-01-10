@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from models import Suggestion as SuggestionModel
-from entities.suggestion.Suggestion import Suggestion
+from entities.suggestion.domain.Suggestion import Suggestion
 
 class PostgresSuggestionRepository():
     def __init__(

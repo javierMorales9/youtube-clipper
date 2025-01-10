@@ -8,9 +8,9 @@ from models import (
     SourceTag as SourceTagModal,
     SourceTranscription,
 )
-from entities.clip.Clip import Range
-from entities.source.Word import Word
-from entities.source.Source import Source, SourceOrigin
+from entities.clip.domain.Clip import Range
+from entities.source.domain.Word import Word
+from entities.source.domain.Source import Source, SourceOrigin
 
 
 class PostgresSourceRepository:

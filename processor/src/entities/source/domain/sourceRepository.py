@@ -1,8 +1,8 @@
 from typing import Protocol
 
-from entities.clip.Clip import Range
-from entities.source.Word import Word
-from entities.source.Source import Source
+from entities.clip.domain.Clip import Range
+from entities.source.domain.Word import Word
+from entities.source.domain.Source import Source
 
 class SourceRepository(Protocol):
     def findSourceById(self, sourceId: str) -> (Source | None): ...
