@@ -24,7 +24,7 @@ class SuggestionRange(TypedDict):
     end_line: int
 
 
-def createSuggestions(suggestionModel: AIModel, source: Source, words: list[Word]):
+def createSuggestions(aiModel: AIModel, source: Source, words: list[Word]):
     lines = groupWordsInLines(words, maxChars=30, maxDuration=5000)
 
     """
@@ -86,14 +86,14 @@ def createSuggestions(suggestionModel: AIModel, source: Source, words: list[Word
         start_line = suggestionRange["start_line"]
         end_line = suggestionRange["end_line"]
 
-        start = lines[start_line]["start"]
-        end = lines[end_line - 1]["end"]
+        start = int(lines[start_line]["start"] / 1000)
+        end = int(lines[end_line - 1]["end"] / 1000)
 
         text = " "
         for i in range(start_line, end_line):
             text += lines[i]["text"] + " "
 
-        data = generateNameAndDescription(text, suggestionModel, source)
+        data = generateNameAndDescription(text, aiModel, source)
         name = data.name if data is not None else "No name"
         description = data.description if data is not None else "No description"
 

@@ -15,19 +15,19 @@ from entities.shared.domain.system import System
 
 class DisplayName(str, Enum):
     One = "One"
-    TwoColumn = "TwoColumn"
-    TwoRow = "TwoRow"
+    Column = "Column"
+    Row = "Row"
 
 
 displays = {
     "One": [
         { "x": 0, "y": 0, "width": 1, "height": 1, }
     ],
-    "TwoColumn": [
+    "Column": [
         { "x": 0, "y": 0, "width": 1, "height": 1 / 2, },
         { "x": 0, "y": 1 / 2, "width": 1, "height": 1 / 2, },
     ],
-    "TwoRow": [
+    "Row": [
         { "x": 0, "y": 0, "width": 1 / 2, "height": 1, },
         { "x": 1 / 2, "y": 0, "width": 1 / 2, "height": 1, },
     ],
@@ -63,7 +63,7 @@ def generateClip(
 
     clipRepo.finishClipProcessing(clip.id)
 
-    # fileHandler.saveFiles()
+    fileHandler.saveFiles()
 
 
 # Generate a clip from a source video.

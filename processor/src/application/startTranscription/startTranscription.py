@@ -29,7 +29,7 @@ def startTranscription(
         fileHandler.saveFiles()
 
 
-    transcriptionHandler.callTranscribe()
+    transcriptionHandler.callTranscribe(source.id)
 
     newEv = createTranscriptionInProgressEvent(source, dateCreator.newDate())
     eventRepo.saveEvent(newEv)

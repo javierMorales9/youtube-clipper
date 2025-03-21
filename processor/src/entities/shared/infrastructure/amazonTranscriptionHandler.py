@@ -2,12 +2,11 @@ import boto3
 
 from entities.shared.domain.system import System
 
-class S3TranscriptionHandler:
-    def __init__(self, sys: System, sourceId: str):
+class AmazonTranscriptionHandler:
+    def __init__(self, sys: System):
         self.sys = sys
-        self.sourceId = sourceId
 
-    def callTranscribe(self):
+    def callTranscribe(self, sourceId: str):
         bucket = self.sys.env("SOURCE_BUCKET")
         aws_region = self.sys.env("AWS_REGION")
 
@@ -18,15 +17,18 @@ class S3TranscriptionHandler:
 
         try:
             resource.start_transcription_job(
-                TranscriptionJobName=f"{self.sourceId}-transcribe",
+                TranscriptionJobName=f"{sourceId}-transcribe",
                 LanguageCode="es-ES",
                 MediaFormat="mp4",
                 Media={
-                    "MediaFileUri": f"https://{bucket}.s3-{aws_region}.amazonaws.com/{self.sourceId}/original.mp4",
+                    "MediaFileUri": f"https://{bucket}.s3-{aws_region}.amazonaws.com/{sourceId}/original.mp4",
                 },
                 OutputBucketName=bucket,
-                OutputKey=f"{self.sourceId}/transcription.json",
+                OutputKey=f"{sourceId}/transcription.json",
             )
         except Exception as e:
             print("Error starting transcription job", e)
+
+    def transcribe(self, sys: System):
+        return []
 

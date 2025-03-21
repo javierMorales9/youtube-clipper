@@ -15,7 +15,7 @@ def processSource(
     suggestionRepo: SuggestionRepository,
     sys: System,
     fileHandler: FileHandler,
-    suggestionModel: AIModel,
+    aiModel: AIModel,
     source: Source,
 ):
     print(f"Processing source after transcription {source.id}")
@@ -28,7 +28,7 @@ def processSource(
     generateHls(sys)
     createTimeline(sys, duration)
     createSnapshot(sys, duration)
-    suggestions = createSuggestions(suggestionModel, source, words)
+    suggestions = createSuggestions(aiModel, source, words)
     sourceRepo.saveTranscription(source.id, words)
     source.finishProcessing(duration, width, height)
 

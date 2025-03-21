@@ -43,9 +43,9 @@ class S3FileHandler:
 
             local_file = f"{self.path}/{file}"
             my_bucket.upload_file(local_file, f"{self.sourceId}/{file}")
-            os.remove(local_file)
+            #os.remove(local_file)
 
-        self.removeDirectory(self.path)
+        #self.removeDirectory(self.path)
 
     def checkIfFilesExist(self, file: str) -> bool:
         bucket = os.environ["SOURCE_BUCKET"]
