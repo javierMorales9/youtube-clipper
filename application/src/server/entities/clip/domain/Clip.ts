@@ -27,8 +27,8 @@ export enum ThemeEmojiPosition {
 
 export enum DisplayName {
   One = "One",
-  TwoColumn = "TwoColumn",
-  TwoRow = "TwoRow",
+  Column = "Column",
+  Row = "Row",
 }
 
 export const SectionSchema = z.object({

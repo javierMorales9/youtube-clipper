@@ -66,3 +66,5 @@ processor/processor/test.py
 .pytest_cache/
 
 processor/*.json
+
+borralo

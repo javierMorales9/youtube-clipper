@@ -28,15 +28,14 @@ export function Viewer({
     },
   ) => void
 }) {
-  console.log("section", section?.fragments);
-  const defaultHeight = 480;
+  const defaultHeight = 400;
   const width = useMemo(() => defaultHeight * dimensions[0] / dimensions[1], []);
   const height = useMemo(() => defaultHeight, []);
 
   return (
     <div className="w-full">
-      <div className="relative">
-        <div className="absolute top-0 left-0">
+      <div className="relative flex justify-center">
+        <div className="absolute">
           <HLSReproducer
             src={source}
             timer={timer}

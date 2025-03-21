@@ -12,8 +12,8 @@ import { Timer } from "@/app/_components/useTimer";
 
 export const DisplaysImages = {
   [DisplayName.One]: "/images/One.png",
-  [DisplayName.TwoColumn]: "/images/TwoColumns.png",
-  [DisplayName.TwoRow]: "/images/TwoRows.png",
+  [DisplayName.Column]: "/images/TwoColumns.png",
+  [DisplayName.Row]: "/images/TwoRows.png",
 };
 
 

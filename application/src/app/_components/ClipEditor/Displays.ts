@@ -16,7 +16,7 @@ export const Displays: Record<DisplayName, Display> = {
         height: 1,
       },
     ],
-  [DisplayName.TwoColumn]: [
+  [DisplayName.Column]: [
       {
         x: 0,
         y: 0,
@@ -30,7 +30,7 @@ export const Displays: Record<DisplayName, Display> = {
         height: 1/2,
       },
     ],
-  [DisplayName.TwoRow]: [
+  [DisplayName.Row]: [
       {
         x: 0,
         y: 0,

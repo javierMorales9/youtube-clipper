@@ -1,8 +1,8 @@
 'use client';
 
-import { NewInput } from "../_components/NewInput";
+import { NewInput } from "../_components/common/NewInput";
 import { useForm } from "react-hook-form";
-import { Button } from "../_components/Button";
+import { Button } from "../_components/common/Button";
 import Link from "next/link";
 import { api } from "@/trpc/react";
 import Cookies from 'universal-cookie';

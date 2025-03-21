@@ -47,6 +47,8 @@ export default function ClipEditor({
     modifyFragment,
   } = useSections(timer, form);
 
+  console.log(form.watch("sections"));
+
   const lines = useMemo(() => {
     return wordsIntoLines(words);
   }, [words]);
