@@ -25,19 +25,17 @@ class SuggestionRange(TypedDict):
 
 
 def createSuggestions(aiModel: AIModel, source: Source, words: list[Word]):
+    print("Generating suggestions")
+
     lines = groupWordsInLines(words, maxChars=30, maxDuration=5000)
 
-    """
-    queryEmb = generateQueryEmedding(source, suggestionModel)
-    embeddings = suggestionModel.generateEmbeddingsFromList(
-        [line["text"] for line in lines]
-    )
+    queryEmb = generateQueryEmedding(source, aiModel)
+    embeddings = aiModel.generateEmbeddingsFromList([line["text"] for line in lines])
     similarities = [
         cosineSimilarity(embeddings[i], queryEmb) for i in range(len(embeddings))
     ]
-    json.dump(similarities, open("similarities.json", "w"))
-    """
-    similarities = json.load(open("similarities.json", "r"))
+    # json.dump(similarities, open("similarities.json", "w"))
+    # similarities = json.load(open("similarities.json", "r"))
 
     clipDurationRange = clipDurationRanges[source.clipLength or "<30s"]
     minClipDuration = clipDurationRange[0]
@@ -48,14 +46,6 @@ def createSuggestions(aiModel: AIModel, source: Source, words: list[Word]):
     lineCount = 5
     topLineIndexes = getTopLines(lineCount, maxClipDuration, similarities, lines)
     print("topLineIndexes", topLineIndexes)
-
-    for i in range(1001, 1002):
-        line = lines[i]
-        print(
-            line["text"],
-            toReadableTime(int(line["start"] / 1000)),
-            toReadableTime(int(line["end"] / 1000)),
-        )
 
     suggestionRanges: list[SuggestionRange] = []
     for topLineIndex in topLineIndexes:
@@ -110,21 +100,6 @@ def createSuggestions(aiModel: AIModel, source: Source, words: list[Word]):
         )
 
     return suggestions
-
-
-def toReadableTime(time: int, alwaysHours: bool = False):
-    if not time:
-        return "00:00" if not alwaysHours else "00:00:00"
-
-    hours = time // 3600
-    minutes = (time % 3600) // 60
-    seconds = time % 60
-
-    hoursStr = f"{hours}:" if hours > 0 or alwaysHours else ""
-    minutesStr = f"{minutes:02d}:"
-    secondsStr = f"{seconds:02d}"
-
-    return f"{hoursStr}{minutesStr}{secondsStr}"
 
 
 def cosineSimilarity(a, b):
@@ -192,7 +167,6 @@ class OrderedSimilarity(TypedDict):
     id: int
     similarity: int
 
-
 def orderSimilarities(similarities: list[int]) -> list[OrderedSimilarity]:
     orderedSimilarities: list[OrderedSimilarity] = []
     for i in range(len(similarities)):
@@ -214,7 +188,6 @@ class SuggestionData(BaseModel):
     name: str
     description: str
 
-
 def generateNameAndDescription(text: str, suggestionModel: AIModel, source: Source):
     return suggestionModel.jsonCall(
         roleText=f"You are an editor for a famous podcast. \
@@ -226,3 +199,17 @@ The name should be short, under 60 words. The description should be a bit longer
 and very direct with few adjectives. All the text should be in english",
         format=SuggestionData,
     )
+
+def toReadableTime(time: int, alwaysHours: bool = False):
+    if not time:
+        return "00:00" if not alwaysHours else "00:00:00"
+
+    hours = time // 3600
+    minutes = (time % 3600) // 60
+    seconds = time % 60
+
+    hoursStr = f"{hours}:" if hours > 0 or alwaysHours else ""
+    minutesStr = f"{minutes:02d}:"
+    secondsStr = f"{seconds:02d}"
+
+    return f"{hoursStr}{minutesStr}{secondsStr}"

@@ -41,7 +41,7 @@ def generateClip(
     fileHandler: FileHandler,
     event: Event,
 ):
-    # fileHandler.downloadFiles(keys=["original.mp4"])
+    fileHandler.downloadFiles(keys=["original.mp4"])
 
     source = sourceRepo.findSourceById(event.sourceId)
     if source is None:

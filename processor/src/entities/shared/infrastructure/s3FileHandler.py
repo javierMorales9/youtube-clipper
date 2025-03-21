@@ -8,7 +8,7 @@ from entities.shared.domain.system import System
 
 class S3FileHandler:
     def __init__(self, sys: System, sourceId: str, uploadBaseFiles=False):
-        self.baseFiles = ["original.mp4", "transcription.json"]
+        self.baseFiles = ["original.mp4"]
         self.uploadBaseFiles = uploadBaseFiles
         self.sys = sys
         self.sourceId = sourceId
@@ -19,10 +19,6 @@ class S3FileHandler:
             self.baseFiles = keys
 
         my_bucket = self.getBucket()
-
-        # Create tmp/{sourceId} folder
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
 
         for file in self.baseFiles:
             key = f"{self.sourceId}/{file}"
@@ -38,14 +34,17 @@ class S3FileHandler:
 
         # Upload files int tmp/{sourceId} to S3
         for file in os.listdir(self.path):
+            print(f"File: {file}")
             if file in self.baseFiles and not self.uploadBaseFiles:
+                continue
+
+            if file.startswith("audio"):
                 continue
 
             local_file = f"{self.path}/{file}"
             my_bucket.upload_file(local_file, f"{self.sourceId}/{file}")
-            #os.remove(local_file)
 
-        #self.removeDirectory(self.path)
+        self.removeDirectory(self.path)
 
     def checkIfFilesExist(self, file: str) -> bool:
         bucket = os.environ["SOURCE_BUCKET"]

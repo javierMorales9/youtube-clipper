@@ -1,5 +1,4 @@
 from application.processSource.createSuggestions import createSuggestions
-from application.processSource.extractWordsFromFile import extractWordsFromFile
 
 from entities.source.domain.sourceRepository import SourceRepository
 from entities.suggestion.domain.suggestionRepository import SuggestionRepository
@@ -7,7 +6,7 @@ from entities.shared.domain.fileHandler import FileHandler
 from entities.shared.domain.aiModel import AIModel
 
 from entities.shared.domain.system import System
-from entities.source.domain.Source import Source
+from entities.shared.domain.videoDownloader import VideoDownloader
 
 
 def processSource(
@@ -16,27 +15,36 @@ def processSource(
     sys: System,
     fileHandler: FileHandler,
     aiModel: AIModel,
-    source: Source,
+    videoDownloader: VideoDownloader,
+    sourceId: str,
 ):
-    print(f"Processing source after transcription {source.id}")
-    fileHandler.downloadFiles(keys=["original.mp4", "transcription.json"])
+    source = sourceRepo.findSourceById(sourceId)
+    if source is None:
+        return
+
+    print(f"Processing source {source.id}")
+
+    if source.origin == "url" and source.url is not None:
+        videoDownloader.downloadVideo(source.url)
+    else:
+        fileHandler.downloadFiles(keys=["original.mp4"])
+
+    words = aiModel.transcribe()
+
+    suggestions = createSuggestions(aiModel, source, words)
+    suggestionRepo.saveSuggestions(suggestions)
 
     duration = getVideoDuration(sys)
     width, height = getVideoResolution(sys)
-    words = extractWordsFromFile(sys)
-
     generateHls(sys)
     createTimeline(sys, duration)
     createSnapshot(sys, duration)
-    suggestions = createSuggestions(aiModel, source, words)
-    sourceRepo.saveTranscription(source.id, words)
-    source.finishProcessing(duration, width, height)
-
-    sourceRepo.saveSource(source)
-    suggestionRepo.saveSuggestions(suggestions)
 
     fileHandler.saveFiles()
 
+    sourceRepo.saveTranscription(source.id, words)
+    source.finishProcessing(duration, width, height)
+    sourceRepo.saveSource(source)
 
 def generateHls(sys: System):
     print("Generating HLS")

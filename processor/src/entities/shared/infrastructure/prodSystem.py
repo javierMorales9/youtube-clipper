@@ -2,10 +2,15 @@ import os
 import json
 import subprocess
 
+
 class ProdSystem:
     def __init__(self, sourceId: str):
         self.sourceId = sourceId
         self.sourcePath = f"{os.environ["FILES_PATH"]}/{str(sourceId)}"
+
+        # Create tmp/{sourceId} folder
+        if not os.path.exists(self.sourcePath):
+            os.makedirs(self.sourcePath)
 
     def fileExist(self, path: str) -> bool:
         return os.path.exists(self.path(path))
@@ -27,9 +32,8 @@ class ProdSystem:
     def rename(self, old: str, new: str):
         os.rename(self.path(old), self.path(new))
 
-    def env(self, key: str) -> (str | None):
-        try :
+    def env(self, key: str) -> str | None:
+        try:
             return os.environ[key]
         except KeyError:
             return None
-

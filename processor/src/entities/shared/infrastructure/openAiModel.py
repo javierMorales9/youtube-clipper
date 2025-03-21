@@ -104,6 +104,8 @@ class OpenAiModel:
         return pd.read_json(f"../public/test/phrases.json")["embedding"].to_list()
 
     def transcribe(self) -> list[Word]:
+        print("Extracting audio from video")
+
         video_clip = VideoFileClip(self.sys.path("original.mp4"))
         audio_clip = video_clip.audio
         if audio_clip is None:
@@ -148,7 +150,6 @@ class OpenAiModel:
                 continue
 
             for word in transcription.words:
-                print(word.start * 1000, int(word.start * 1000))
                 words.append(
                     {
                         "word": word.word,

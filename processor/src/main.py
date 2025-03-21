@@ -1,4 +1,3 @@
-import json
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -7,7 +6,7 @@ from time import sleep
 
 from flask_server import flask_server
 
-from entities.event.domain.Event import EventType, createTranscriptionInProgressEvent
+from entities.event.domain.Event import EventType
 
 from entities.event.infrastructure.postgresEventRepository import (
     PostgresEventRepository,
@@ -20,17 +19,12 @@ from entities.suggestion.infrastructure.postgresSuggestionRepository import (
     PostgresSuggestionRepository,
 )
 
-from entities.shared.infrastructure.amazonTranscriptionHandler import (
-    AmazonTranscriptionHandler,
-)
 from entities.shared.infrastructure.s3FileHandler import S3FileHandler
 from entities.shared.infrastructure.openAiModel import OpenAiModel
 from entities.shared.infrastructure.prodSystem import ProdSystem
 
 from application.generateClip.generateClip import generateClip
 from application.processSource.processSource import processSource
-from application.startTranscription.startTranscription import startTranscription
-from entities.shared.infrastructure.prodDateCreator import ProdDateCreator
 from entities.shared.infrastructure.prodvideoDownloader import ProdVideoDownloader
 
 
@@ -59,41 +53,9 @@ def main():
             if event is not None:
                 if event.type == EventType.SOURCE_UPLOADED:
                     sys = ProdSystem(event.sourceId)
-                    fileHandler = S3FileHandler(
-                        sys, event.sourceId, uploadBaseFiles=True
-                    )
-                    transcriptionHandler = AmazonTranscriptionHandler(sys)
-                    videoDownloader = ProdVideoDownloader(sys)
-                    dateCreator = ProdDateCreator()
-
-                    startTranscription(
-                        eventRepo,
-                        sourceRepo,
-                        sys,
-                        fileHandler,
-                        transcriptionHandler,
-                        videoDownloader,
-                        dateCreator,
-                        event,
-                    )
-                elif event.type == EventType.TRANSCRIPTION_IN_PROGRESS:
-                    sys = ProdSystem(event.sourceId)
                     fileHandler = S3FileHandler(sys, event.sourceId)
-                    dateCreator = ProdDateCreator()
-                    transcriptionHandler = AmazonTranscriptionHandler(sys)
+                    videoDownloader = ProdVideoDownloader(sys)
                     aiModel = OpenAiModel(sys)
-
-                    source = sourceRepo.findSourceById(event.sourceId)
-                    if source is None:
-                        return
-
-                    if not fileHandler.checkIfFilesExist("transcription.json"):
-                        print("Transcription not ready yet")
-                        newEv = createTranscriptionInProgressEvent(
-                            source, dateCreator.newDate()
-                        )
-                        eventRepo.saveEvent(newEv)
-                        return
 
                     processSource(
                         sourceRepo,
@@ -101,7 +63,8 @@ def main():
                         sys,
                         fileHandler,
                         aiModel,
-                        source,
+                        videoDownloader,
+                        event.sourceId,
                     )
                 elif event.type == EventType.CLIP_UPDATED:
                     sys = ProdSystem(event.sourceId)
@@ -113,44 +76,30 @@ def main():
 
         sleep(10)
 
-
 # main()
 
 load_dotenv()
 dbUrl = os.environ["DATABASE_URL"]
 engine = create_engine(dbUrl)
 
-sourceId = "b218762a-714b-4916-b857-f00f11fd8c5e"
+sourceId = "97a0cac3-460e-4138-a4c0-5fc04854ac62"
 
-sys = ProdSystem(sourceId)
-aiModel = OpenAiModel(sys)
-
-words = aiModel.transcribe()
-
-json.dump(words, open(sys.path("transcription_alt.json"), "w"), indent=2)
-
-"""
 with Session(engine) as session:
-    eventRepo = PostgresEventRepository(session)
     sourceRepo = PostgresSourceRepository(session)
     suggestionRepo = PostgresSuggestionRepository(session)
-    clipRepo = PostgresClipRepository(session)
 
     sys = ProdSystem(sourceId)
     fileHandler = S3FileHandler(sys, sourceId)
-    dateCreator = ProdDateCreator()
-    suggestionModel = OpenAiModel(sys)
+    videoDownloader = ProdVideoDownloader(sys)
+    aiModel = OpenAiModel(sys)
 
-    source = sourceRepo.findSourceById(sourceId)
-    if source is not None:
-        processSource(
-            sourceRepo,
-            suggestionRepo,
-            sys,
-            fileHandler,
-            suggestionModel,
-            source,
-        )
-
+    processSource(
+        sourceRepo,
+        suggestionRepo,
+        sys,
+        fileHandler,
+        aiModel,
+        videoDownloader,
+        sourceId,
+    )
     session.commit()
-"""
