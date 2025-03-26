@@ -199,17 +199,3 @@ The name should be short, under 60 words. The description should be a bit longer
 and very direct with few adjectives. All the text should be in english",
         format=SuggestionData,
     )
-
-def toReadableTime(time: int, alwaysHours: bool = False):
-    if not time:
-        return "00:00" if not alwaysHours else "00:00:00"
-
-    hours = time // 3600
-    minutes = (time % 3600) // 60
-    seconds = time % 60
-
-    hoursStr = f"{hours}:" if hours > 0 or alwaysHours else ""
-    minutesStr = f"{minutes:02d}:"
-    secondsStr = f"{seconds:02d}"
-
-    return f"{hoursStr}{minutesStr}{secondsStr}"
