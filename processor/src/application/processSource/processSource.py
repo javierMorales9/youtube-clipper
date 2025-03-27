@@ -29,13 +29,14 @@ def processSource(
     else:
         fileHandler.downloadFiles(keys=["original.mp4"])
 
-    words = aiModel.transcribe()
+    duration = getVideoDuration(sys)
+    width, height = getVideoResolution(sys)
+
+    words = aiModel.transcribe(duration)
 
     suggestions = createSuggestions(aiModel, source, words)
     suggestionRepo.saveSuggestions(suggestions)
 
-    duration = getVideoDuration(sys)
-    width, height = getVideoResolution(sys)
     generateHls(sys)
     createTimeline(sys, duration)
     createSnapshot(sys, duration)

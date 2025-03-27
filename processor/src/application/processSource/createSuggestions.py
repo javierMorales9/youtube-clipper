@@ -1,4 +1,3 @@
-import json
 from typing import TypedDict
 from pydantic import BaseModel
 from application.generateClip.extractInterventions import Line, groupWordsInLines
