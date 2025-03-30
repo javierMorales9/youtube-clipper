@@ -1,23 +1,24 @@
 import { env } from "@/env";
-import { VideoDownloader } from "../domain/VideoDownloader";
+import { VideoRepository } from "../domain/VideoDownloader";
+import { VideoData } from "../domain/VideoData";
 
-export class ProdVideoDownloader implements VideoDownloader {
-  async getVideoDuration(urlStr: string): Promise<number> {
+export class ProdVideoRepository implements VideoRepository {
+  async getVideoDuration(urlStr: string): Promise<VideoData | null> {
     const url = new URL(urlStr);
     const id = url.searchParams.get("v");
 
     if (!id) {
-      return 0;
+      return null;
     }
 
     if (!env.GOOGLE_API_KEY) {
-      return 0;
+      return null;
     }
 
     const endpoint = new URL("https://www.googleapis.com/youtube/v3/videos");
     endpoint.search = new URLSearchParams({
       key: env.GOOGLE_API_KEY,
-      part: "contentDetails",
+      part: "contentDetails,snippet",
       id: id,
     }).toString();
 
@@ -29,13 +30,17 @@ export class ProdVideoDownloader implements VideoDownloader {
       const video = videos[0];
 
       if(!video) {
-        return 0;
+        return null;
       }
 
-      return durationToSeconds(video?.contentDetails?.duration);
+      const title = video?.snippet?.title as string;
+      const duration = durationToSeconds(video?.contentDetails?.duration) as number;
+      const tags = video?.snippet?.tags as string[];
+
+      return { title, duration, tags };
     } catch (e) {
       console.error(e);
-      return 0;
+      return null;
     }
   }
 }

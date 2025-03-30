@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/comm
 import { toReadableTime } from "@/app/utils";
 import { Button } from "@/app/_components/common/Button";
 import { api } from "@/trpc/react";
+import { VideoData } from "@/server/entities/source/domain/VideoData";
 
 const lengths = [
   "<30s",
@@ -105,6 +106,13 @@ export default function NewSource({
   const fileInput = async (file: File, duration: number) => {
     setVideoFile(file as File);
     setVideoDuration(duration);
+    setVideoData({
+      name: file.name,
+      tags: [],
+      genre: genres[0],
+      clipLength: lengths[0],
+      range: [0, duration],
+    });
     setStep("data");
   };
 
@@ -114,9 +122,16 @@ export default function NewSource({
     setStep("input");
   }
 
-  const urlInput = async (file: string, duration: number) => {
+  const urlInput = async (file: string, videoData: VideoData) => {
     setVideoUrl(file as string);
-    setVideoDuration(duration);
+    setVideoDuration(videoData.duration);
+    setVideoData({
+      name: videoData.title,
+      tags: videoData.tags ?? [],
+      genre: genres[0],
+      clipLength: lengths[0],
+      range: [0, videoData.duration]
+    });
     setStep("data");
   }
 
@@ -173,10 +188,11 @@ export default function NewSource({
         </TabsContent>
       </Tabs>
 
-      {step === "data" && (
+      {step === "data" && videoData !== null && (
         <MetadataInput
           videoDuration={videoDuration}
           addData={addData}
+          sourceData={videoData!}
         />
       )}
 
@@ -201,30 +217,22 @@ export default function NewSource({
 const MAX_TAGS = 20;
 function MetadataInput({
   videoDuration,
+  sourceData: initialSourceData,
   addData,
 }: {
-  videoDuration: number
+  videoDuration: number,
+  sourceData: SourceData,
   addData: (data: SourceData) => void
 }) {
-  const [videoName, setVideoName] = useState<string>("");
-  const [genre, setGenre] = useState<string>(genres[0]);
-  const [clipLength, setClipLength] = useState<string>(lengths[0]);
-  const { tags, handleAddTag, handleRemoveTag } = useTags(MAX_TAGS);
-  const [range, setRange] = useState<number[]>([0, 0]);
-  useEffect(() => {
-    setRange([0, videoDuration]);
-  }, [videoDuration]);
+  const [sourceData, setSourceData] = useState<SourceData>(initialSourceData);
+  const { tags, handleAddTag, handleRemoveTag } = useTags(
+    sourceData.tags,
+    (tags) => setSourceData({ ...sourceData, tags }),
+    MAX_TAGS,
+  );
 
   const addSourceData = () => {
-    const data: SourceData = {
-      name: videoName,
-      genre,
-      tags: tags ?? [],
-      clipLength,
-      range,
-    };
-
-    addData(data);
+    addData(sourceData);
   }
 
   return (
@@ -234,13 +242,14 @@ function MetadataInput({
         <NewInput
           type="text"
           className="border border-gray-200 rounded-lg p-2"
-          onChange={(e) => setVideoName(e.target.value)}
+          onChange={(e) => setSourceData({ ...sourceData, name: e.target.value })}
+          value={sourceData.name}
         />
       </div>
       <NewSelect
-        value={genres[0]}
+        value={sourceData.genre}
         options={genres.map((genre) => ({ value: genre, label: genre }))}
-        onSelect={(value) => setGenre(value)}
+        onSelect={(value) => setSourceData({ ...sourceData, genre: value })}
         contentClassName="bg-white"
         label="Genre"
       />
@@ -256,8 +265,8 @@ function MetadataInput({
       <div>
         <Label>Clip Length</Label>
         <Select
-          defaultValue="<30s"
-          onValueChange={(value) => setClipLength(value)}
+          defaultValue={sourceData.clipLength}
+          onValueChange={(value) => setSourceData({ ...sourceData, clipLength: value })}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Duration" />
@@ -273,17 +282,17 @@ function MetadataInput({
       </div>
       <div className="flex flex-row gap-x-3">
         <div className="rounded py-2 px-4 border border-gray-300">
-          {toReadableTime(range[0], { alwaysHours: true })}
+          {toReadableTime(sourceData.range[0], { alwaysHours: true })}
         </div>
         <Slider
           color="blue"
-          defaultValue={range}
+          defaultValue={sourceData.range}
           max={videoDuration}
           step={10}
-          onValueChange={(value) => setRange(value)}
+          onValueChange={(value) => setSourceData({ ...sourceData, range: value })}
         />
         <div className="rounded py-2 px-4 border border-gray-300">
-          {toReadableTime(range[1], { alwaysHours: true })}
+          {toReadableTime(sourceData.range[1], { alwaysHours: true })}
         </div>
       </div>
       <Button onClick={addSourceData}>
@@ -299,7 +308,7 @@ function UrlNewSource({
   clearUrlInput,
 }: {
   videoUrl: string,
-  finishInput: (url: string, duration: number) => void,
+  finishInput: (url: string, videoData: VideoData) => void,
   clearUrlInput: () => void
 }) {
   const [url, setUrl] = useState<string>(videoUrl);
@@ -318,17 +327,17 @@ function UrlNewSource({
     setLoading(true);
     setUrl(newUrl);
 
-    const duration = await getVideoDuration({ url: newUrl });
+    const videoData = await getVideoDuration({ url: newUrl });
 
-    if (duration === 0) {
+    if (!videoData) {
       clearUrlInput();
       setError("Invalid youtube url");
     }
-    else if (duration < 10 * 60) {
+    else if (videoData.duration < 10 * 60) {
       clearUrlInput();
       setError("Video should be grater than 10 minutes");
     } else {
-      finishInput(newUrl, duration);
+      finishInput(newUrl, videoData);
       setError(null);
     }
 
@@ -452,10 +461,14 @@ interface iTag {
   maxTags: number;
 }
 
-const useTags = (maxTags = 5) => {
+const useTags = (
+  tags: string[],
+  setTags: (tags: string[]) => void,
+  maxTags = 5
+) => {
   // Keep track of the tags array.
 
-  const [tags, setTags] = useState<string[]>([]);
+  //const [tags, setTags] = useState<string[]>([]);
 
   // Function to handle adding the tag to the array
 

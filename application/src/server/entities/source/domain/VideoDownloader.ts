@@ -1,3 +1,5 @@
-export interface VideoDownloader {
-  getVideoDuration(id: string): Promise<number>;
+import { VideoData } from "./VideoData";
+
+export interface VideoRepository {
+  getVideoDuration(id: string): Promise<VideoData | null> ;
 }

@@ -4,7 +4,7 @@ import { SourceRepository } from "@/server/entities/source/domain/SourceReposito
 import { Store } from "@/server/entities/source/domain/Store";
 import { EventRepository } from "@/server/entities/event/domain/EventRepository";
 import { Event } from "@/server/entities/event/domain/Event";
-import { VideoDownloader } from "../domain/VideoDownloader";
+import { VideoRepository } from "../domain/VideoDownloader";
 
 export const SourceDataSchema = z.object({
   name: z.string().min(1),
@@ -83,7 +83,7 @@ export const GetVideoDurationInputSchema = z.object({
 });
 type GetVideoDurationInput = z.infer<typeof GetVideoDurationInputSchema>;
 export async function getUrlVideoDuration(
-  videoDownloader: VideoDownloader,
+  videoDownloader: VideoRepository,
   input: GetVideoDurationInput,
 ) {
   return await videoDownloader.getVideoDuration(input.url);
