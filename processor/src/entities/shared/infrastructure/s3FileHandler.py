@@ -5,7 +5,6 @@ import boto3
 
 from entities.shared.domain.system import System
 
-
 class S3FileHandler:
     def __init__(self, sys: System, sourceId: str, uploadBaseFiles=False):
         self.baseFiles = ["original.mp4"]
@@ -44,8 +43,6 @@ class S3FileHandler:
             local_file = f"{self.path}/{file}"
             my_bucket.upload_file(local_file, f"{self.sourceId}/{file}")
 
-        self.removeDirectory(self.path)
-
     def checkIfFilesExist(self, file: str) -> bool:
         bucket = os.environ["SOURCE_BUCKET"]
         aws_region = os.environ["AWS_REGION"]
@@ -75,12 +72,3 @@ class S3FileHandler:
         )
         resource = session.resource("s3")
         return resource.Bucket(bucket)
-
-    def removeDirectory(self, path: str):
-        for root, dirs, files in os.walk(path, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
-
-        os.rmdir(path)

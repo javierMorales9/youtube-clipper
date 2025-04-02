@@ -26,6 +26,7 @@ class PostgresEventRepository():
         self.session.merge(processing_event)
 
     def getNextEvent(self):
+        print("Checking for new events")
         # In order to support concurrency polling and not having everyone waiting,
         # we use postgresql's SKIP LOCKED feature.
         # See

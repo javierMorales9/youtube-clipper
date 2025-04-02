@@ -4,9 +4,10 @@ import subprocess
 
 
 class ProdSystem:
-    def __init__(self, sourceId: str):
+    def __init__(self, sourceId: str, shouldRemoveDir: bool = True):
         self.sourceId = sourceId
         self.sourcePath = f"{os.environ["FILES_PATH"]}/{str(sourceId)}"
+        self.shouldRemoveDir = shouldRemoveDir
 
         # Create tmp/{sourceId} folder
         if not os.path.exists(self.sourcePath):
@@ -37,3 +38,15 @@ class ProdSystem:
             return os.environ[key]
         except KeyError:
             return None
+    def clean(self):
+        if(not self.shouldRemoveDir):
+            return
+
+        for root, dirs, files in os.walk(self.sourcePath, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+
+        os.rmdir(self.sourcePath)
+

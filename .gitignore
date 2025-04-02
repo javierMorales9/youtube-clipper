@@ -68,3 +68,5 @@ processor/processor/test.py
 processor/*.json
 
 borralo
+
+processor/src/manual_test.py

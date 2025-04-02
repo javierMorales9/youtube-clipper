@@ -53,8 +53,11 @@ def createSuggestions(aiModel: AIModel, source: Source, words: list[Word]):
             "end_line": topLineIndex,
         }
         while True:
-            suggestionRange["start_line"] -= 1
-            suggestionRange["end_line"] += 1
+            if suggestionRange["start_line"] > 0:
+                suggestionRange["start_line"] -= 1
+
+            if suggestionRange["end_line"] < len(lines) - 1:
+                suggestionRange["end_line"] += 1
 
             endMillis = lines[suggestionRange["end_line"]]["end"]
             startMillis = lines[suggestionRange["start_line"]]["start"]
@@ -69,7 +72,6 @@ def createSuggestions(aiModel: AIModel, source: Source, words: list[Word]):
         suggestionRanges.append(suggestionRange)
 
     print("suggestion ranges", suggestionRanges)
-
     suggestions: list[Suggestion] = []
     for suggestionRange in suggestionRanges:
         start_line = suggestionRange["start_line"]
@@ -166,6 +168,7 @@ class OrderedSimilarity(TypedDict):
     id: int
     similarity: int
 
+
 def orderSimilarities(similarities: list[int]) -> list[OrderedSimilarity]:
     orderedSimilarities: list[OrderedSimilarity] = []
     for i in range(len(similarities)):
@@ -186,6 +189,7 @@ def orderSimilarities(similarities: list[int]) -> list[OrderedSimilarity]:
 class SuggestionData(BaseModel):
     name: str
     description: str
+
 
 def generateNameAndDescription(text: str, suggestionModel: AIModel, source: Source):
     return suggestionModel.jsonCall(

@@ -123,7 +123,7 @@ class OpenAiModel:
         # We need to split the audio into chunks of 10 minutes
         # to avoid the api 25MB limit
         print("Splitting audio into chunks")
-        batch_size = 10 * 60 # 10 minutes
+        batch_size = 10 * 60  # 10 minutes
         batch_count = int(duration // batch_size) + 1
         self.sys.run(
             [
@@ -141,7 +141,7 @@ class OpenAiModel:
                 "-b:a",
                 "192k",
                 self.sys.path("audio_%d.mp3"),
-                "-y"
+                "-y",
             ]
         )
 
@@ -150,8 +150,6 @@ class OpenAiModel:
         )
 
         words: list[Word] = []
-        batch_size = 10 * 60 # 10 minutes
-        batch_count = int(duration // batch_size) + 1
         print(batch_count)
         for i in range(batch_count):
             print(f"Transcribing chunk {i}")
@@ -169,8 +167,8 @@ class OpenAiModel:
                 words.append(
                     {
                         "word": word.word,
-                        "start": int(word.start * 1000),
-                        "end": int(word.end * 1000),
+                        "start": int((word.start + batch_size * i) * 1000),
+                        "end": int((word.end + batch_size * i) * 1000),
                     }
                 )
 

@@ -43,20 +43,19 @@ def main():
     while True:
         with Session(engine) as session:
             eventRepo = PostgresEventRepository(session)
-            sourceRepo = PostgresSourceRepository(session)
-            suggestionRepo = PostgresSuggestionRepository(session)
-            clipRepo = PostgresClipRepository(session)
-
-            print("Checking for new events")
             event = eventRepo.getNextEvent()
 
             if event is not None:
-                if event.type == EventType.SOURCE_UPLOADED:
-                    sys = ProdSystem(event.sourceId)
-                    fileHandler = S3FileHandler(sys, event.sourceId)
-                    videoDownloader = ProdVideoDownloader(sys)
-                    aiModel = OpenAiModel(sys)
+                sourceRepo = PostgresSourceRepository(session)
+                suggestionRepo = PostgresSuggestionRepository(session)
+                clipRepo = PostgresClipRepository(session)
 
+                sys = ProdSystem(event.sourceId, shouldRemoveDir=env != "dev")
+                fileHandler = S3FileHandler(sys, event.sourceId)
+                videoDownloader = ProdVideoDownloader(sys)
+                aiModel = OpenAiModel(sys)
+
+                if event.type == EventType.SOURCE_UPLOADED:
                     processSource(
                         sourceRepo,
                         suggestionRepo,
@@ -67,39 +66,13 @@ def main():
                         event.sourceId,
                     )
                 elif event.type == EventType.CLIP_UPDATED:
-                    sys = ProdSystem(event.sourceId)
-                    fileHandler = S3FileHandler(sys, event.sourceId)
-
                     generateClip(sourceRepo, clipRepo, sys, fileHandler, event)
+
+                sys.clean()
 
             session.commit()
 
         sleep(10)
 
-# main()
 
-load_dotenv()
-dbUrl = os.environ["DATABASE_URL"]
-engine = create_engine(dbUrl)
-
-sourceId = "97a0cac3-460e-4138-a4c0-5fc04854ac62"
-
-with Session(engine) as session:
-    sourceRepo = PostgresSourceRepository(session)
-    suggestionRepo = PostgresSuggestionRepository(session)
-
-    sys = ProdSystem(sourceId)
-    fileHandler = S3FileHandler(sys, sourceId)
-    videoDownloader = ProdVideoDownloader(sys)
-    aiModel = OpenAiModel(sys)
-
-    processSource(
-        sourceRepo,
-        suggestionRepo,
-        sys,
-        fileHandler,
-        aiModel,
-        videoDownloader,
-        sourceId,
-    )
-    session.commit()
+main()
