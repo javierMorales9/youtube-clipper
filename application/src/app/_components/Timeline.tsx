@@ -1,7 +1,7 @@
 'use client';
 import { toReadableTime } from '@/app/utils';
 import { SourceType } from '@/server/entities/source/domain/Source';
-import { useState, MouseEvent, WheelEvent, useRef, useEffect, useMemo } from 'react';
+import { useState, MouseEvent, WheelEvent, useRef, useEffect, useMemo, useCallback } from 'react';
 
 const NUMBER_OF_MARKS = 6;
 const MIN_ZOOM = 1;
@@ -33,13 +33,14 @@ export default function Timeline({
   ) => JSX.Element,
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const visibleTimelineWidth = useMemo(() => {
+  const [visibleTimelineWidth, setVisibleTimelineWidth] = useState(0);
+  useEffect(() => {
     const container = containerRef.current;
-    if (!container) return 0;
+    if (!container) return;
 
-    return container.clientWidth;
+    setVisibleTimelineWidth(container.clientWidth);
   }, [containerRef.current]);
+
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [scrollValue, setScrollValue] = useState(0);
@@ -82,6 +83,7 @@ export default function Timeline({
   return (
     <>
       <div
+        id="timeline"
         ref={containerRef}
         className="w-full flex flex-col items-center gap-y-4"
       >
@@ -121,8 +123,6 @@ export default function Timeline({
                     )}
                     <Images
                       sections={sections}
-                      visibleTimelineWidth={visibleTimelineWidth}
-                      source={source}
                       imageUrl={imageUrl}
                       offset={offset}
                     />
@@ -221,7 +221,7 @@ function useSections({
 
       return result;
     },
-    [initialPosition, zoom, length, scrollValue]
+    [visibleTimelineWidth, initialPosition, zoom, length, scrollValue]
   );
 
   function marks(zoom: number) {
@@ -336,6 +336,7 @@ function TimelineMarks({
   sections: Section[],
   visibleTimelineWidth: number,
 }) {
+  console.log("sections", sections);
   return (
     <div className="flex flex-row items-start w-full z-[-1]">
       {sections.map((section, i) => (
@@ -371,21 +372,51 @@ function TimelineMarks({
 
 function Images({
   sections,
-  visibleTimelineWidth,
-  source,
   imageUrl,
   offset,
 }: {
   sections: Section[],
-  visibleTimelineWidth: number,
-  source: SourceType,
   imageUrl: string,
   offset: number,
 }) {
-  const imageHeight = useMemo(
-    () => visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!
-    , [visibleTimelineWidth, source]
-  );
+  const image = useMemo(() => {
+    const image = new Image();
+    image.src = imageUrl;
+
+    return image;
+  }, [imageUrl]);
+  const extractImage = (frameToExtract: number) => {
+    //It is a Filmstrip. With that we mean that it is a single image
+    //that contains all the frames of the video in a single row.
+    //The frames are vertically positioned.
+    //The width of the image is 240px and the height is 135 * n frames (n is the number of frames)
+    //The height of each frame is 135px.
+    //I want to generate a new image by extracting a single frame from the filmstrip.
+    //So If I want to extract the 3rd frame, I need to get the 3rd row of the image and get
+    //back a new 240x135 image.
+
+    const frameWidth = 240;
+    const frameHeight = 135;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = frameWidth;
+    canvas.height = frameHeight;
+
+    const context = canvas.getContext('2d')!;
+    context.drawImage(
+      image,
+      0, // x position of the frame
+      frameHeight * frameToExtract, // y position of the frame
+      frameWidth, // width of the frame
+      frameHeight, // height of the frame
+      0, // x position of the canvas
+      0, // y position of the canvas
+      frameWidth, // width of the canvas
+      frameHeight // height of the canvas
+    );
+
+    return canvas.toDataURL();
+  };
 
   return (
     <>
@@ -395,31 +426,7 @@ function Images({
             key={i}
             style={{ width: section.width + 'px', zIndex: -1 }}
           >
-            <div
-              className=""
-              style={{
-                width: (visibleTimelineWidth / NUMBER_OF_MARKS) + 'px',
-                height: imageHeight + 'px',
-                overflowY: 'hidden',
-                overflowX: 'clip',
-              }}
-            >
-              <img
-                src={imageUrl}
-                alt="Timeline"
-                style={{
-                  position: 'relative',
-                  width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
-                  top: `-${imageHeight * (Math.floor(offset) + section.second)}px`,
-                  left: section.first
-                    ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
-                    : section.last
-                      ? 0
-                      : undefined,
-
-                }}
-              />
-            </div>
+            <img src={extractImage(Math.floor(offset) + section.second)} alt="Timeline" />
           </div>
         ))
       }

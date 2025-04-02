@@ -4,6 +4,7 @@
 
 body {
   background-color: #FBFAFC;
+  overscroll-behavior-x: none;
 }
 
 @layer utilities {
