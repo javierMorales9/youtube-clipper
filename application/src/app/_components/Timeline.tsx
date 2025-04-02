@@ -125,6 +125,8 @@ export default function Timeline({
                       sections={sections}
                       imageUrl={imageUrl}
                       offset={offset}
+                      visibleTimelineWidth={visibleTimelineWidth}
+                      source={source}
                     />
                   </div>
                 </div>
@@ -184,7 +186,7 @@ function useSections({
 
   const reference = useMemo(
     () => pxFromSec(currentSeconds) - initialPosition,
-    [initialPosition, currentSeconds, length]
+    [initialPosition, currentSeconds, length, zoom]
   );
 
   const sections = useMemo<Section[]>(
@@ -323,7 +325,7 @@ function Controls({
 
 function Reference({ reference }: { reference: number }) {
   return (
-    <span className="absolute bottom-0 z-10" style={{ left: reference }}>
+    <span className="absolute bottom-0 z-1" style={{ left: reference }}>
       <div className="w-[2px] h-[130px] bg-red-500"></div>
     </span>
   );
@@ -336,7 +338,6 @@ function TimelineMarks({
   sections: Section[],
   visibleTimelineWidth: number,
 }) {
-  console.log("sections", sections);
   return (
     <div className="flex flex-row items-start w-full z-[-1]">
       {sections.map((section, i) => (
@@ -374,10 +375,14 @@ function Images({
   sections,
   imageUrl,
   offset,
+  visibleTimelineWidth,
+  source,
 }: {
   sections: Section[],
   imageUrl: string,
   offset: number,
+  visibleTimelineWidth: number,
+  source: SourceType,
 }) {
   const image = useMemo(() => {
     const image = new Image();
@@ -418,6 +423,11 @@ function Images({
     return canvas.toDataURL();
   };
 
+  const imageHeight = useMemo(
+    () => visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!
+    , [visibleTimelineWidth, source]
+  );
+
   return (
     <>
       {
@@ -426,7 +436,30 @@ function Images({
             key={i}
             style={{ width: section.width + 'px', zIndex: -1 }}
           >
-            <img src={extractImage(Math.floor(offset) + section.second)} alt="Timeline" />
+            <div
+              className=""
+              style={{
+                width: (visibleTimelineWidth / NUMBER_OF_MARKS) + 'px',
+                height: imageHeight + 'px',
+                overflowY: 'hidden',
+                overflowX: 'clip',
+              }}
+            >
+              <img
+                src={extractImage(Math.floor(offset) + section.second)}
+                alt="Timeline"
+                style={{
+                  position: 'relative',
+                  width: visibleTimelineWidth / NUMBER_OF_MARKS + 'px',
+                  height: imageHeight + 'px',
+                  left: section.first
+                    ? `-${visibleTimelineWidth / NUMBER_OF_MARKS - section.width}px`
+                    : section.last
+                      ? 0
+                      : undefined,
+                }}
+              />
+            </div>
           </div>
         ))
       }
