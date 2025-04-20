@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ClipRepository } from "../entities/clip/domain/ClipRepository";
+import { ClipRepository } from "../domain/ClipRepository";
 
 export const FinishProcessingInputSchema = z.object({ id: z.string() });
 type FinishProcessingInput = z.infer<typeof FinishProcessingInputSchema>;
