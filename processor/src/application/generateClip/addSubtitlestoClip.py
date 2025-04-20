@@ -52,7 +52,6 @@ fonts = {
     "Komika": "Komika Axis",
 }
 
-
 def generateAssFile(clip: Clip, linelevel_subtitles: list[Line]):
     theme = clip.theme
 
@@ -79,9 +78,11 @@ Video Position: 178
         "Fontname": fonts[theme.themeFont],
         "Fontsize": theme.themeSize * 5,
         "PrimaryColour": f"&H00{theme.themeFontColor.replace('#', '')}",
-        "SecondaryColour": f"&H00{theme.themeMainColor.replace('#', '')}",
         "OutlineColour": f"&H00{theme.themeStrokeColor.replace('#', '')}",
+        "Outline": strokeStyle(theme),
+        "Shadow": shadowStyle(theme),
         "BackColour": f"&H00{theme.themeFontColor.replace('#', '')}",
+        "SecondaryColour": "&H000000",
         "Bold": 0,
         "Italic": 0,
         "Underline": 0,
@@ -91,8 +92,6 @@ Video Position: 178
         "Spacing": 0,
         "Angle": 0,
         "BorderStyle": 1,
-        "Outline": strokeStyle(theme),
-        "Shadow": shadowStyle(theme),
         "Alignment": 8, #8 is top center
         "MarginL": 10,
         "MarginR": 10,

@@ -116,11 +116,10 @@ def generateSectionFile(sys: System, i: int, clip: Clip, source: Source):
         "-y",
         sys.path(f"{clip.id}_{i}.mp4"),
     ]
-    print(" ".join(arguments))
 
+    print(f"Section {i}")
     result = sys.run(arguments)
 
-    print("Result", result[2])
     if result[2] != 0:
         print("Error", result[1])
         raise Exception(f"Error generating section {i}")
@@ -174,7 +173,6 @@ def fragmentsString(section: Section, sourceWidth: float, sourceHeight: float):
 
         fragmentWidth = float(1080 * display["width"])
         fragmentHeight = float(1920 * display["height"])
-        print(f"Fragment {i} {fragmentWidth}x{fragmentHeight}")
 
         cropX = fragment.x * sourceWidth
         cropY = fragment.y * sourceHeight

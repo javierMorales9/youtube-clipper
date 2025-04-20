@@ -54,7 +54,7 @@ export default function Login() {
         {...form.register("password")}
       />
       <Button onClick={form.handleSubmit(handleSubmit)}>
-        Login
+        Sign up
       </Button>
       <span className="text-sm text-gray-500">
         Already have an account? <Link href="/login" className="text-blue-500">Log in</Link>

@@ -135,7 +135,7 @@ def createTimeline(sys: System, duration: float):
             f"select=not(mod(n\\,30)),scale=240:-1,tile=1x{intDuration}",
             sys.path("timeline.png"),
             "-y",
-        ],
+        ], silent=False
     )
 
 def createSnapshot(sys: System, duration: float):

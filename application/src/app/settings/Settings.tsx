@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Label } from '@/app/_components/common/Label';
 import Link from 'next/link';
 import { useCompany } from '@/app/_components/CompanyWrapper';

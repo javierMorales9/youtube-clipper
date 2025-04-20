@@ -400,8 +400,8 @@ function Images({
     //So If I want to extract the 3rd frame, I need to get the 3rd row of the image and get
     //back a new 240x135 image.
 
-    const frameWidth = 240;
-    const frameHeight = 135;
+    const frameWidth = image.width; // E.g. 240px
+    const frameHeight = frameWidth * source.height! / source.width!; // E.g. 135px
 
     const canvas = document.createElement('canvas');
     canvas.width = frameWidth;
