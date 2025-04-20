@@ -36,8 +36,8 @@ jobs:
       - name: Build and push app
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: application
+          file: ./application/Dockerfile
           push: true
           #tags: ${{ env.REGISTRY_URI }}/app:production,${{ steps.commit_hash.outputs.hash }}
           tags: ${{ env.REGISTRY_URI }}/app:production
