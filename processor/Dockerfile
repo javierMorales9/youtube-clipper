@@ -53,7 +53,8 @@ RUN make install
 WORKDIR "/install"
 RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 WORKDIR "/install/ffmpeg"
-RUN ./configure --enable-shared --enable-gpl --enable-libx264
+RUN apt-get install libmp3lame-dev -y
+RUN ./configure --enable-shared --enable-gpl --enable-libx264 --enable-libmp3lame
 RUN make
 RUN make install
 RUN ldconfig
