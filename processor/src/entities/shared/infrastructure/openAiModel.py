@@ -117,7 +117,7 @@ class OpenAiModel:
                 "0",
                 self.sys.path("audio.mp3"),
                 "-y",
-            ]
+            ], silent=False
         )
 
         # We need to split the audio into chunks of 10 minutes
@@ -142,7 +142,7 @@ class OpenAiModel:
                 "192k",
                 self.sys.path("audio_%d.mp3"),
                 "-y",
-            ]
+            ], silent=False
         )
 
         client = OpenAI(
