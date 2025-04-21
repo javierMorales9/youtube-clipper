@@ -39,7 +39,7 @@ export function useS3Uploader({
           setPercentage(newPercentage);
         }
       })
-      .onError((error: any) => {
+      .onError((error: Error) => {
         setError(error);
         setFile(null);
         setUploader(null);

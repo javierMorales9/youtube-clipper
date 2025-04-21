@@ -24,8 +24,17 @@ export class ProdVideoRepository implements VideoRepository {
 
     try {
       const response = await fetch(endpoint);
-      const data = await response.json();
-      const videos = data?.items || [];
+      type ApiResponse = {
+        items: {
+          snippet?: {
+            title: string,
+            tags: string[]
+          },
+          contentDetails?: { duration: string }
+        }[]
+      };
+      const data: ApiResponse = await response.json();
+      const videos = data.items ?? [];
 
       const video = videos[0];
 
@@ -33,9 +42,9 @@ export class ProdVideoRepository implements VideoRepository {
         return null;
       }
 
-      const title = video?.snippet?.title as string;
-      const duration = durationToSeconds(video?.contentDetails?.duration) as number;
-      const tags = video?.snippet?.tags as string[];
+      const title = video?.snippet?.title ?? "";
+      const duration = durationToSeconds(video?.contentDetails?.duration);
+      const tags = video?.snippet?.tags ?? [];
 
       return { title, duration, tags };
     } catch (e) {

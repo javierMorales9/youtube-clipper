@@ -67,7 +67,7 @@ export function Preview({
               dimensions={dimensions}
               sectionWidth={previewWidth}
               sectionHeight={previewHeight}
-              display={Displays[section.display]![i]!}
+              display={Displays[section.display][i]!}
               fragment={fragment}
             />
           ))}

@@ -35,7 +35,7 @@ export async function createNew(
   const clip = Clip.new({ ...input, companyId: companyId });
   console.log('clip', clip.sections[0]);
 
-  repo.save(clip);
+  await repo.save(clip);
 
   return clip.toPrimitives();
 }

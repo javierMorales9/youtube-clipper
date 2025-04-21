@@ -104,7 +104,7 @@ export default function NewSource({
   };
 
   const fileInput = async (file: File, duration: number) => {
-    setVideoFile(file as File);
+    setVideoFile(file);
     setVideoDuration(duration);
     setVideoData({
       name: file.name,
@@ -123,7 +123,7 @@ export default function NewSource({
   }
 
   const urlInput = async (file: string, videoData: VideoData) => {
-    setVideoUrl(file as string);
+    setVideoUrl(file);
     setVideoDuration(videoData.duration);
     setVideoData({
       name: videoData.title,
@@ -141,17 +141,17 @@ export default function NewSource({
     setStep("input");
   }
 
-  const addData = (data: SourceData) => {
+  const addData = async (data: SourceData) => {
     setVideoData(data);
 
     if (mode === "url") {
-      newUrlSource({ url: videoUrl, ...data });
+      await newUrlSource({ url: videoUrl, ...data });
       addSource({ name: data?.name, processing: true });
       clearUrlInput();
     }
     else {
       setStep("uploading");
-      upload(data);
+      await upload(data);
     }
   }
 
@@ -192,7 +192,7 @@ export default function NewSource({
         <MetadataInput
           videoDuration={videoDuration}
           addData={addData}
-          sourceData={videoData!}
+          sourceData={videoData}
         />
       )}
 

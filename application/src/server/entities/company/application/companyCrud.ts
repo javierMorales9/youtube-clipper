@@ -29,7 +29,7 @@ export async function login(repo: CompanyRepository, input: LoginInput) {
     throw new Error("Invalid email, please try again");
   }
 
-  const passwordMatched = theC.comparePassword(input.password);
+  const passwordMatched = await theC.comparePassword(input.password);
 
   if (!passwordMatched) throw new Error("Invalid password, please try again");
 

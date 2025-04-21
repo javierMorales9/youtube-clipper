@@ -114,9 +114,9 @@ export class PgClipRepository implements ClipRepository {
             order: j,
             sectionOrder: i,
             clipId: id,
-            x: fragment.x,
-            y: fragment.y,
-            size: fragment.size,
+            x: fragment.x.toString(),
+            y: fragment.y.toString(),
+            size: fragment.size.toString(),
           });
         }
       }

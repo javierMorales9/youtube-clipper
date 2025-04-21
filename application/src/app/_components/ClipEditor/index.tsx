@@ -33,7 +33,7 @@ export default function ClipEditor({
 
   const { mutateAsync: createClip } = api.clip.save.useMutation();
 
-  const form = useForm<ClipType>({
+  const form = useForm<ClipType, null, undefined>({
     defaultValues: clip,
   });
 
