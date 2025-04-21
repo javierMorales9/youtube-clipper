@@ -24,6 +24,7 @@ waitress = "^3.0.2"
 pytest = "^8.3.3"
 yt-dlp = "^2024.12.13"
 
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

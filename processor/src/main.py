@@ -51,7 +51,7 @@ def main():
                 clipRepo = PostgresClipRepository(session)
 
                 sys = ProdSystem(event.sourceId, shouldRemoveDir=env != "dev")
-                fileHandler = S3FileHandler(sys, event.sourceId)
+                fileHandler = S3FileHandler(sys, event.sourceId, uploadBaseFiles=True)
                 videoDownloader = ProdVideoDownloader(sys)
                 aiModel = OpenAiModel(sys)
 
@@ -68,7 +68,8 @@ def main():
                 elif event.type == EventType.CLIP_UPDATED:
                     generateClip(sourceRepo, clipRepo, sys, fileHandler, event)
 
-                sys.clean()
+                if env != "dev":
+                    sys.clean()
 
             session.commit()
 
