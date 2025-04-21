@@ -19,7 +19,7 @@ class ProdVideoDownloader:
                 url,
                 "-o",
                 self.path,
-            ]
+            ], silent=False
         )
 
         print("Finished downloading video")
