@@ -76,4 +76,4 @@ CMD ["python", "-m", "poetry", "run", "python3", "-m", "pytest"]
 
 FROM base AS final
 EXPOSE $PORT
-CMD ["python", "-m", "poetry", "run", "python3", "processor/main.py"]
+CMD ["python", "-m", "poetry", "run", "python3", "src/main.py"]
