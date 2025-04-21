@@ -386,6 +386,7 @@ function Images({
 }) {
   const image = useMemo(() => {
     const image = new Image();
+    image.crossOrigin = 'anonymous'; // NECESARIO
     image.src = imageUrl;
 
     return image;
