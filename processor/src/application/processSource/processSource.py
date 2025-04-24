@@ -38,7 +38,7 @@ def processSource(
     suggestionRepo.saveSuggestions(suggestions)
 
     generateHls(sys)
-    createTimeline(sys, duration)
+    createTimeline(sys)
     createSnapshot(sys, duration)
 
     fileHandler.saveFiles()
@@ -120,20 +120,20 @@ def getVideoResolution(sys: System):
     return width, height
 
 
-def createTimeline(sys: System, duration: float):
-    intDuration = int(duration)
-
-    print("Creating timeline. Duration:", duration)
+def createTimeline(sys: System):
+    print("Creating timeline")
     sys.run(
         [
             "ffmpeg",
             "-i",
             sys.path("original.mp4"),
-            '-frames',
-            '1',
             "-vf",
-            f"select=not(mod(n\\,30)),scale=240:-1,tile=1x{intDuration}",
-            sys.path("timeline.png"),
+            f"select='not(mod(t\\,1))',scale=240:-1",
+            "-vsync",
+            "vfr",
+            "-q:v",
+            "2",
+            sys.path("timeline_%d.jpg"),
             "-y",
         ], silent=False
     )
