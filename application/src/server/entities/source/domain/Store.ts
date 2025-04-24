@@ -14,4 +14,5 @@ export interface Store {
     fileKey: string,
     parts: { PartNumber: number; ETag: string }[],
   ) => Promise<string | undefined>;
+  getClipFileURL(sourceId: string, clipId: string): Promise<string | null>;
 }
