@@ -1,6 +1,6 @@
 import { Db } from "@/server/db";
 import { ClipRepository } from "../domain/ClipRepository";
-import { Clip, SectionSchema, ThemeSchema } from "../domain/Clip";
+import { Clip, ClipState, SectionSchema, ThemeSchema } from "../domain/Clip";
 import {
   ClipTable as ClipModel,
   clip,
@@ -168,6 +168,7 @@ export class PgClipRepository implements ClipRepository {
 
     return new Clip({
       ...theClip,
+      state: theClip.state as ClipState,
       width: parseInt(theClip.width),
       height: parseInt(theClip.height),
       range: {
