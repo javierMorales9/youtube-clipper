@@ -49,7 +49,7 @@ jobs:
 
       - name: Test app
         run: |
-          docker run --rm test-app
+          docker run --rm test-production-app
 
       - name: Build and push app
         uses: docker/build-push-action@v5
@@ -74,7 +74,7 @@ jobs:
 
       - name: Test processor
         run: |
-          docker run --rm test-processor
+          docker run --rm test-production-processor
 
       - name: Build and push processor
         uses: docker/build-push-action@v5
