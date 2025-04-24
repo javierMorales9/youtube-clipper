@@ -1,0 +1,1 @@
+ALTER TABLE "source" ADD COLUMN "origin" varchar(256) DEFAULT 'upload' NOT NULL;

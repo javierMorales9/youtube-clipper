@@ -14,7 +14,7 @@ containers/*/node_modules
 /prisma/db.sqlite-journal
 
 # next.js
-/.next/
+.next/
 /out/
 next-env.d.ts
 
@@ -46,11 +46,11 @@ yarn-error.log*
 media/input/
 media/output/
 
-public/test.mp4
-public/test/
-public/temp/
-public/assets/
-public/files
+application/public/test.mp4
+application/public/test/
+application/public/temp/
+application/public/assets/
+application/public/files
 test.mp4
 public/srtSubtitles.srt
 public/embeddings.json
@@ -60,3 +60,13 @@ __pycache__/
 
 # Lambdas
 *.zip
+
+processor/processor/test.py
+
+.pytest_cache/
+
+processor/*.json
+
+borralo
+
+processor/src/manual_test.py

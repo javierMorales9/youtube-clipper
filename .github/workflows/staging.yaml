@@ -1,0 +1,93 @@
+name: Build app, test it and push to staging
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - staging
+
+env:
+  REGISTRY_URI: ghcr.io/javiermorales9
+  USERNAME: javiermorales9
+  CACHE_TO_META: mode=max,image-manifest=true,oci-mediatypes=true
+
+jobs:
+  Build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get commit hash
+        id: commit_hash
+        run: echo "::set-output name=hash::$(echo $GITHUB_SHA | cut -c1-7)"
+
+      - name: Login to Github registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ env.USERNAME }}
+          password: ${{ secrets.TOKEN_PUSHING_IMAGES }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create and use a new builder instance
+        run: |
+          docker buildx create --name mybuilder --use
+
+      - name: Build app test stage
+        uses: docker/build-push-action@v5
+        with:
+          context: application
+          file: ./application/Dockerfile
+          load: true
+          tags: test-app
+          target: test
+          builder: mybuilder
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:test-cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:test-cache
+
+      - name: Test app
+        run: |
+          docker run --rm test-app
+
+      - name: Build and push app
+        uses: docker/build-push-action@v5
+        with:
+          context: application
+          file: ./application/Dockerfile
+          push: true
+          #tags: ${{ env.REGISTRY_URI }}/app:staging,${{ steps.commit_hash.outputs.hash }}
+          tags: ${{ env.REGISTRY_URI }}/app:staging
+          builder: mybuilder
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:cache-staging
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:cache-staging
+
+      - name: Build processor test stage
+        uses: docker/build-push-action@v5
+        with:
+          context: processor
+          file: ./processor/Dockerfile
+          load: true
+          tags: test-processor
+          target: test
+          builder: mybuilder
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:test-cache
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:test-cache
+
+      - name: Test processor
+        run: |
+          docker run --rm test-processor
+
+      - name: Build and push processor
+        uses: docker/build-push-action@v5
+        with:
+          context: processor
+          file: ./processor/Dockerfile
+          push: true
+          #tags: ${{ env.REGISTRY_URI }}/processor:staging,${{ steps.commit_hash.outputs.hash }}
+          tags: ${{ env.REGISTRY_URI }}/processor:staging
+          builder: mybuilder
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:cache-staging
+          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:cache-staging

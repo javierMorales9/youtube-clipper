@@ -1,0 +1,1 @@
+ALTER TABLE "clip" ADD COLUMN "state" varchar(256) DEFAULT 'draft' NOT NULL;

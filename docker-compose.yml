@@ -7,13 +7,13 @@ services:
       - ~/apps/postgres:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=pass
-      - POSTGRES_USER=user
+
       - POSTGRES_DB=db
 #  app:
 #    image: app
 #    network_mode: "host"
 #    build:
-#      context: .
+#      context: app
 #      target: test
 #    ports:
 #      - 3000:3000

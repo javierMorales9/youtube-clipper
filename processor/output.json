@@ -1,0 +1,13 @@
+[
+    {
+        "sector": "de un ecommerce de ropa",
+        "action": "agradecer su pedido",
+        "alternatives": [
+            "Estimado cliente,\nNos alegra haber sido su elecci\u00f3n para esta compra. Gracias por confiar en nuestra calidad. Siempre estamos aqu\u00ed para cualquier duda o asesoramiento. \u00a1Esperamos que disfrute de su nueva prenda!\nAtentamente,\n[Tienda de Ropa]",
+            "\u00a1Hola!\nMuchas gracias por su compra. Estamos encantados de tenerlo entre nuestros clientes. Su satisfacci\u00f3n es nuestra prioridad. No dude en visitarnos pronto para m\u00e1s moda emocionante.\nSaludos cordiales,\n[Nombre] de [Tienda de Ropa]",
+            "Querido cliente,\nEs un placer atenderle y ser parte de su estilo diario. Gracias a su preferencia, seguimos creciendo y mejorando. Estamos aqu\u00ed para ayudar en lo que necesite.\nCon agradecimiento,\nEquipo de [Tienda de Ropa]",
+            "Apreciado cliente,\nSu pedido ha sido recibido con gratitud. Para nosotros, su confianza es esencial. Esperamos que su experiencia de compra haya sido satisfactoria y nos visiten nuevamente.\nCordialmente,\nEl equipo de [Tienda de Ropa]",
+            "Estimado amigo de la moda,\n\u00a1Gracias por elegirnos! Nos complace ser parte de su guardarropa. No dude en contactarnos para cualquier asistencia. Estaremos encantados de ayudar.\nSinceramente,\n[Nombre] de [Tienda de Ropa]"
+        ]
+    }
+]

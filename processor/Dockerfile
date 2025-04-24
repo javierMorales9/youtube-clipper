@@ -1,4 +1,4 @@
-FROM ubuntu:rolling AS base
+FROM ubuntu:oracular AS base
 #
 # Update and upgrade the system
 #
@@ -12,12 +12,14 @@ RUN apt-get -y upgrade
 RUN mkdir /opt/python3.12
 
 # To avoid .pyc files and save space
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install all dependecnies you need to compile Python3.12
 RUN apt update
-RUN DEBIAN_FRONTEND="noninteractive" apt install --yes wget libffi-dev gcc build-essential curl tcl-dev tk-dev uuid-dev lzma-dev liblzma-dev libssl-dev libsqlite3-dev
+RUN dpkg --configure -a
+RUN apt install --yes wget libffi-dev gcc build-essential curl tcl-dev tk-dev uuid-dev lzma-dev liblzma-dev libssl-dev libsqlite3-dev
 
 # Download Python source code from official site and build it
 RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz
@@ -51,7 +53,9 @@ RUN make install
 WORKDIR "/install"
 RUN git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 WORKDIR "/install/ffmpeg"
-RUN ./configure --enable-shared --enable-gpl --enable-libx264
+RUN apt-get install libmp3lame-dev -y
+RUN apt-get install libass-dev -y
+RUN ./configure --enable-shared --enable-gpl --enable-libx264 --enable-libmp3lame --enable-libass
 RUN make
 RUN make install
 RUN ldconfig
@@ -74,4 +78,4 @@ CMD ["python", "-m", "poetry", "run", "python3", "-m", "pytest"]
 
 FROM base AS final
 EXPOSE $PORT
-CMD ["python", "-m", "poetry", "run", "python3", "processor/main.py"]
+CMD ["python", "-m", "poetry", "run", "python3", "src/main.py"]
