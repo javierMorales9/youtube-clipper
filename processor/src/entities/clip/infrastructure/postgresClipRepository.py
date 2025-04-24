@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from entities.clip.domain.Clip import Fragment, Range, Section, Clip, Theme
+from entities.clip.domain.Clip import ClipState, Fragment, Range, Section, Clip, Theme
 
 from models import Clip as ClipModel, ClipRange, ClipSection, SectionFragment
 
@@ -47,6 +47,7 @@ class PostgresClipRepository():
             return None
 
         clip.processing = False
+        clip.state = ClipState.GENERATED
 
     def parseClip(
         self,
@@ -106,6 +107,7 @@ class PostgresClipRepository():
             name=clipModel.name,
             url=clipModel.url,
             processing=clipModel.processing,
+            state=clipModel.state,
             width=clipModel.width,
             height=clipModel.height,
             createdAt=clipModel.createdAt,

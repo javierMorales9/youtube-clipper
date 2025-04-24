@@ -31,6 +31,12 @@ export enum DisplayName {
   Row = "Row",
 }
 
+export enum ClipState {
+  Draft = "Draft",
+  InProgress = "InProgress",
+  Generated = "Generated",
+}
+
 export const SectionSchema = z.object({
   start: z.number(),
   end: z.number(),
@@ -68,6 +74,7 @@ export const ClipSchema = z.object({
   id: z.string(),
   name: z.string(),
   processing: z.boolean().optional(),
+  state: z.nativeEnum(ClipState).optional(),
   sourceId: z.string(),
   range: z.object({
     start: z.number(),
@@ -116,6 +123,7 @@ export class Clip {
   sourceId: string;
   name: string;
   processing: boolean;
+  state: ClipState;
   range: {
     start: number;
     end: number;
@@ -132,6 +140,7 @@ export class Clip {
     companyId,
     name,
     processing,
+    state,
     sourceId,
     range,
     width,
@@ -145,6 +154,7 @@ export class Clip {
     companyId: string;
     name: string;
     processing: boolean;
+    state: ClipState;
     sourceId: string;
     range: {
       start: number;
@@ -161,6 +171,7 @@ export class Clip {
     this.companyId = companyId;
     this.name = name;
     this.processing = processing;
+    this.state = state;
     this.sourceId = sourceId;
     this.range = range;
     this.width = width;
@@ -194,6 +205,7 @@ export class Clip {
         end: end,
       },
       processing: false,
+      state: ClipState.Draft,
       width: defaultWidth,
       height: defaultHeight,
       sections: [
@@ -220,6 +232,7 @@ export class Clip {
     this.updatedAt = newDate();
 
     this.processing = true;
+    this.state = ClipState.InProgress;
   }
 
   toPrimitives() {
@@ -228,6 +241,7 @@ export class Clip {
       companyId: this.companyId,
       name: this.name,
       processing: this.processing,
+      state: this.state,
       sourceId: this.sourceId,
       range: this.range,
       width: this.width,
@@ -242,5 +256,6 @@ export class Clip {
   finishProcessing() {
     this.processing = false;
     this.updatedAt = newDate();
+    this.state = ClipState.Generated;
   }
 }

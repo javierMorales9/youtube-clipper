@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { toReadableTime } from "@/app/utils";
 import Download from "../../../../public/images/Download.svg";
 import Loading from "../../../../public/images/Loading.svg";
-import { ClipType } from "@/server/entities/clip/domain/Clip";
+import { ClipState, ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 import { SelectedBlock, useBlocks } from "./usePanels";
 
@@ -258,13 +258,13 @@ function Menu({
                   </span>
                 </div>
                 <div className="">
-                  {clip.processing && (
+                  {clip.state === ClipState.InProgress && (
                     <div className="flex flex-row gap-x-3 items-center">
                       <span className="text-gray-400">Processing</span>
                       <Loading className="w-10 h-10 fill-gray-400" />
                     </div>
                   )}
-                  {!clip.processing && (
+                  {clip.state !== ClipState.InProgress && (
                     <div
                       className=""
                       onClick={(e) => {

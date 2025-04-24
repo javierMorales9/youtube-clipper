@@ -107,6 +107,7 @@ class Clip(Base):
     name: Mapped[str] = mapped_column(String(256), default="")
     url: Mapped[Optional[str]] = mapped_column(String(256))
     processing: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    state: Mapped[str] = mapped_column(String(256), nullable=False)
     width: Mapped[int] = mapped_column(nullable=False)
     height: Mapped[int] = mapped_column(nullable=False)
     themeFont: Mapped[str] = mapped_column(String(25), name="theme_font")

@@ -2,11 +2,13 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
+
 class ThemeShadow(str, Enum):
     NONE = "None"
     SMALL = "Small"
     MEDIUM = "Medium"
     LARGE = "Large"
+
 
 class ThemeStroke(str, Enum):
     NONE = "None"
@@ -14,9 +16,17 @@ class ThemeStroke(str, Enum):
     MEDIUM = "Medium"
     LARGE = "Large"
 
+
 class ThemeEmojiPosition(str, Enum):
     TOP = "Top"
     BOTTOM = "Bottom"
+
+
+class ClipState(str, Enum):
+    DRAFT = "Draft"
+    IN_PROGRESS = "InProgress"
+    GENERATED = "Generated"
+
 
 class Range:
     def __init__(self, start: int, end: int):
@@ -97,6 +107,7 @@ class Clip:
         name: str,
         url: Optional[str],
         processing: bool,
+        state: ClipState,
         width: int,
         height: int,
         createdAt: datetime,
@@ -111,6 +122,7 @@ class Clip:
         self.name: str = name
         self.url: Optional[str] = url
         self.processing: bool = processing
+        self.state: ClipState = state
         self.width: int = width
         self.height: int = height
         self.createdAt: datetime = createdAt

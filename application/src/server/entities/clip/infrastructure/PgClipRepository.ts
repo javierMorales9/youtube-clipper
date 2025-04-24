@@ -63,6 +63,7 @@ export class PgClipRepository implements ClipRepository {
           height: height.toString(),
           ...data.theme,
           processing: data.processing ?? true,
+          state: data.state,
           createdAt,
           updatedAt,
         })
@@ -74,6 +75,7 @@ export class PgClipRepository implements ClipRepository {
             height: height.toString(),
             ...data.theme,
             processing: data.processing ?? true,
+            state: data.state,
             updatedAt,
           },
         });

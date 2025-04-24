@@ -108,6 +108,7 @@ export const clip = createTable("clip", {
     .default(sql`''`),
   url: varchar("url", { length: 256 }),
   processing: boolean("processing").notNull(),
+  state: varchar("state", { length: 256 }).notNull().default("draft"),
   width: numeric("width").notNull(),
   height: numeric("height").notNull(),
   themeFont: varchar("theme_font", { length: 25 })

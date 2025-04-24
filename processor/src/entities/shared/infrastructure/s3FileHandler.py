@@ -21,12 +21,8 @@ class S3FileHandler:
 
         for file in self.baseFiles:
             key = f"{self.sourceId}/{file}"
-            local_filename = f"{self.path}/{file}"
 
-            try:
-                my_bucket.download_file(key, local_filename)
-            except Exception as e:
-                print("Error downloading file", key, e)
+            my_bucket.download_file(key, self.sys.path(file))
 
     def saveFiles(self):
         my_bucket = self.getBucket()

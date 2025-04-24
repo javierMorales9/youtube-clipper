@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ClipType } from "@/server/entities/clip/domain/Clip";
+import { ClipState, ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 
 export type SelectedBlock = {
@@ -40,7 +40,7 @@ export function useBlocks(inputClips: ClipType[], inputSuggestions: SuggestionTy
         const clip = clips.find((clip) => clip.id === id);
         if (clip) {
           block.range = clip.range;
-          block.editable = !clip.processing;
+          block.editable = clip.state !== ClipState.InProgress;
         }
       }
       else if (type === "suggestion") {
