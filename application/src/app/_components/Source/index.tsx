@@ -17,6 +17,7 @@ import Loading from "../../../../public/images/Loading.svg";
 import { ClipState, ClipType } from "@/server/entities/clip/domain/Clip";
 import { SuggestionType } from "@/server/entities/suggestion/domain/Suggestion";
 import { SelectedBlock, useBlocks } from "./usePanels";
+import { api } from "@/trpc/react";
 
 export default function SourceEditor({
   source,
@@ -141,6 +142,8 @@ function Menu({
   const [view, setView] = useState<"clips" | "suggestions">(clips.length > 0 ? "clips" : "suggestions");
   const [redirectingToClip, setRedirectingToClip] = useState(false);
 
+  const { mutateAsync: getClipFileUrl } = api.clip.download.useMutation();
+
   const toEditor = () => {
     if (!selectedPanel.range) return;
 
@@ -156,8 +159,17 @@ function Menu({
     setRedirectingToClip(true);
   }
 
-  const downloadClip = async (clip: any) => {
-    console.log('Downloading clip', clip);
+  const downloadClip = async (clip: ClipType) => {
+    const url = await getClipFileUrl({ id: clip.id });
+    if(!url) return;
+
+    console.log('downloading from', url);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = clip.name + ".mp4";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   return (
@@ -264,7 +276,7 @@ function Menu({
                       <Loading className="w-10 h-10 fill-gray-400" />
                     </div>
                   )}
-                  {clip.state !== ClipState.InProgress && (
+                  {clip.state === ClipState.Generated && (
                     <div
                       className=""
                       onClick={(e) => {

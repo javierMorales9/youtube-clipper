@@ -1,4 +1,6 @@
-export const DevStore = {
+import { Store } from "../domain/Store";
+
+export const DevStore: Store = {
   getSignedUrls: async function (key: string) {
     return {
       manifest: process.env.HLS
@@ -25,5 +27,8 @@ export const DevStore = {
     parts: { PartNumber: number; ETag: string }[],
   ) {
     return `api/dev/files/${fileKey}`;
+  },
+  getClipFileURL: async function (sourceId: string, clipId: string) {
+    return `/api/dev/files/${sourceId}/${clipId}.mp4`;
   },
 };

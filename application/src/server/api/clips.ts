@@ -5,6 +5,7 @@ import { PgClipRepository } from "@/server/entities/clip/infrastructure/PgClipRe
 import * as clipCrud from "@/server/entities/clip/application/clipCrud";
 import * as clipProcessing from "@/server/entities/clip/application/clipProcessing";
 import { PgSuggestionRepository } from "../entities/suggestion/infrastructure/PgSuggestionRepository";
+import { storeFactory } from "../entities/source/infrastructure/storeFactory";
 
 export const clipRouter = createTRPCRouter({
   find: protectedProcedure
@@ -51,4 +52,12 @@ export const clipRouter = createTRPCRouter({
 
       return await clipProcessing.finishProcessing(repo, input);
     }),
+  download: protectedProcedure
+      .input(clipProcessing.FinishProcessingInputSchema)
+      .mutation(async ({ ctx, input }) => {
+        const repo = new PgClipRepository(ctx.db);
+        const store = storeFactory();
+
+        return await clipProcessing.download(repo, store, input);
+    })
 });

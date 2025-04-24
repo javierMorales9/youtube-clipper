@@ -2,8 +2,9 @@ import _ from "lodash";
 import { env } from "@/env";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3, UploadPartCommand } from "@aws-sdk/client-s3";
+import { Store } from "../domain/Store";
 
-export const S3Store = {
+export const S3Store: Store = {
   getSignedUrls: async function (key: string) {
     return {
       manifest: `${env.CLOUDFRONT_URL}/${key}/adaptive.m3u8`,
@@ -77,5 +78,8 @@ export const S3Store = {
       multipartParams as any,
     );
     return Location;
+  },
+  getClipFileURL: async function (sourceId: string, clipId: string) {
+    return `${env.CLOUDFRONT_URL}/${sourceId}/${clipId}.mp4`;
   },
 };

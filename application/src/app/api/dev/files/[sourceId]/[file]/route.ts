@@ -11,6 +11,7 @@ const handler = async (
   const imageBuffer = fs.readFileSync(filePath);
 
   const extension = params.file.split(".").pop() || "png";
+  console.log('filePath', extension);
   return new Response(imageBuffer, {
     headers: {
       "content-type": getContentTypeFromExtension(extension),
