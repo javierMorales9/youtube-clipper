@@ -36,7 +36,7 @@ jobs:
         run: |
           docker buildx create --name mybuilder --use
 
-      - name: Build app production stage
+      - name: Build app test stage
         uses: docker/build-push-action@v5
         with:
           context: application
@@ -45,8 +45,7 @@ jobs:
           tags: test-production-app
           target: test
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:test-production-cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:test-production-cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:test-cache
 
       - name: Test app
         run: |
@@ -60,8 +59,7 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY_URI }}/app:production
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:cache-production
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/app:cache-production
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/app:cache-staging
 
       - name: Build processor test stage
         uses: docker/build-push-action@v5
@@ -72,8 +70,7 @@ jobs:
           tags: test-production-processor
           target: test
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:test-production-cache
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:test-production-cache
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:test-cache
 
       - name: Test processor
         run: |
@@ -87,5 +84,4 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY_URI }}/processor:production
           builder: mybuilder
-          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:cache-production
-          cache-to: type=registry,${{ env.CACHE_TO_META }},ref=${{ env.REGISTRY_URI }}/processor:cache-production
+          cache-from: type=registry,ref=${{ env.REGISTRY_URI }}/processor:cache-staging
