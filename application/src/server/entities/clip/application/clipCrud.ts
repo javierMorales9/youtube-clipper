@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ClipRepository } from "@/server/entities/clip/domain/ClipRepository";
+import { SuggestionRepository } from "@/server/entities/suggestion/domain/SuggestionRepository";
 import { Clip, ClipType } from "@/server/entities/clip/domain/Clip";
 import { EventRepository } from "@/server/entities/event/domain/EventRepository";
 import { Event } from "@/server/entities/event/domain/Event";
@@ -32,10 +33,31 @@ export async function createNew(
   companyId: string,
   input: CreateNewInput,
 ) {
-  const clip = Clip.new({ ...input, companyId: companyId });
+  const clip = Clip.new({ companyId: companyId, name: "New clip", ...input });
   console.log('clip', clip.sections[0]);
 
   await repo.save(clip);
+
+  return clip.toPrimitives();
+}
+
+export const CreateFromSuggestionInputSchema = z.object({
+  suggestionId: z.string(),
+});
+type CreateFromSuggestionInput = z.infer<typeof CreateFromSuggestionInputSchema>;
+export async function createFromSuggestion(
+  repo: ClipRepository,
+  suggestionRepo: SuggestionRepository,
+  input: CreateFromSuggestionInput,
+) {
+  const suggestion = await suggestionRepo.find(input.suggestionId);
+  console.log("Clip from suggestion", suggestion);
+  if(!suggestion) 
+    throw new Error("Suggestion not found");
+
+  const clip = Clip.new(suggestion.clipData());
+  await repo.save(clip);
+  await suggestionRepo.delete(input.suggestionId);
 
   return clip.toPrimitives();
 }

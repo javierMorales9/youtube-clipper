@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from "next/navigation";
 import { useTimer } from "@/app/_components/useTimer";
 import { useForm, FormProvider } from "react-hook-form";
 import { useMemo, useState } from "react";
@@ -15,6 +16,7 @@ import { Preview } from "./Preview";
 import { Menu } from "./Menu";
 import { TimelineWrapper } from "./TimelineWrapper";
 import { ClipType } from "@/server/entities/clip/domain/Clip";
+import Loading from "../../../../public/images/Loading.svg";
 
 export default function ClipEditor({
   source,
@@ -31,11 +33,15 @@ export default function ClipEditor({
   const timer = useTimer(end - start);
   const [showPreview, setShowPreview] = useState(false);
 
+  const [submitting, setSubmitting] = useState(false);
+
   const { mutateAsync: createClip } = api.clip.save.useMutation();
 
   const form = useForm<ClipType, null, undefined>({
     defaultValues: clip,
   });
+
+  const router = useRouter();
 
   const {
     selectedSection,
@@ -54,6 +60,8 @@ export default function ClipEditor({
   async function onSubmit() {
     const data = form.getValues();
 
+    setSubmitting(true);
+
     await createClip({
       id: clip.id,
       sourceId: source.id,
@@ -64,6 +72,8 @@ export default function ClipEditor({
       sections: data.sections,
       theme: data.theme,
     });
+
+    router.push(`/sources/${source.id}/`);
   }
 
   return (
@@ -92,10 +102,15 @@ export default function ClipEditor({
             />
           </div>
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+            className={`bg-blue-500 text-white px-4 py-2 rounded-lg ${submitting ? 'bg-blue-300' : 'bg-blue-500'}`}
             onClick={onSubmit}
+            disabled={submitting}
           >
-            Save
+            {submitting ? (
+              <Loading className="w-6 h-6 fill-white" />
+            ) : (
+              <span>Save</span>
+            )}
           </button>
         </div>
         <div className="h-[calc(100vh-90px)] flex flex-row gap-x-6 px-4">

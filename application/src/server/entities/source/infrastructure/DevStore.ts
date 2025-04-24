@@ -4,7 +4,7 @@ export const DevStore = {
       manifest: process.env.HLS
         ? `/api/dev/files/${key}/adaptive.m3u8`
         : `/api/dev/files/${key}/original.mp4`,
-      timeline: `/api/dev/files/${key}/timeline.png`,
+      timeline: `/api/dev/files/${key}/timeline`,
       snapshot: `/api/dev/files/${key}/snapshot.png`,
     };
   },

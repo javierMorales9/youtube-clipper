@@ -7,6 +7,7 @@ export type SelectedBlock = {
   id: string | null
   handleSide?: "left" | "right",
   range?: { start: number, end: number },
+  editable?: boolean,
 };
 
 export function useBlocks(inputClips: ClipType[], inputSuggestions: SuggestionType[]) {
@@ -18,7 +19,7 @@ export function useBlocks(inputClips: ClipType[], inputSuggestions: SuggestionTy
   const [suggestions, setSuggestions] = useState<SuggestionType[]>(inputSuggestions);
 
   const [selectedBlock, setSelectedBlock] = useState<SelectedBlock>(
-    { type: null, id: null, handleSide: undefined, range: undefined }
+    { type: null, id: null, handleSide: undefined, range: undefined, editable: false }
   );
 
   function setBlock(type: "clip" | "suggestion" | "selection", id?: string) {
@@ -29,6 +30,7 @@ export function useBlocks(inputClips: ClipType[], inputSuggestions: SuggestionTy
 
     if (type === "selection") {
       block.range = selection.range || undefined;
+      block.editable = true;
     }
 
     if (id) {
@@ -38,12 +40,14 @@ export function useBlocks(inputClips: ClipType[], inputSuggestions: SuggestionTy
         const clip = clips.find((clip) => clip.id === id);
         if (clip) {
           block.range = clip.range;
+          block.editable = !clip.processing;
         }
       }
       else if (type === "suggestion") {
         const suggestion = suggestions.find((suggestion) => suggestion.id === id);
         if (suggestion) {
           block.range = suggestion.range;
+          block.editable = true;
         }
       }
     }

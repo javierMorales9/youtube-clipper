@@ -4,6 +4,7 @@ import { PgEventRepository } from "@/server/entities/event/infrastructure/PgEven
 import { PgClipRepository } from "@/server/entities/clip/infrastructure/PgClipRepository";
 import * as clipCrud from "@/server/entities/clip/application/clipCrud";
 import * as clipProcessing from "@/server/entities/clip/application/clipProcessing";
+import { PgSuggestionRepository } from "../entities/suggestion/infrastructure/PgSuggestionRepository";
 
 export const clipRouter = createTRPCRouter({
   find: protectedProcedure
@@ -26,6 +27,14 @@ export const clipRouter = createTRPCRouter({
       const repo = new PgClipRepository(ctx.db);
 
       return await clipCrud.createNew(repo, ctx.company.id, input);
+    }),
+  createFromSuggestion: protectedProcedure
+    .input(clipCrud.CreateFromSuggestionInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const repo = new PgClipRepository(ctx.db);
+      const suggestionRepo = new PgSuggestionRepository(ctx.db);
+
+      return await clipCrud.createFromSuggestion(repo, suggestionRepo, input);
     }),
   save: protectedProcedure
     .input(ClipSchema)

@@ -7,7 +7,7 @@ export const S3Store = {
   getSignedUrls: async function (key: string) {
     return {
       manifest: `${env.CLOUDFRONT_URL}/${key}/adaptive.m3u8`,
-      timeline : `${env.CLOUDFRONT_URL}/${key}/timeline.png`,
+      timeline : `${env.CLOUDFRONT_URL}/${key}/timeline`,
       snapshot : `${env.CLOUDFRONT_URL}/${key}/snapshot.png`,
     };
   },

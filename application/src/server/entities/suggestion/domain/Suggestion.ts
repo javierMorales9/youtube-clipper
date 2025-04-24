@@ -43,6 +43,16 @@ export class Suggestion {
     this.range = range;
   }
 
+  clipData() {
+    return {
+      companyId: this.companyId,
+      sourceId: this.sourceId,
+      name: this.name,
+      start: this.range.start,
+      end: this.range.end,
+    }
+  }
+
   toPrimitives() {
     return {
       id: this.id,

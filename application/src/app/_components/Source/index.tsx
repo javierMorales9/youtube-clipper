@@ -138,7 +138,7 @@ function Menu({
   source: SourceType,
 }) {
   const router = useRouter();
-  const [view, setView] = useState<"clips" | "suggestions">("suggestions");
+  const [view, setView] = useState<"clips" | "suggestions">(clips.length > 0 ? "clips" : "suggestions");
   const [redirectingToClip, setRedirectingToClip] = useState(false);
 
   const toEditor = () => {
@@ -147,7 +147,9 @@ function Menu({
     if (selectedPanel.type === 'clip') {
       router.push(`/sources/${source.id}/clips/${selectedPanel.id}/`);
     }
-    else {
+    else if (selectedPanel.type === 'suggestion') {
+      router.push(`/sources/${source.id}/clips/new?suggestion=${selectedPanel.id}`);
+    } else {
       router.push(`/sources/${source.id}/clips/new?start=${selectedPanel.range.start}&end=${selectedPanel.range.end}`);
     }
 
@@ -190,9 +192,9 @@ function Menu({
               onClick={toEditor}
               className={`
                 text-white px-4 py-2 rounded-lg
-                ${selectedPanel.type !== null ? 'bg-blue-500' : 'bg-blue-200'}
+                ${selectedPanel.type !== null && selectedPanel.editable ? 'bg-blue-500' : 'bg-blue-200'}
               `}
-              disabled={selectedPanel.type === null || redirectingToClip}
+              disabled={selectedPanel.type === null || !selectedPanel.editable || redirectingToClip}
             >
               {redirectingToClip ? (
                 <Loading className="w-6 h-6 fill-white" />
@@ -241,15 +243,11 @@ function Menu({
               <button
                 key={clip.id}
                 className={`
-                      flex flex-row justify-between items-center cursor-pointer
+                      flex flex-row justify-between items-center 
                       p-2 w-full rounded border 
-                      ${(selectedPanel.id !== null && selectedPanel.id === clip.id) ?
-                    'bg-blue-100 border-blue-300'
-                    : 'bg-gray-100 border-gray-300'
-                  }
+                      ${(selectedPanel.id !== null && selectedPanel.id === clip.id) ? 'bg-blue-100 border-blue-300' : 'bg-gray-100 border-gray-300'}
                     `}
                 onClick={() => setPanel("clip", clip.id)}
-              //disabled={clip.processing}
               >
                 <div className="flex flex-col">
                   <span className="flex justify-start">
@@ -261,7 +259,8 @@ function Menu({
                 </div>
                 <div className="">
                   {clip.processing && (
-                    <div className="">
+                    <div className="flex flex-row gap-x-3 items-center">
+                      <span className="text-gray-400">Processing</span>
                       <Loading className="w-10 h-10 fill-gray-400" />
                     </div>
                   )}

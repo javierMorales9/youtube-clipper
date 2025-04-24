@@ -174,18 +174,20 @@ export class Clip {
   static new({
     sourceId,
     companyId,
+    name,
     start,
     end
   }: {
     sourceId: string;
     companyId: string;
+    name: string,
     start: number;
     end: number;
   }) {
     return new Clip({
       id: uuidv4(),
       companyId: companyId,
-      name: "New clip",
+      name,
       sourceId: sourceId,
       range: {
         start: start,
@@ -216,6 +218,8 @@ export class Clip {
     this.sections = input.sections;
     this.theme = input.theme;
     this.updatedAt = newDate();
+
+    this.processing = true;
   }
 
   toPrimitives() {

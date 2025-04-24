@@ -19,6 +19,20 @@ export class PgSuggestionRepository implements SuggestionRepository {
 
     return parseSuggestions(result);
   }
+
+  async find(id: string): Promise<Suggestion | null> {
+    const result = await this.db.query.suggestion.findFirst({
+      where: eq(suggestion.id, id)
+    });
+
+    if(!result) return null;
+
+    return parseSuggestion(result);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.db.delete(suggestion).where(eq(suggestion.id, id));
+  }
 }
 
 function parseSuggestion(source: SuggestionModel): Suggestion {
@@ -38,4 +52,3 @@ function parseSuggestion(source: SuggestionModel): Suggestion {
 function parseSuggestions(suggestions: SuggestionModel[]): Suggestion[] {
   return suggestions.map((suggestion) => parseSuggestion(suggestion));
 }
-

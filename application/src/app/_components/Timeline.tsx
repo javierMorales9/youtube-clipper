@@ -325,7 +325,7 @@ function Controls({
 
 function Reference({ reference }: { reference: number }) {
   return (
-    <span className="absolute bottom-0 z-1" style={{ left: reference }}>
+    <span className="absolute bottom-0 z-20" style={{ left: reference }}>
       <div className="w-[2px] h-[130px] bg-red-500"></div>
     </span>
   );
@@ -384,46 +384,6 @@ function Images({
   visibleTimelineWidth: number,
   source: SourceType,
 }) {
-  const image = useMemo(() => {
-    const image = new Image();
-    image.crossOrigin = 'anonymous'; // NECESARIO
-    image.src = imageUrl;
-
-    return image;
-  }, [imageUrl]);
-  const extractImage = (frameToExtract: number) => {
-    //It is a Filmstrip. With that we mean that it is a single image
-    //that contains all the frames of the video in a single row.
-    //The frames are vertically positioned.
-    //The width of the image is 240px and the height is 135 * n frames (n is the number of frames)
-    //The height of each frame is 135px.
-    //I want to generate a new image by extracting a single frame from the filmstrip.
-    //So If I want to extract the 3rd frame, I need to get the 3rd row of the image and get
-    //back a new 240x135 image.
-
-    const frameWidth = image.width; // E.g. 240px
-    const frameHeight = frameWidth * source.height! / source.width!; // E.g. 135px
-
-    const canvas = document.createElement('canvas');
-    canvas.width = frameWidth;
-    canvas.height = frameHeight;
-
-    const context = canvas.getContext('2d')!;
-    context.drawImage(
-      image,
-      0, // x position of the frame
-      frameHeight * frameToExtract, // y position of the frame
-      frameWidth, // width of the frame
-      frameHeight, // height of the frame
-      0, // x position of the canvas
-      0, // y position of the canvas
-      frameWidth, // width of the canvas
-      frameHeight // height of the canvas
-    );
-
-    return canvas.toDataURL();
-  };
-
   const imageHeight = useMemo(
     () => visibleTimelineWidth / NUMBER_OF_MARKS * source.height! / source.width!
     , [visibleTimelineWidth, source]
@@ -447,7 +407,7 @@ function Images({
               }}
             >
               <img
-                src={extractImage(Math.floor(offset) + section.second)}
+                src={`${imageUrl}_${Math.floor(offset) + section.second + 1}.jpg`}
                 alt="Timeline"
                 style={{
                   position: 'relative',

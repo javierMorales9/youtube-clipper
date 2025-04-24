@@ -206,7 +206,7 @@ function Captions({
 
   return (
     <div
-      className="absolute z-10 left-1/2 -translate-x-1/2 w-full p-5"
+      className="absolute z-30 left-1/2 -translate-x-1/2 w-full p-5"
       style={{
         top: previewHeight * theme.themePosition / 100,
       }}
