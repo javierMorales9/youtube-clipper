@@ -69,7 +69,6 @@ def generateHls(sys: System):
 
 
 def getVideoDuration(sys: System):
-    print("Getting video duration")
     process = sys.run(
         [
             "ffprobe",
@@ -80,9 +79,15 @@ def getVideoDuration(sys: System):
             "-of",
             "default=noprint_wrappers=1:nokey=1",
             sys.path("original.mp4"),
-        ],
+        ]
     )
     stdout = process[0]
+    stderr = process[1]
+    if(stderr):
+        print("Error getting video duration", stderr)
+        return 0
+
+    print("Getting video duration", stdout)
     duration = float(stdout)
 
     return duration
