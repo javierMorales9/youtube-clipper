@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "../_components/common/Button";
 import { api } from "@/trpc/react";
 import Link from "next/link";
+import { Loader } from "lucide-react";
 import Cookies from 'universal-cookie';
 
 export default function Login() {
