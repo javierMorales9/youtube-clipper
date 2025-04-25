@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { env } from "@/env";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3, UploadPartCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3, UploadPartCommand } from "@aws-sdk/client-s3";
 import { Store } from "../domain/Store";
 
 export const S3Store: Store = {
@@ -80,6 +80,13 @@ export const S3Store: Store = {
     return Location;
   },
   getClipFileURL: async function (sourceId: string, clipId: string) {
-    return `${env.CLOUDFRONT_URL}/${sourceId}/${clipId}.mp4`;
+    const s3 = new S3({ region: env.AWS_REGION });
+    const command = new GetObjectCommand({
+      Bucket: env.SOURCE_BUCKET,
+      Key: `${sourceId}/${clipId}.mp4`,
+    })
+    const signedUrl = await getSignedUrl(s3, command);
+
+    return signedUrl;
   },
 };
