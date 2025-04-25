@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from "react";
+import { useRouter } from 'next/navigation'
 import { NewInput } from "../_components/common/NewInput";
 import { useForm } from "react-hook-form";
 import { Button } from "../_components/common/Button";
@@ -22,19 +24,30 @@ export default function Login() {
     }
   });
 
-  const { mutateAsync : createCompany } = api.company.create.useMutation()
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { mutateAsync: createCompany } = api.company.create.useMutation()
 
   const handleSubmit = async (data: FormValues) => {
-    const company = await createCompany(data);
+    setLoading(true);
+    try {
+      const company = await createCompany(data);
 
-    const cookies = new Cookies(null, { path: '/' });
+      const cookies = new Cookies(null, { path: '/' });
 
-    cookies.set('token', company.token);
+      cookies.set('token', company.token);
+      router.push('/');
+    } catch (e) {
+      setError((e as Error).message);
+      setLoading(false);
+    }
   };
 
 
   return (
     <div className="flex flex-col">
+      {error && <span className="text-red-500">{error}</span>}
       <NewInput
         label="Name"
         placeholder="Enter company name"
@@ -54,7 +67,7 @@ export default function Login() {
         {...form.register("password")}
       />
       <Button onClick={form.handleSubmit(handleSubmit)}>
-        Sign up
+        {!loading ? 'Sign up' : <Loader />}
       </Button>
       <span className="text-sm text-gray-500">
         Already have an account? <Link href="/login" className="text-blue-500">Log in</Link>
