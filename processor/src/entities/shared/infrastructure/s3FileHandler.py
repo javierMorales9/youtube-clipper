@@ -28,8 +28,8 @@ class S3FileHandler:
         my_bucket = self.getBucket()
 
         # Upload files int tmp/{sourceId} to S3
+        print("Uploading files")
         for file in os.listdir(self.path):
-            print(f"File: {file}")
             if file in self.baseFiles and not self.uploadBaseFiles:
                 continue
 
