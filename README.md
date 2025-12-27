@@ -1,19 +1,12 @@
 # YouTube Clipper — Submagic-style clip maker
 
-## Overview
-
 YouTube Clipper is a **Submagic clone** built as a side project to learn how short-form video tools are engineered: ingesting long-form YouTube videos, defining vertical clip edits, and producing ready-to-publish outputs (e.g., Shorts/TikTok). The core challenge is not “cutting a video”, but orchestrating a pipeline that deals with large media files, asynchronous processing, deterministic rendering, and a UI that can preview and serialize edits.
 
 The project is also a **learning playground for embeddings and AI workflows**. The pipeline is designed to support transcription + embeddings and use them as building blocks for features like semantic search, segment suggestion/ranking, and other AI-assisted editing flows. The stack intentionally resembles a realistic system: a Next.js app (UI + API), PostgreSQL for persistent state, object storage for large assets, and a separate processor service for long-running video work.
 
 ## How it works
 
-This section walks through the end-to-end flow using the UI screens in `docs/`:
-
-- `docs/sources.png`
-- `docs/suggestions.png`
-- `docs/create_clip.png`
-- `docs/final_clip.png`
+This section walks through the end-to-end flow using the UI screens:
 
 ### 1) Sources (ingest a long video)
 
@@ -40,8 +33,6 @@ This section walks through the end-to-end flow using the UI screens in `docs/`:
 - The processor calls **OpenAI** to generate a **transcript** for the source video.
 - The transcript is chunked and the processor calls **OpenAI** again to generate **embeddings** per chunk.
 - Embeddings are used to build suggestion candidates (semantic retrieval + ranking), producing time ranges and summaries that the UI can display.
-
-> `OPENAI_API_KEY` is required because transcription and embeddings are mandatory for this flow.
 
 ### 3) Create clip (define a vertical edit)
 
@@ -144,22 +135,6 @@ ENV=dev poetry run python3 src/main.py
 
 > The processor needs **yt-dlp** and **ffmpeg** available in its runtime environment. If you are running it outside Docker, make sure they are installed and on PATH. FFmpeg must be compiled with **libx264** and **libass**. Check `processor/Dockerfile` for a working build recipe.
 
-### Production / “prod-like” (Docker Compose)
-
-The repo includes a top-level `docker-compose.yml`. The intended flow is:
-
-```bash
-docker compose up -d --build
-docker compose logs -f
-```
-
-Typical services:
-- Postgres
-- application (Next.js)
-- processor (Python)
-
-> If your compose file uses S3/CloudFront, either point it to real AWS resources or swap in a local alternative. The app is designed around object storage semantics.
-
 ## Environment variables
 
 **Do not commit real secrets.** Use `.env` files locally and your platform secret manager in production.  
@@ -214,6 +189,22 @@ CLOUDFRONT_URL="https://your-distribution.cloudfront.net"
 # Required: transcription + embeddings
 OPENAI_API_KEY="..."
 ```
+
+## Production / “prod-like” (Docker Compose)
+
+The repo includes a top-level `docker-compose.yml`. The intended flow is:
+
+```bash
+docker compose up -d --build
+docker compose logs -f
+```
+
+Typical services:
+- Postgres
+- application (Next.js)
+- processor (Python)
+
+> If your compose file uses S3/CloudFront, either point it to real AWS resources or swap in a local alternative. The app is designed around object storage semantics.
 
 ## Processor image notes (FFmpeg from source)
 
