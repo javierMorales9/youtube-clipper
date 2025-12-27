@@ -7,41 +7,44 @@ services:
       - ~/apps/postgres:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=pass
-
       - POSTGRES_DB=db
-#  app:
-#    image: app
-#    network_mode: "host"
-#    build:
-#      context: app
-#      target: test
-#    ports:
-#      - 3000:3000
-#    environment:
-#      - NODE_ENV=production
-#      - HLS=true
-#      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
-#      - AWS_REGION=eu-west-1
-#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-#      - SOURCE_BUCKET=${SOURCE_BUCKET}
+  app:
+    image: app
+    network_mode: "host"
+    build:
+      context: application
+      target: prod
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - HLS=true
+      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
+      - SECRET=${SECRET}
+      - AWS_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - SOURCE_BUCKET=${SOURCE_BUCKET}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
 #    depends_on:
 #      - db
-#  processor:
-#    image: processor
-#    network_mode: "host"
-#    build:
-#      context: processor
-#    environment:
-#      - ENV=prod
-#      - FILES_PATH=/tmp
-#      - FONTS_PATH=./processor/public/fonts
-#      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
-#      - OPENAI_API_KEY=${OPENAI_API_KEY}
-#      - AWS_REGION=eu-west-1
-#      - SOURCE_BUCKET=${SOURCE_BUCKET}
-#      - HOST_NAME=0.0.0.0
-#      - PORT=23336
+  processor:
+    image: processor
+    network_mode: "host"
+    build:
+      context: processor
+    environment:
+      - ENV=prod
+      - FILES_PATH=/tmp
+      - FONTS_PATH=./processor/public/fonts
+      - DATABASE_URL=postgresql://user:pass@localhost:5432/db
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AWS_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - SOURCE_BUCKET=${SOURCE_BUCKET}
+      - HOST_NAME=0.0.0.0
+      - PORT=23336
 #    extra_hosts:
 #      - "internal:host-gateway"
 #    depends_on:

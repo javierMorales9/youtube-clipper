@@ -38,7 +38,7 @@ export class ProdVideoRepository implements VideoRepository {
 
       const video = videos[0];
 
-      if(!video) {
+      if (!video) {
         return null;
       }
 

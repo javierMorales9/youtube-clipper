@@ -34,6 +34,7 @@ def main():
         load_dotenv()
 
     dbUrl = os.environ["DATABASE_URL"]
+    print('No jodas', dbUrl)
     engine = create_engine(dbUrl)
 
     # We start a new thread for a server that will just return a status ok

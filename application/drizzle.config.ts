@@ -4,11 +4,14 @@ import { env } from "@/env";
 
 export default {
   schema: "./src/server/db/schema.ts",
-  dialect: "postgresql",
+  //dialect: "postgresql",
   out: "./src/server/db/migrations",
+  /*
   dbCredentials: {
     url: env.DATABASE_URL,
   },
+  */
+  connectionString: env.DATABASE_URL,
   tablesFilter: [""],
 } satisfies Config;
 

@@ -13,8 +13,8 @@ WORKDIR /app
 RUN mkdir /opt/python3.12
 
 # To avoid .pyc files and save space
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install all dependecnies you need to compile Python3.12
 RUN apt update

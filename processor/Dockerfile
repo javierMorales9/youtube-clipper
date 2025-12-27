@@ -1,4 +1,5 @@
-FROM ubuntu:oracular AS base
+FROM ubuntu:24.04 AS base
+
 #
 # Update and upgrade the system
 #
