@@ -9,7 +9,7 @@ class ProdVideoDownloader:
     def downloadVideo(self, url: str):
         print(f"Downloading video from {url} to {self.path}")
 
-        self.sys.run(
+        stdout, stderr, returncode = self.sys.run(
             [
                 "yt-dlp",
                 "-S",
@@ -21,5 +21,9 @@ class ProdVideoDownloader:
                 self.path,
             ], silent=False
         )
+
+        if returncode != 0 or not self.sys.fileExist("original.mp4"):
+            error = stderr or stdout or "yt-dlp did not create original.mp4"
+            raise RuntimeError(f"Error downloading video: {error}")
 
         print("Finished downloading video")
